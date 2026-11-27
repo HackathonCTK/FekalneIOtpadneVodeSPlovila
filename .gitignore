@@ -1,0 +1,4 @@
+# Lokalna baza karata grupe 3 (velika, generira se s npm run setup)
+data/*.mbtiles
+tools/
+node_modules/
