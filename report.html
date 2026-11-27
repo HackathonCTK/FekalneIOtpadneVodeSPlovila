@@ -331,19 +331,44 @@
   }
 
   compassBtn.addEventListener("click", function(){
+    // The Device Orientation API only works in a secure context (HTTPS, or
+    // localhost). On file:// or plain http:// it fails silently with no
+    // error, which looks exactly like "the compass does nothing" — so warn
+    // about that case explicitly instead of just doing nothing.
+    if(!window.isSecureContext){
+      showToast("Kompas radi samo na HTTPS stranici (npr. na GitHub Pages), ne lokalno iz datoteke. Unesite smjer ručno.");
+      return;
+    }
+
+    var gotReading = false;
+    var onFirstReading = function(e){
+      gotReading = true;
+      onOrientation(e);
+    };
+
+    function attachListeners(){
+      window.addEventListener("deviceorientationabsolute", onFirstReading);
+      window.addEventListener("deviceorientation", onFirstReading);
+      showToast("Kompas aktivan — okrenite telefon prema brodu.");
+      // If no sensor event arrives at all, the device likely has none —
+      // tell the user instead of leaving the button looking inert.
+      setTimeout(function(){
+        if(!gotReading){
+          showToast("Nema očitanja sa senzora smjera na ovom uređaju. Unesite smjer ručno.");
+        }
+      }, 4000);
+    }
+
     if(typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function"){
       DeviceOrientationEvent.requestPermission().then(function(state){
         if(state === "granted"){
-          window.addEventListener("deviceorientation", onOrientation);
-          showToast("Kompas aktivan — okrenite telefon prema brodu.");
+          attachListeners();
         } else {
           showToast("Pristup senzoru smjera nije odobren. Unesite smjer ručno.");
         }
       }).catch(function(){ showToast("Senzor smjera nije dostupan. Unesite smjer ručno."); });
     } else if("ondeviceorientationabsolute" in window || "ondeviceorientation" in window){
-      window.addEventListener("deviceorientationabsolute", onOrientation);
-      window.addEventListener("deviceorientation", onOrientation);
-      showToast("Kompas aktivan — okrenite telefon prema brodu.");
+      attachListeners();
     } else {
       showToast("Ovaj uređaj nema senzor smjera. Unesite smjer ručno.");
     }
