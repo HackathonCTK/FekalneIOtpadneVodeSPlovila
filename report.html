@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="hr" data-theme="ocean">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ČistoMore – Nova prijava</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- ===== TOP BAR ===== -->
+  <header class="topbar">
+    <div class="topbar-row">
+      <div class="brand">
+        <div class="brand-badge">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17c1.5 1 3 1 4.5 0s3-1 4.5 0 3 1 4.5 0 3-1 4.5 0"/><path d="M3 21c1.5 1 3 1 4.5 0s3-1 4.5 0 3 1 4.5 0 3-1 4.5 0"/><path d="M5 17V9a2 2 0 0 1 2-2h2V4h6v3h2a2 2 0 0 1 2 2v8"/><path d="M9 11h6"/></svg>
+        </div>
+        <div>
+          <div class="brand-name">ČistoMore</div>
+          <div class="brand-sub">Obrazac za prijavu</div>
+        </div>
+      </div>
+      <a class="icon-btn" href="index.html" aria-label="Natrag na početnu">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </a>
+    </div>
+    <div class="page-title">Nova prijava</div>
+    <div class="page-sub">Prijavite ispuštanje otpadnih voda ili fekalija</div>
+    <svg class="wave" viewBox="0 0 400 40" preserveAspectRatio="none"><path d="M0 20 Q 50 0 100 20 T 200 20 T 300 20 T 400 20 V40 H0 Z" fill="rgba(255,255,255,0.14)"/></svg>
+  </header>
+
+  <!-- ===== SIDE NAV (desktop) ===== -->
+  <nav class="sidenav" aria-label="Glavna navigacija">
+    <a class="nav-item" href="index.html">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
+      <span class="nlabel">Početna</span>
+    </a>
+    <a class="nav-item" href="map.html">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20 3 17V4l6 3m0 13 6-3m-6 3V7m6 10 6 3V7l-6-3m0 16V4m0 3-6-3"/></svg>
+      <span class="nlabel">Karta</span>
+    </a>
+    <a class="nav-fab active" href="report.html">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      <span>Nova prijava</span>
+    </a>
+    <a class="nav-item" href="book.html">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
+      <span class="nlabel">Dnevnik</span>
+    </a>
+    <a class="nav-item" href="profile.html">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 6-6 8-6s6.5 2 8 6"/></svg>
+      <span class="nlabel">Profil</span>
+    </a>
+  </nav>
+
+  <div class="content">
+    <div class="section-title">Podaci o ispuštanju</div>
+    <div class="card">
+      <form id="reportForm">
+        <div class="field">
+          <label>Vrsta otpada</label>
+          <div class="seg" id="wasteSeg">
+            <button type="button" class="active" data-val="otpadne">Otpadne vode</button>
+            <button type="button" data-val="fekalije">Fekalije</button>
+            <button type="button" data-val="mjesovito">Mješovito</button>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="shipName">Naziv broda</label>
+            <input id="shipName" type="text" placeholder="npr. Adriana Star" required>
+          </div>
+          <div class="field">
+            <label for="imo">IMO broj</label>
+            <input id="imo" type="text" placeholder="npr. 9123456" required>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="qty">Količina (m³)</label>
+            <input id="qty" type="number" min="0" step="0.1" placeholder="0.0" required>
+          </div>
+          <div class="field">
+            <label for="datetime">Datum i vrijeme</label>
+            <input id="datetime" type="datetime-local" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="location">Luka / sidrište</label>
+          <input id="location" type="text" placeholder="npr. Luka Split ili GPS koordinate">
+        </div>
+
+        <div class="field">
+          <label for="method">Način zbrinjavanja</label>
+          <select id="method">
+            <option>Lučka prihvatna stanica</option>
+            <option>Ovlašteni brod sakupljač</option>
+            <option>Pročišćavanje na brodu (MSD)</option>
+            <option>Drugo</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="notes">Napomena</label>
+          <textarea id="notes" placeholder="Dodatne informacije o prijavi..."></textarea>
+        </div>
+
+        <div class="field">
+          <label>Fotografija / dokumentacija (opcionalno)</label>
+          <div class="file-drop" id="fileDrop">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 4px; display:block;"><path d="M12 16V4m0 0 4 4m-4-4-4 4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+            Dodirnite za učitavanje slike ili dokumenta
+            <div class="fname" id="fname"></div>
+            <input id="fileInput" type="file" accept="image/*,.pdf">
+          </div>
+        </div>
+
+        <button type="submit" class="btn primary">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/></svg>
+          Pošalji prijavu
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== BOTTOM NAV (mobile) ===== -->
+  <nav class="bottomnav" aria-label="Glavna navigacija">
+    <a class="nav-item" href="index.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
+      <span class="nlabel">Početna</span>
+    </a>
+    <a class="nav-item" href="map.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20 3 17V4l6 3m0 13 6-3m-6 3V7m6 10 6 3V7l-6-3m0 16V4m0 3-6-3"/></svg>
+      <span class="nlabel">Karta</span>
+    </a>
+    <a class="nav-fab active" href="report.html" aria-label="Nova prijava">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    </a>
+    <a class="nav-item" href="book.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
+      <span class="nlabel">Dnevnik</span>
+    </a>
+    <a class="nav-item" href="profile.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 6-6 8-6s6.5 2 8 6"/></svg>
+      <span class="nlabel">Profil</span>
+    </a>
+  </nav>
+
+  <div class="toast" id="toast"></div>
+</div>
+<script src="app.js"></script>
+<script>
+  // Waste type segmented control
+  var seg = document.getElementById("wasteSeg");
+  seg.querySelectorAll("button").forEach(function(b){
+    b.addEventListener("click", function(){
+      seg.querySelectorAll("button").forEach(function(x){ x.classList.remove("active"); });
+      b.classList.add("active");
+    });
+  });
+
+  // File input preview name
+  var fileInput = document.getElementById("fileInput");
+  fileInput.addEventListener("change", function(){
+    var f = fileInput.files && fileInput.files[0];
+    document.getElementById("fname").textContent = f ? f.name : "";
+  });
+
+  // Report form submit (demo only — no backend)
+  var form = document.getElementById("reportForm");
+  form.addEventListener("submit", function(e){
+    e.preventDefault();
+    var ship = document.getElementById("shipName").value || "brod";
+    showToast("Prijava za " + ship + " je uspješno poslana.");
+    form.reset();
+    document.getElementById("fname").textContent = "";
+    seg.querySelectorAll("button").forEach(function(x,i){ x.classList.toggle("active", i===0); });
+  });
+</script>
+</body>
+</html>
