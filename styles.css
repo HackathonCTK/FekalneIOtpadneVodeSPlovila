@@ -423,6 +423,8 @@ body{ font-family:var(--font-body); -webkit-font-smoothing:antialiased; }
 [data-theme="ocean"] .badge.ok{ color:color-mix(in srgb, var(--success) 55%, var(--text)); }
 [data-theme="ocean"] .badge.wait{ color:color-mix(in srgb, var(--warning) 50%, var(--text)); }
 .field-row > *{ min-width:0; }
+/* Vrlo uski zasoni: gumb u gornjoj traci se skriva da stanu prekidači (Početna je u donjoj navigaciji) */
+@media (max-width:359px){ .topbar-row > .icon-btn{ display:none; } }
 .brand-name, .page-title, .stat-num, .qa-title, .list-title, .card h2, .card h3,
 .content h1, .content h2, .content h3{ font-family:var(--font-display); }
 .page-title{ font-weight:800; letter-spacing:-.02em; font-size:23px; }

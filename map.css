@@ -38,6 +38,23 @@
   --map-accent-bg-hover: var(--accent);
   --map-hover: #111b30;
 }
+/* Tamni način (paleta A „Dubina“). Kontrast: tekst #E8F4F2 i prigušeni #8FB3B0 na #0B2A36 / #123E4D
+   10,3:1 i 5,1:1 ili više; tamni tekst na tirkiznom gumbu 8,6:1; poveznice #9EF0E0 8,8:1 ili više. */
+[data-theme="dubina"]{
+  --map-accent-fg: var(--bg);
+  --map-accent-bg-hover: var(--accent);
+  --map-link: var(--accent);
+  --map-muted: var(--text-muted);
+  --map-hover: #123E4D;
+  --map-user: var(--warning);
+  --map-user-halo: rgba(255,181,71,.28);
+}
+
+/* Podloga OpenStreetMapa u tamnim temama malo prigušena; markeri, skupine i oznake ostaju pune boje. */
+[data-theme="dubina"] .leaflet-tile,
+[data-theme="deepsea"] .leaflet-tile,
+[data-theme="midnight"] .leaflet-tile{ filter:brightness(.78) contrast(1.05) saturate(.85); }
+[data-theme="dubina"] .sheet-backdrop{ background:rgba(0,8,12,.62); }
 
 .visually-hidden{
   position:absolute; width:1px; height:1px; padding:0; margin:-1px;
@@ -48,6 +65,9 @@ h1.page-title{ line-height:1.25; }
 /* styles.css ne skriva bočni izbornik ispod 860px (vidljiv je na svim stranicama).
    Ovdje se skriva samo na stranici karte; na mobitelu postoji donji izbornik. */
 @media (max-width:859px){ .sidenav{ display:none; } }
+/* Na vrlo uskim zaslonima (ispod 360px) gornji red s prekidačima ne stane uz strelicu natrag;
+   Početna je ionako u donjem izborniku. */
+@media (max-width:359px){ .topbar-row > .icon-btn{ display:none; } }
 
 /* styles.css postavlja html i body na visinu prozora. Na stranici dužoj od prozora to ima dvije posljedice:
    1) pozadinski prijelaz se ponavlja svakih "visina prozora" pa se pri pomicanju vidi rub;
@@ -124,8 +144,9 @@ html{ min-height:100%; }
 @keyframes map-spin{ to{ transform:rotate(360deg); } }
 @media (prefers-reduced-motion: reduce){ .map-btn.busy svg{ animation:none; } }
 
-.map-btn:focus-visible, .sheet-close:focus-visible, .sheet-link:focus-visible, .link-btn:focus-visible{
-  outline:2px solid var(--primary); outline-offset:2px;
+.map-btn:focus-visible, .sheet-close:focus-visible, .sheet-link:focus-visible, .link-btn:focus-visible,
+.guide-more:focus-visible{
+  outline:2px solid var(--focus, var(--primary)); outline-offset:2px;
 }
 @media (max-width:340px){
   .map-btn.primary span{ display:none; }
@@ -171,7 +192,17 @@ html{ min-height:100%; }
   padding:24px; text-align:center; color:var(--map-muted); font-size:13.5px; line-height:1.5;
 }
 .leaflet-container{ font:inherit; }
-.leaflet-tooltip{ font-size:12.5px; font-weight:600; }
+.leaflet-tooltip{
+  font-size:12.5px; font-weight:600;
+  background:var(--surface); color:var(--text); border:1px solid var(--border);
+  box-shadow:0 2px 8px rgba(0,0,0,.25);
+}
+.leaflet-tooltip-top:before{ border-top-color:var(--surface); }
+.leaflet-tooltip-bottom:before{ border-bottom-color:var(--surface); }
+.leaflet-tooltip-left:before{ border-left-color:var(--surface); }
+.leaflet-tooltip-right:before{ border-right-color:var(--surface); }
+.map .leaflet-control-attribution{ background:var(--surface); color:var(--map-muted); opacity:.92; }
+.map .leaflet-control-attribution a{ color:var(--map-link); }
 
 /* Gumbi za zumiranje u bojama teme */
 .map .leaflet-bar{
@@ -245,8 +276,15 @@ html{ min-height:100%; }
 .map-note{ margin:8px 4px 0; font-size:12.5px; line-height:1.45; color:var(--map-muted); }
 
 /* ---------- Upute (kartica ispod karte) ---------- */
+.guide-block{ margin-top:16px; }
+.guide-more{
+  display:inline-flex; align-items:center; min-height:32px; margin:6px 4px 0;
+  color:var(--map-link); font-size:13.5px; font-weight:700;
+  text-decoration:underline; text-underline-offset:2px;
+}
+.guide-more:hover{ color:var(--text); }
 .guide-card{
-  display:flex; align-items:center; gap:12px; width:100%; margin-top:16px;
+  display:flex; align-items:center; gap:12px; width:100%; margin-top:0;
   padding:14px 12px 14px 16px; text-align:left; cursor:pointer;
   color:var(--text); font:inherit;
   transition:background-color .15s ease, border-color .15s ease;
@@ -343,6 +381,12 @@ html{ min-height:100%; }
 .sheet-dl dt{ color:var(--map-muted); }
 .sheet-dl dd{ margin:0; min-width:0; overflow-wrap:anywhere; }
 .sheet-link{ color:var(--map-link); font-weight:600; text-decoration:underline; text-underline-offset:2px; }
+.sheet-link:hover{ color:var(--text); }
+.sheet-section p.sheet-links{ display:flex; flex-wrap:wrap; align-items:center; gap:8px 20px; }
+.sheet-links .link-btn{ font-size:14px; }
+.sheet-section p.sheet-hint{ font-size:12.5px; }
+.sheet-title, .sheet-section h3, .list-heading, .group-title, .nearest-title{ font-family:var(--font-display, inherit); }
+.list-count, .group-count{ font-family:var(--font-mono, inherit); font-size:12px; }
 
 /* Dodatne usluge: običan popis u dva stupca */
 .sheet-tags{ columns:2; column-gap:16px; margin:0; padding:0; list-style:none; font-size:14px; line-height:1.45; }

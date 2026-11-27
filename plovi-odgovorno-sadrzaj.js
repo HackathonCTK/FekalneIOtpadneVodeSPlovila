@@ -187,12 +187,12 @@ window.PO_CONTENT = {
       },
       stations: {
         title: "Primjeri stanica",
-        demo: "Demo podaci. Stvarne stanice i radno vrijeme prikazuje karta prihvatnih stanica.",
+        demo: "Četiri stanice iz baze karte (grupa 2). Uslugu i radno vrijeme prije dolaska potvrdi s marinom.",
         items: [
-          { id: "split", n: "Prihvatna stanica Split", p: "Gradska luka", h: "08–20 h" },
-          { id: "zadar", n: "Prihvatna stanica Zadar", p: "Marina", h: "07–21 h" },
-          { id: "rijeka", n: "Prihvatna stanica Rijeka", p: "Putnička luka", h: "08–18 h" },
-          { id: "pula", n: "Prihvatna stanica Pula", p: "Marina", h: "08–19 h" }
+          { id: "HR-ROVINJ-ACI", n: "ACI marina Rovinj", p: "Istra", h: "Radno vrijeme: na karti" },
+          { id: "HR-ICICI-ACI-OPATIJA", n: "ACI marina Opatija", p: "Kvarner · Ičići", h: "Radno vrijeme: na karti" },
+          { id: "HR-SUKOSAN-DALMACIJA", n: "Marina Dalmacija", p: "Sjeverna Dalmacija · Sukošan", h: "08–16 h" },
+          { id: "HR-TROGIR-BRODOTROGIR", n: "Marina Trogir (Brodotrogir)", p: "Srednja Dalmacija · Trogir", h: "Radno vrijeme: na karti" }
         ],
         open: "Otvori kartu stanica",
         onMap: "Prikaži na karti"
@@ -444,12 +444,12 @@ window.PO_CONTENT = {
       },
       stations: {
         title: "Example stations",
-        demo: "Demo data. The pump-out station map shows real stations and opening hours.",
+        demo: "Four stations from the map database (group 2). Confirm the service and hours with the marina before you go.",
         items: [
-          { id: "split", n: "Pump-out station Split", p: "City harbour", h: "08–20" },
-          { id: "zadar", n: "Pump-out station Zadar", p: "Marina", h: "07–21" },
-          { id: "rijeka", n: "Pump-out station Rijeka", p: "Passenger port", h: "08–18" },
-          { id: "pula", n: "Pump-out station Pula", p: "Marina", h: "08–19" }
+          { id: "HR-ROVINJ-ACI", n: "ACI marina Rovinj", p: "Istria", h: "Hours: see map" },
+          { id: "HR-ICICI-ACI-OPATIJA", n: "ACI marina Opatija", p: "Kvarner · Ičići", h: "Hours: see map" },
+          { id: "HR-SUKOSAN-DALMACIJA", n: "Marina Dalmacija", p: "Northern Dalmatia · Sukošan", h: "08–16" },
+          { id: "HR-TROGIR-BRODOTROGIR", n: "Marina Trogir (Brodotrogir)", p: "Central Dalmatia · Trogir", h: "Hours: see map" }
         ],
         open: "Open the station map",
         onMap: "Show on map"
