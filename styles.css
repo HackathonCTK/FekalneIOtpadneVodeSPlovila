@@ -293,6 +293,9 @@ button{ font-family:inherit; }
 .compass-deg{ font-weight:800; font-size:17px; }
 .hint{ font-size:11.5px; color:var(--text-muted); margin-top:2px; margin-bottom:4px; }
 
+/* ---------- SIDE NAV (hidden by default; shown only on desktop below) ---------- */
+.sidenav{ display:none; }
+
 /* ---------- BOTTOM NAV (mobile) ---------- */
 .bottomnav{
   position:fixed; left:0; right:0; bottom:0; z-index:30;
