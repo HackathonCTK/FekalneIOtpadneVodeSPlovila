@@ -1,0 +1,4 @@
+data/*
+!data/.gitkeep
+tools/
+node_modules/
