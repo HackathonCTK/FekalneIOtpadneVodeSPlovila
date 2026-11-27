@@ -1,23 +1,12 @@
 <!DOCTYPE html>
-<html lang="hr" data-theme="dubina">
+<html lang="hr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#04141C">
 <title>ČistoMore – Plovi odgovorno</title>
 <meta name="description" content="Interaktivni vodič za nautičare: zašto i kako pravilno zbrinuti fekalne i otpadne vode s plovila.">
-<script>
-  /* Light (paleta D) ili dark (paleta A): spremljeni izbor, inače postavka uređaja. Prije crtanja, bez bljeska. */
-  (function () {
-    var root = document.documentElement, m = null, theme = null;
-    try { m = localStorage.getItem("po-mode"); theme = localStorage.getItem("cm-theme"); } catch (e) {}
-    if (m !== "light" && m !== "dark") m = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
-    root.setAttribute("data-po-mode", m);
-    root.classList.add("js");
-    // Zajednička navigacija prati način stranice, osim ako je na Profilu izabrana tema
-    if (!theme) root.setAttribute("data-theme", m === "light" ? "ocean" : "dubina");
-  })();
-</script>
+<script src="cm-boot.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=JetBrains+Mono:wght@400;600&family=Manrope:wght@400;600;700&display=swap">
@@ -53,37 +42,8 @@
   </div>
 </header>
 
-<!-- ===== BOČNA NAVIGACIJA (računalo) — iste poveznice kao index.html ===== -->
-<nav class="sidenav" aria-label="Glavna navigacija" data-i18n-aria="nav.main">
-  <a class="nav-item" href="index.html">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
-    <span class="nlabel" data-i18n="nav.home">Početna</span>
-  </a>
-  <a class="nav-item" href="map.html">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 20 3 17V4l6 3m0 13 6-3m-6 3V7m6 10 6 3V7l-6-3m0 16V4m0 3-6-3"/></svg>
-    <span class="nlabel" data-i18n="nav.map">Karta</span>
-  </a>
-  <a class="nav-fab" href="report.html">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-    <span class="nlabel" data-i18n="nav.report">Nova prijava</span>
-  </a>
-  <a class="nav-item" href="book.html">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
-    <span class="nlabel" data-i18n="nav.log">Dnevnik</span>
-  </a>
-  <a class="nav-item active" href="plovi-odgovorno.html" aria-current="page">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v14"/><path d="M12 4l7 11h-7"/><path d="M10 7l-5 8h5"/><path d="M3 18h18l-2 3H5z"/></svg>
-    <span class="nlabel" data-i18n="nav.plovi">Plovi odgovorno</span>
-  </a>
-  <a class="nav-item" href="obrada.html">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="m9 13 2 2 4-4"/></svg>
-    <span class="nlabel" data-i18n="nav.obrada">Obrada prijava</span>
-  </a>
-  <a class="nav-item" href="profile.html">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 6-6 8-6s6.5 2 8 6"/></svg>
-    <span class="nlabel" data-i18n="nav.profile">Profil</span>
-  </a>
-</nav>
+<!-- ===== NAVIGACIJA: generira app.js (ista na svim stranicama) ===== -->
+<nav class="sidenav" data-cm-nav="plovi"></nav>
 
 <main class="po">
 
@@ -306,28 +266,7 @@
   </div>
 </footer>
 
-<!-- ===== DONJA NAVIGACIJA (mobitel) — iste poveznice kao index.html ===== -->
-<nav class="bottomnav" aria-label="Glavna navigacija" data-i18n-aria="nav.main">
-  <a class="nav-item" href="index.html">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
-    <span class="nlabel" data-i18n="nav.home">Početna</span>
-  </a>
-  <a class="nav-item" href="map.html">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 20 3 17V4l6 3m0 13 6-3m-6 3V7m6 10 6 3V7l-6-3m0 16V4m0 3-6-3"/></svg>
-    <span class="nlabel" data-i18n="nav.map">Karta</span>
-  </a>
-  <a class="nav-fab" href="report.html" aria-label="Nova prijava" data-i18n-aria="nav.report">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-  </a>
-  <a class="nav-item active" href="plovi-odgovorno.html" aria-current="page">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v14"/><path d="M12 4l7 11h-7"/><path d="M10 7l-5 8h5"/><path d="M3 18h18l-2 3H5z"/></svg>
-    <span class="nlabel" data-i18n="nav.ploviShort">Plovi</span>
-  </a>
-  <a class="nav-item" href="profile.html">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 6-6 8-6s6.5 2 8 6"/></svg>
-    <span class="nlabel" data-i18n="nav.profile">Profil</span>
-  </a>
-</nav>
+<nav class="bottomnav" data-cm-nav="plovi"></nav>
 
 <div class="toast" id="toast" role="status"></div>
 

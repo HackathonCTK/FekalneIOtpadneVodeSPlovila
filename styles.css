@@ -450,7 +450,8 @@ body{ font-family:var(--font-body); -webkit-font-smoothing:antialiased; }
 @media (max-width:380px){ .brand-sub{ display:none; } .cm-lang button{ min-width:34px; padding:6px 7px; } }
 
 /* Animacije u stilu grupe 4: blagi ulazak sadržaja, val u gornjoj traci, podizanje kartica */
-@keyframes cm-rise{ from{ opacity:0; transform:translateY(12px); } to{ opacity:1; transform:none; } }
+/* Samo pomak (bez opacity:0), da sadržaj nikad ne ostane nevidljiv ako se animacija ne izvrši */
+@keyframes cm-rise{ from{ transform:translateY(12px); } to{ transform:none; } }
 @keyframes cm-wave{ 50%{ transform:translateY(3px) scaleY(1.15); } }
 .wave path{ transform-origin:50% 100%; animation:cm-wave 6s ease-in-out infinite; }
 .content > *, .stat, .qa-btn{ animation:cm-rise .55s cubic-bezier(.2,.7,.2,1) both; }

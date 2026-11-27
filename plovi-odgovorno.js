@@ -657,8 +657,9 @@
     if (!sget("cm-theme")) root.setAttribute("data-theme", m === "light" ? "ocean" : "dubina");
   }
   function setMode(m, save) {
-    root.setAttribute("data-po-mode", m);
-    if (save) sset(MODE_KEY, m);
+    // Zajednički način cijele aplikacije (app.js): pamti se u cm-mode i vrijedi na svim stranicama
+    if (window.CM_setMode) window.CM_setMode(m, save);
+    else { root.setAttribute("data-po-mode", m); if (save) sset(MODE_KEY, m); }
     syncMode();
   }
   function initMode() {
@@ -698,6 +699,7 @@
         var l = b.getAttribute("data-lang");
         if (l === lang) return;
         lang = l; sset(LANG_KEY, l);
+        if (window.CM_i18n) window.CM_i18n.set(l);   // navigacija i ostale stranice
         applyLang();
         if (window.ScrollTrigger) window.ScrollTrigger.refresh();
       });
