@@ -100,9 +100,10 @@
     }).join("");
 
     // Primjeri stanica (demo) — poveznica na kartu grupe 2
-    $("#po-stations").innerHTML = base.pump.stations.items.map(function (_, i) {
+    // Link prema karti grupe 2: map.html?station=<id> (dogovor u INTEGRACIJA.md, točka D)
+    $("#po-stations").innerHTML = base.pump.stations.items.map(function (s, i) {
       var k = "pump.stations.items." + i;
-      return '<li class="po-station"><span class="po-station-pin">' + icon("pin", 18) + '</span><h4 data-i18n="' + k + '.n"></h4><p data-i18n="' + k + '.p"></p><p class="po-hours" data-i18n="' + k + '.h"></p><a href="map.html"><span data-i18n="pump.stations.onMap"></span> →</a></li>';
+      return '<li class="po-station"><span class="po-station-pin">' + icon("pin", 18) + '</span><h4 data-i18n="' + k + '.n"></h4><p data-i18n="' + k + '.p"></p><p class="po-hours" data-i18n="' + k + '.h"></p><a href="map.html?station=' + encodeURIComponent(s.id) + '"><span data-i18n="pump.stations.onMap"></span> →</a></li>';
     }).join("");
 
     $("#po-sources").innerHTML = base.sources.items.map(function (s, i) {
@@ -156,6 +157,12 @@
         '<path class="po-bay-boat-hull" d="M-7 0 L7 0 L5 3.5 L-5 3.5 Z"/><path class="po-bay-boat-sail" d="M0 -10 L0 -1 L6 -1 Z"/></g>';
     }).join("");
 
+    // Mjerači se grade jednom; updateBay() samo mijenja tekst i širinu (da prijelaz radi)
+    $("#po-meters").innerHTML = ["bacteria", "nutrients", "clarity"].map(function (k) {
+      return '<li class="po-meter" data-meter="' + k + '"><span class="po-meter-label" data-i18n="impact.bay.' + k + '"></span>' +
+        '<span class="po-meter-val"></span><span class="po-meter-bar" aria-hidden="true"><i></i></span></li>';
+    }).join("");
+
     $("#po-bay-range").addEventListener("input", function (e) { bay.n = +e.target.value; updateBay(); });
     $$('input[name="po-bay-mode"]').forEach(function (r) {
       r.addEventListener("change", function () { if (r.checked) { bay.mode = r.value; updateBay(); } });
@@ -163,8 +170,8 @@
   }
 
   function mix(a, b, k) {
-    var pa = [1, 3, 5].map(function (i) { return parseInt(a.substr(i, 2), 16); });
-    var pb = [1, 3, 5].map(function (i) { return parseInt(b.substr(i, 2), 16); });
+    var pa = [1, 3, 5].map(function (i) { return parseInt(a.slice(i, i + 2), 16); });
+    var pb = [1, 3, 5].map(function (i) { return parseInt(b.slice(i, i + 2), 16); });
     return "#" + pa.map(function (v, i) { return Math.round(v + (pb[i] - v) * k).toString(16).padStart(2, "0"); }).join("");
   }
   var LEVEL_COLORS = ["var(--po-lvl-0)", "var(--po-lvl-1)", "var(--po-lvl-2)", "var(--po-lvl-3)"];
@@ -184,16 +191,23 @@
     var nutr = dump ? Math.min(1, n / 50) : 0.04;
     var clar = dump ? 1 - Math.min(0.88, n / 55) : 0.96;
     var cIdx = clar > 0.8 ? 0 : clar > 0.6 ? 1 : clar > 0.35 ? 2 : 3;
-    var rows = [
-      { label: L.bacteria, v: bact, text: L.levels[levelIdx(bact)], color: LEVEL_COLORS[levelIdx(bact)] },
-      { label: L.nutrients, v: nutr, text: L.levels[levelIdx(nutr)], color: LEVEL_COLORS[levelIdx(nutr)] },
-      { label: L.clarity, v: clar, text: L.clarityLevels[cIdx], color: LEVEL_COLORS[cIdx] }
-    ];
-    $("#po-meters").innerHTML = rows.map(function (r) {
-      return '<div class="po-meter"><dt>' + r.label + '</dt><dd style="color:' + r.color + '">' + r.text +
-        '</dd><div class="po-meter-bar" aria-hidden="true"><i style="width:' + Math.round(r.v * 100) + "%;background:" + r.color + '"></i></div></div>';
-    }).join("");
-    $("#po-bay-verdict").textContent = !dump ? L.verdictPump : n < 8 ? L.verdictDumpLow : L.verdictDump;
+    var rows = {
+      bacteria: { v: bact, text: L.levels[levelIdx(bact)], color: LEVEL_COLORS[levelIdx(bact)] },
+      nutrients: { v: nutr, text: L.levels[levelIdx(nutr)], color: LEVEL_COLORS[levelIdx(nutr)] },
+      clarity: { v: clar, text: L.clarityLevels[cIdx], color: LEVEL_COLORS[cIdx] }
+    };
+    $$("#po-meters .po-meter").forEach(function (li) {
+      var r = rows[li.getAttribute("data-meter")];
+      var val = $(".po-meter-val", li), bar = $(".po-meter-bar i", li);
+      val.textContent = r.text;
+      val.style.color = r.color;
+      bar.style.width = Math.round(r.v * 100) + "%";
+      bar.style.background = r.color;
+    });
+    // Tekst ocjene mijenja se samo kad se stvarno promijeni (čitač zaslona ga ne ponavlja na svaki pomak)
+    var verdict = !dump ? L.verdictPump : n < 8 ? L.verdictDumpLow : L.verdictDump;
+    var vEl = $("#po-bay-verdict");
+    if (vEl.textContent !== verdict) vEl.textContent = verdict;
   }
 
   /* =====================================================================
@@ -269,15 +283,48 @@
   }
 
   /* =====================================================================
-     Kviz
+     Kviz + certifikat „Odgovorni nautičar“
      ===================================================================== */
-  var quiz = { i: 0, picks: [], done: false };
-  var quizFocus = null; // "next" | "question" | "result"
+  var CERT_KEY = "po-cert";   // { name, score, total, date } — Profil ga može prikazati kao značku
+  var quizFocus = null;       // "next" | "question" | "result" | "certName" | "certImg"
+  // error je ključ teksta (nameErr | error), pa se prevodi pri svakom prikazu
+  var cert = { name: "", draft: "", url: null, blob: null, error: "", date: null, busy: false, gen: 0 };
 
+  // Odgovori se miješaju pri svakom pokretanju. order[i] su izvorni indeksi odgovora,
+  // a picks[i] čuva izvorni indeks pa promjena jezika ne mijenja stanje kviza.
+  function shuffledIdx(n) {
+    var a = [];
+    for (var i = 0; i < n; i++) a.push(i);
+    for (var j = n - 1; j > 0; j--) { var k = Math.floor(Math.random() * (j + 1)); var tmp = a[j]; a[j] = a[k]; a[k] = tmp; }
+    return a;
+  }
+  function newQuiz() {
+    return { i: 0, picks: [], done: false, order: base.quiz.questions.map(function (q) { return shuffledIdx(q.a.length); }) };
+  }
+  var quiz = newQuiz();
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (ch) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]; });
+  }
+  function announce(msg) {
+    var st = $("#po-quiz-status");
+    if (!st) return;
+    st.textContent = "";
+    setTimeout(function () { st.textContent = msg; }, 60);
+  }
   function quizBest() { var b = parseInt(sget(BEST_KEY), 10); return isNaN(b) ? null : b; }
   function quizScore() {
     var qs = t("quiz.questions");
     return quiz.picks.reduce(function (s, p, i) { return s + (p === qs[i].c ? 1 : 0); }, 0);
+  }
+  function certDateText() {
+    var d = cert.date ? new Date(cert.date) : new Date();
+    try { return d.toLocaleDateString(lang === "hr" ? "hr-HR" : "en-GB", { day: "numeric", month: "long", year: "numeric" }); }
+    catch (e) { return d.toISOString().slice(0, 10); }
+  }
+  function clearCert() {
+    if (cert.url) { try { URL.revokeObjectURL(cert.url); } catch (e) {} }
+    cert.url = null; cert.blob = null; cert.error = "";
   }
 
   function renderQuiz() {
@@ -285,26 +332,7 @@
     var Q = t("quiz");
     var qs = Q.questions, n = qs.length;
 
-    if (quiz.done) {
-      var s = quizScore();
-      var tier = Q.tiers.filter(function (x) { return s >= x.min; })[0];
-      var best = quizBest();
-      box.innerHTML =
-        '<div class="po-result">' +
-        '<p class="po-eyebrow" style="margin:0">' + fmt(Q.result, { s: s, n: n }) + "</p>" +
-        '<div class="po-result-score" tabindex="-1" id="po-quiz-result">' + s + "/" + n + "</div>" +
-        "<p>" + tier.t + "</p>" +
-        (best != null ? '<p class="po-note">' + fmt(Q.best, { b: best, n: n }) + "</p>" : "") +
-        '<div class="po-quiz-actions" style="justify-content:center">' +
-        '<button type="button" class="po-btn po-btn-ghost" id="po-quiz-again">' + Q.again + "</button>" +
-        '<a class="po-btn po-btn-primary" href="map.html">' + t("final.map") + "</a></div></div>";
-      $("#po-quiz-again").addEventListener("click", function () {
-        quiz = { i: 0, picks: [], done: false }; quizFocus = "question"; renderQuiz();
-      });
-      if (quizFocus === "result") $("#po-quiz-result").focus();
-      quizFocus = null;
-      return;
-    }
+    if (quiz.done) { renderResult(box, Q, n); return; }
 
     var q = qs[quiz.i];
     var pick = quiz.picks[quiz.i];
@@ -315,15 +343,17 @@
       '<div class="po-progress" aria-hidden="true"><i style="width:' + Math.round(((quiz.i + (answered ? 1 : 0)) / n) * 100) + '%"></i></div>' +
       '<h3 id="po-quiz-q" tabindex="-1">' + q.q + "</h3>" +
       '<div class="po-options" role="group" aria-labelledby="po-quiz-q">' +
-      q.a.map(function (a, j) {
-        var cls = "po-option";
-        if (answered && j === q.c) cls += " is-correct";
-        if (answered && j === pick && pick !== q.c) cls += " is-wrong";
-        return '<button type="button" class="' + cls + '" data-opt="' + j + '"' + (answered ? ' aria-disabled="true"' : "") + '><span class="po-option-key" aria-hidden="true">' + keys[j] + "</span><span>" + a + "</span></button>";
+      quiz.order[quiz.i].map(function (orig, j) {
+        var cls = "po-option", mark = keys[j], sr = "";
+        if (answered && orig === q.c) { cls += " is-correct"; mark = "✓"; sr = Q.srCorrect; }
+        if (answered && orig === pick && pick !== q.c) { cls += " is-wrong"; mark = "✗"; sr = Q.srYours; }
+        return '<button type="button" class="' + cls + '" data-opt="' + orig + '"' + (answered ? ' aria-disabled="true"' : "") + '>' +
+          '<span class="po-option-key" aria-hidden="true">' + mark + "</span><span>" + q.a[orig] +
+          (sr ? ' <span class="po-sr">(' + sr + ")</span>" : "") + "</span></button>";
       }).join("") + "</div>";
     if (answered) {
       var right = pick === q.c;
-      html += '<div class="po-explain ' + (right ? "is-right" : "is-wrong") + '" aria-live="polite"><strong>' + (right ? Q.correct : Q.wrong) + "</strong><p>" + q.e + "</p></div>" +
+      html += '<div class="po-explain ' + (right ? "is-right" : "is-wrong") + '"><strong>' + (right ? Q.correct : Q.wrong) + "</strong><p>" + q.e + "</p></div>" +
         '<div class="po-quiz-actions"><button type="button" class="po-btn po-btn-primary" id="po-quiz-next">' +
         (quiz.i === n - 1 ? Q.finish : Q.next) + ' <span aria-hidden="true">→</span></button></div>';
     }
@@ -332,9 +362,12 @@
     $$(".po-option", box).forEach(function (b) {
       b.addEventListener("click", function () {
         if (quiz.picks[quiz.i] != null) return;
-        quiz.picks[quiz.i] = +b.getAttribute("data-opt");
+        var orig = +b.getAttribute("data-opt");
+        quiz.picks[quiz.i] = orig;
         quizFocus = "next";
         renderQuiz();
+        var qq = t("quiz.questions")[quiz.i];
+        announce((orig === qq.c ? t("quiz.correct") : t("quiz.wrong")) + " " + qq.e);
       });
     });
     var next = $("#po-quiz-next");
@@ -349,9 +382,258 @@
         renderQuiz();
       });
     }
-    if (quizFocus === "next" && next) next.focus({ preventScroll: true });
-    if (quizFocus === "question") $("#po-quiz-q").focus({ preventScroll: true });
+    if (quizFocus === "next" && next) next.focus();
+    if (quizFocus === "question") $("#po-quiz-q").focus();
     quizFocus = null;
+  }
+
+  function renderResult(box, Q, n) {
+    var s = quizScore();
+    var CT = Q.cert;
+    var ok = s >= CT.min;
+    var tier = Q.tiers.filter(function (x) { return s >= x.min; })[0];
+    var best = quizBest();
+    var html =
+      '<div class="po-result">' +
+      '<p class="po-eyebrow" style="margin:0">' + fmt(Q.result, { s: s, n: n }) + "</p>" +
+      '<div class="po-result-score" tabindex="-1" id="po-quiz-result">' + s + "/" + n + "</div>" +
+      "<p>" + tier.t + "</p>" +
+      (best != null ? '<p class="po-note">' + fmt(Q.best, { b: best, n: n }) + "</p>" : "");
+
+    if (ok) {
+      html +=
+        '<div class="po-cert">' +
+        '<p class="po-cert-earned">' + CT.earned + "</p>" +
+        '<form class="po-cert-form" id="po-cert-form" novalidate>' +
+        '<label for="po-cert-name">' + CT.nameLabel + "</label>" +
+        '<div class="po-cert-row">' +
+        '<input id="po-cert-name" name="po-cert-name" type="text" autocomplete="name" maxlength="40" placeholder="' + esc(CT.namePh) + '" value="' + esc(cert.draft) + '"' +
+        ' aria-describedby="po-cert-err"' + (cert.error ? ' aria-invalid="true"' : "") + ">" +
+        '<button type="submit" class="po-btn po-btn-primary">' + CT.create + "</button></div>" +
+        '<p class="po-cert-err" id="po-cert-err">' + esc(cert.error ? CT[cert.error] : "") + "</p></form>";
+      if (cert.url) {
+        var alt = fmt(CT.imgAlt, { name: cert.name, s: s, n: n, date: certDateText() });
+        var canShare = false;
+        try {
+          var f = new File([cert.blob], CT.file, { type: "image/png" });
+          canShare = !!(navigator.canShare && navigator.share && navigator.canShare({ files: [f] }));
+        } catch (e) {}
+        html +=
+          '<figure class="po-cert-out"><img id="po-cert-img" tabindex="-1" src="' + cert.url + '" alt="' + esc(alt) + '" width="1080" height="1350"></figure>' +
+          '<div class="po-quiz-actions" style="justify-content:center">' +
+          '<a class="po-btn po-btn-primary" href="' + cert.url + '" download="' + esc(CT.file) + '">' + CT.download + "</a>" +
+          (canShare ? '<button type="button" class="po-btn po-btn-ghost" id="po-cert-share">' + CT.share + "</button>" : "") +
+          "</div>";
+      }
+      html += "</div>";
+    } else {
+      html += '<p class="po-cert-need">' + fmt(CT.needMore, { m: CT.min, n: n }) + "</p>";
+    }
+
+    html +=
+      '<div class="po-quiz-actions" style="justify-content:center">' +
+      '<button type="button" class="po-btn po-btn-ghost" id="po-quiz-again">' + Q.again + "</button>" +
+      '<a class="po-btn ' + (ok ? "po-btn-ghost" : "po-btn-primary") + '" href="#vodic">' + t("nav.guide") + "</a></div></div>";
+    box.innerHTML = html;
+
+    $("#po-quiz-again").addEventListener("click", function () {
+      cert.gen++; cert.busy = false; cert.date = null;  // poništi crtanje koje je možda još u tijeku
+      quiz = newQuiz(); clearCert(); quizFocus = "question"; renderQuiz();
+    });
+    var form = $("#po-cert-form");
+    if (form) {
+      var input = $("#po-cert-name");
+      // cert.draft = tekst u polju; cert.name = zadnje potvrđeno (valjano) ime na certifikatu
+      input.addEventListener("input", function () {
+        cert.draft = input.value;
+        if (cert.error) { cert.error = ""; $("#po-cert-err").textContent = ""; input.removeAttribute("aria-invalid"); }
+      });
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var name = input.value.trim().replace(/\s+/g, " ");
+        cert.draft = name;
+        if (!name) {
+          cert.error = "nameErr";
+          $("#po-cert-err").textContent = CT.nameErr;
+          input.setAttribute("aria-invalid", "true");
+          input.focus();
+          announce(CT.nameErr);
+          return;
+        }
+        if (cert.busy) return;
+        cert.name = name;
+        var btn = $('button[type="submit"]', form);
+        btn.textContent = CT.busy;
+        btn.setAttribute("aria-disabled", "true");
+        form.setAttribute("aria-busy", "true");
+        makeCert(s, n, true);
+      });
+    }
+    var share = $("#po-cert-share");
+    if (share) {
+      share.addEventListener("click", function () {
+        try {
+          var file = new File([cert.blob], CT.file, { type: "image/png" });
+          navigator.share({ files: [file], title: CT.heading, text: CT.shareText }).catch(function () {});
+        } catch (e) {}
+      });
+    }
+    if (quizFocus === "result") $("#po-quiz-result").focus();
+    if (quizFocus === "certName" && $("#po-cert-name")) $("#po-cert-name").focus();
+    if (quizFocus === "certImg" && $("#po-cert-img")) $("#po-cert-img").focus();
+    quizFocus = null;
+  }
+
+  function makeCert(s, n, focusImg) {
+    if (!cert.date) cert.date = new Date().toISOString();
+    cert.busy = true;
+    var gen = ++cert.gen;   // starije crtanje (drugi jezik, novi pokušaj) se odbacuje
+    var nm = cert.name;
+    drawCertificate(nm, s, n).then(function (blob) {
+      if (gen !== cert.gen) return;
+      cert.busy = false;
+      clearCert();
+      cert.blob = blob;
+      cert.url = URL.createObjectURL(blob);
+      sset(CERT_KEY, JSON.stringify({ name: nm, score: s, total: n, date: cert.date }));
+      sset("po-cert-name", nm);
+      if (focusImg) quizFocus = "certImg";
+      renderQuiz();
+      if (focusImg) announce(t("quiz.cert.earned"));
+    }).catch(function () {
+      if (gen !== cert.gen) return;
+      cert.busy = false;
+      cert.error = "error";
+      quizFocus = "certName";
+      renderQuiz();
+    });
+  }
+
+  /* ---------- Crtanje certifikata (canvas 1080 × 1350, paleta trenutnog načina) ---------- */
+  function certRoundRect(g, x, y, w, h, r) {
+    g.beginPath();
+    g.moveTo(x + r, y); g.lineTo(x + w - r, y); g.quadraticCurveTo(x + w, y, x + w, y + r);
+    g.lineTo(x + w, y + h - r); g.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    g.lineTo(x + r, y + h); g.quadraticCurveTo(x, y + h, x, y + h - r);
+    g.lineTo(x, y + r); g.quadraticCurveTo(x, y, x + r, y); g.closePath();
+  }
+  function certWrap(g, text, maxW) {
+    var words = String(text).split(" "), lines = [], line = "";
+    words.forEach(function (w) {
+      var test = line ? line + " " + w : w;
+      if (g.measureText(test).width > maxW && line) { lines.push(line); line = w; } else line = test;
+    });
+    if (line) lines.push(line);
+    return lines;
+  }
+  function certFit(g, text, weight, family, size, maxW, min) {
+    var s = size;
+    do { g.font = weight + " " + s + "px " + family; s -= 4; } while (g.measureText(text).width > maxW && s > min);
+  }
+  function drawCertificate(name, s, n) {
+    var CT = t("quiz.cert");
+    var light = getMode() === "light";
+    var P = light
+      ? { bg1: "#F4FBFD", bg2: "#D7EEF6", ink: "#082A35", muted: "#4F6D78", accent: "#006BA6", sail: "#00B4D8", sea1: "#00B4D8", sea2: "#023E63", line: "rgba(2,62,99,.18)" }
+      : { bg1: "#04141C", bg2: "#0B2A36", ink: "#E8F4F2", muted: "#8FB3B0", accent: "#9EF0E0", sail: "#2EC4B6", sea1: "#1D7A84", sea2: "#04141C", line: "rgba(158,240,224,.24)" };
+    var DISPLAY = '"Bricolage Grotesque", "Segoe UI", sans-serif';
+    var BODY = '"Manrope", "Segoe UI", sans-serif';
+    var MONO = '"JetBrains Mono", Consolas, monospace';
+    var fontsReady = (doc.fonts && doc.fonts.load)
+      ? Promise.all([
+          doc.fonts.load("800 120px " + DISPLAY), doc.fonts.load("700 60px " + DISPLAY),
+          doc.fonts.load("400 34px " + BODY), doc.fonts.load("600 34px " + BODY),
+          doc.fonts.load("600 26px " + MONO)
+        ]).catch(function () {})
+      : Promise.resolve();
+
+    return fontsReady.then(function () {
+      var W = 1080, H = 1350, X = 100, MAXW = W - 2 * X;
+      var c = doc.createElement("canvas");
+      c.width = W; c.height = H;
+      var g = c.getContext("2d");
+
+      var bg = g.createLinearGradient(0, 0, 0, H);
+      bg.addColorStop(0, P.bg2); bg.addColorStop(1, P.bg1);
+      g.fillStyle = bg; g.fillRect(0, 0, W, H);
+
+      // More i jedrilica u donjem dijelu, unutar okvira
+      var seaTop = 1060;
+      g.save();
+      certRoundRect(g, 40, 40, W - 80, H - 80, 40); g.clip();
+      var sea = g.createLinearGradient(0, seaTop, 0, H);
+      sea.addColorStop(0, P.sea1); sea.addColorStop(1, P.sea2);
+      g.fillStyle = sea; g.beginPath(); g.moveTo(0, seaTop);
+      for (var x = 0; x <= W; x += 10) g.lineTo(x, seaTop + Math.sin(x / 70) * 10);
+      g.lineTo(W, H); g.lineTo(0, H); g.closePath(); g.fill();
+
+      g.save();
+      var sc = 1.1;
+      g.translate(W - 120 - 220 * sc, seaTop + 8 - 176 * sc);
+      g.scale(sc, sc);
+      g.strokeStyle = P.ink; g.lineWidth = 3; g.lineCap = "round";
+      g.beginPath(); g.moveTo(112, 8); g.lineTo(112, 152); g.stroke();
+      g.fillStyle = light ? "#FFFFFF" : "#F4FBFA"; g.fill(new Path2D("M115 14 L115 146 L190 146 Z"));
+      g.fillStyle = P.sail; g.fill(new Path2D("M108 30 L108 146 L52 146 Z"));
+      g.fillStyle = light ? "#FFFFFF" : "#F4FBFA"; g.fill(new Path2D("M18 152 H204 L186 176 Q112 190 38 176 Z"));
+      g.strokeStyle = P.sail; g.lineWidth = 3; g.beginPath(); g.moveTo(24, 160); g.lineTo(198, 160); g.stroke();
+      g.restore();
+
+      g.globalAlpha = 0.35; g.fillStyle = P.accent; g.beginPath(); g.moveTo(0, seaTop + 34);
+      for (var x2 = 0; x2 <= W; x2 += 10) g.lineTo(x2, seaTop + 34 + Math.sin(x2 / 48 + 1) * 8);
+      g.lineTo(W, H); g.lineTo(0, H); g.closePath(); g.fill();
+      g.globalAlpha = 1;
+
+      g.fillStyle = "#E8F4F2"; g.font = "600 24px " + MONO; g.textAlign = "left";
+      g.fillText(CT.issuer.toUpperCase(), X, H - 96);
+      g.restore();
+
+      // Okvir
+      g.strokeStyle = P.line; g.lineWidth = 3;
+      certRoundRect(g, 40, 40, W - 80, H - 80, 40); g.stroke();
+
+      g.textAlign = "left"; g.textBaseline = "alphabetic";
+      if ("letterSpacing" in g) g.letterSpacing = "6px";
+      g.fillStyle = P.accent; g.font = "600 26px " + MONO;
+      g.fillText(CT.kicker.toUpperCase(), X, 170);
+      if ("letterSpacing" in g) g.letterSpacing = "0px";
+
+      // Naslov u dva reda
+      g.fillStyle = P.ink;
+      var hw = CT.heading.split(" ");
+      var h1 = hw[0], h2 = hw.slice(1).join(" ");
+      certFit(g, hw.reduce(function (a, b) { return a.length > b.length ? a : b; }, ""), "800", DISPLAY, 124, MAXW, 70);
+      g.fillText(h1, X, 300);
+      if (h2) g.fillText(h2, X, 412);
+
+      // Ime
+      g.fillStyle = P.ink;
+      certFit(g, name, "700", DISPLAY, 76, MAXW, 36);
+      g.fillText(name, X, 560);
+      g.strokeStyle = P.line; g.lineWidth = 2;
+      g.beginPath(); g.moveTo(X, 592); g.lineTo(W - X, 592); g.stroke();
+
+      // Podnaslov
+      g.fillStyle = P.muted; g.font = "400 34px " + BODY;
+      certWrap(g, CT.sub, MAXW).slice(0, 2).forEach(function (ln, i) { g.fillText(ln, X, 648 + i * 46); });
+
+      // Rezultat i datum
+      g.fillStyle = P.muted; g.font = "600 24px " + MONO;
+      g.fillText(CT.scoreLabel.toUpperCase(), X, 800);
+      g.fillText(CT.dateLabel.toUpperCase(), X + 300, 800);
+      g.fillStyle = P.accent; g.font = "800 64px " + DISPLAY;
+      g.fillText(s + "/" + n, X, 870);
+      g.fillStyle = P.ink; g.font = "700 44px " + DISPLAY;
+      g.fillText(certDateText(), X + 300, 866);
+
+      // Obećanje
+      g.fillStyle = P.ink; g.font = "600 36px " + BODY;
+      g.fillText(lang === "hr" ? "„" + CT.pledge + "”" : "“" + CT.pledge + "”", X, 970);
+
+      return new Promise(function (resolve, reject) {
+        c.toBlob(function (b) { if (b) resolve(b); else reject(new Error("toBlob")); }, "image/png");
+      });
+    });
   }
 
   /* =====================================================================
@@ -405,6 +687,10 @@
     updateChecker();
     updateCaps();
     renderQuiz();
+    // Već izrađeni certifikat crta se ponovno na novom jeziku
+    if ((cert.url || cert.busy) && quiz.done && cert.name && quizScore() >= t("quiz.cert.min")) {
+      makeCert(quizScore(), t("quiz.questions").length, false);
+    }
   }
   function initLang() {
     $$("[data-lang]").forEach(function (b) {
@@ -429,29 +715,45 @@
       ticking = true;
       requestAnimationFrame(function () {
         // Puna pozadina čim počne zaron, da logo i gumbi ostanu čitljivi preko tamnog mora
-        top.classList.toggle("is-solid", window.scrollY > window.innerHeight * 0.2 || main.getBoundingClientRect().top <= top.offsetHeight + 1);
+        top.classList.toggle("is-solid", window.scrollY > window.innerHeight * 0.2);
         ticking = false;
       });
     }
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
 
+    // Poveznice unutar stranice: glatko pomicanje, adresa se ažurira, fokus ide na naslov sekcije
     doc.addEventListener("click", function (e) {
       var a = e.target.closest && e.target.closest('a[href^="#"]');
       if (!a) return;
-      var target = doc.getElementById(a.getAttribute("href").slice(1));
+      var id = a.getAttribute("href").slice(1);
+      var target = id && doc.getElementById(id);
       if (!target) return;
       e.preventDefault();
       target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
-      if (target.id === "po-main") target.focus({ preventScroll: true });
+      try { history.replaceState(null, "", "#" + id); } catch (err) {}
+      var focusEl = target.id === "po-main" ? target : ($("h2", target) || target);
+      if (!focusEl.hasAttribute("tabindex")) focusEl.setAttribute("tabindex", "-1");
+      focusEl.focus({ preventScroll: true });
     });
 
     if ("IntersectionObserver" in window) {
       var chips = $$(".po-chips a");
+      var inner = $(".po-chips-inner");
       var io = new IntersectionObserver(function (entries) {
         entries.forEach(function (en) {
           if (!en.isIntersecting) return;
-          chips.forEach(function (c) { c.classList.toggle("is-active", c.getAttribute("href") === "#" + en.target.id); });
+          chips.forEach(function (c) {
+            var on = c.getAttribute("href") === "#" + en.target.id;
+            c.classList.toggle("is-active", on);
+            if (on) {
+              c.setAttribute("aria-current", "true");
+              // aktivni chip uvijek vidljiv u traci koja se pomiče vodoravno
+              if (inner && inner.scrollWidth > inner.clientWidth) {
+                inner.scrollTo({ left: c.offsetLeft - (inner.clientWidth - c.offsetWidth) / 2, behavior: reduceMotion ? "auto" : "smooth" });
+              }
+            } else c.removeAttribute("aria-current");
+          });
         });
       }, { rootMargin: "-45% 0px -50% 0px" });
       ["utjecaj", "vodic", "prihvat", "kviz"].forEach(function (id) { var s = doc.getElementById(id); if (s) io.observe(s); });
@@ -472,14 +774,21 @@
     var lines = $$(".po-line");
     var facts = [$(".po-facts-title")].concat($$(".po-fact"));
 
+    // Ljuljanje broda radi samo dok je uvod na ekranu
+    var bob = gsap.to(".po-boat-inner", { y: -5, rotation: 1.5, duration: 2.4, ease: "sine.inOut", yoyo: true, repeat: -1 });
+
     var tl = gsap.timeline({
       defaults: { ease: "none" },
-      scrollTrigger: { trigger: intro, start: "top top", end: "+=320%", scrub: 0.8, pin: true, anticipatePin: 1 }
+      scrollTrigger: {
+        trigger: intro, start: "top top", end: "+=320%", scrub: 0.8, pin: true, anticipatePin: 1,
+        onLeave: function () { bob.pause(); }, onEnterBack: function () { bob.resume(); }
+      }
     });
 
+    // Tekst se gasi samo prozirnošću (opacity), pa ostaje dostupan čitačima zaslona
     tl.to(".po-world", { yPercent: -66.6667, duration: 10 }, 0)
-      .to(".po-title", { yPercent: -40, autoAlpha: 0, duration: 1.4 }, 0)
-      .to([".po-tagline", ".po-corner", ".po-scrollhint"], { autoAlpha: 0, duration: 0.7 }, 0)
+      .to(".po-title", { yPercent: -40, opacity: 0, duration: 1.4 }, 0)
+      .to(".po-intro-bottom", { opacity: 0, duration: 0.7 }, 0)
       .fromTo(".po-plume", { autoAlpha: 0, scale: 0.15 }, { autoAlpha: 0.95, scale: 1, duration: 3.2, ease: "power1.out" }, 1.2)
       .to(".po-plume", { yPercent: 85, scale: 1.9, autoAlpha: 0.5, duration: 5.2 }, 4.4);
 
@@ -488,22 +797,37 @@
     var slots = [[1.5, 3.1], [3.3, 4.9], [5.1, 6.7], [6.9, 8.0]];
     lines.forEach(function (li, i) {
       var s = slots[i] || slots[slots.length - 1];
-      tl.fromTo(li, { autoAlpha: 0, y: 40 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: "power2.out" }, s[0]);
-      if (!(wide && i === lines.length - 1)) tl.to(li, { autoAlpha: 0, y: -40, duration: 0.5, ease: "power2.in" }, s[1] - 0.5);
+      tl.fromTo(li, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, s[0]);
+      if (!(wide && i === lines.length - 1)) tl.to(li, { opacity: 0, y: -40, duration: 0.5, ease: "power2.in" }, s[1] - 0.5);
     });
     facts.forEach(function (el, i) {
-      tl.fromTo(el, { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: "power2.out" }, 8.1 + i * 0.35);
+      tl.fromTo(el, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, 8.1 + i * 0.35);
     });
-    tl.to({}, { duration: 0.6 }, 9.4);
+    tl.to({}, { duration: 0.6 }, 9.4); // kratko zadržavanje na dnu prije nastavka stranice
 
-    gsap.to(".po-boat-inner", { y: -5, rotation: 1.5, duration: 2.4, ease: "sine.inOut", yoyo: true, repeat: -1 });
-
+    // Prikvačeni uvod dodaje visinu tek nakon učitavanja, pa poveznica poput
+    // plovi-odgovorno.html#vodic mora ponovno skočiti na svoju sekciju.
+    function landOnHash() {
+      var id = decodeURIComponent((location.hash || "").slice(1));
+      var target = id && doc.getElementById(id);
+      if (target) target.scrollIntoView({ block: "start" });
+    }
     if (doc.fonts && doc.fonts.ready) doc.fonts.ready.then(function () { ST.refresh(); });
-    window.addEventListener("load", function () { ST.refresh(); });
+    // Samo pri novom otvaranju stranice (ne pri osvježavanju ili „natrag“), i ako korisnik još nije sam pomicao stranicu
+    var navEntry = (performance.getEntriesByType && performance.getEntriesByType("navigation")[0]) || {};
+    var userMoved = false;
+    ["wheel", "touchstart", "keydown", "pointerdown"].forEach(function (ev) {
+      window.addEventListener(ev, function () { userMoved = true; }, { once: true, passive: true });
+    });
+    window.addEventListener("load", function () {
+      ST.refresh();
+      if ((navEntry.type || "navigate") === "navigate" && !userMoved) landOnHash();
+    });
   }
 
   /* ---------- Pokretanje ---------- */
   function start() {
+    cert.name = cert.draft = sget("po-cert-name") || "";
     buildStatic();
     buildBay();
     initTabs();
@@ -513,8 +837,11 @@
     initMode();
     applyLang();
     initChrome();
-    initMotion();
   }
+  // Skripta je "defer": DOM je već učitan, pa se sadržaj prikazuje odmah.
+  // GSAP se učitava poslije (također "defer"), pa animaciju pokrećemo na DOMContentLoaded.
   if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", start);
   else start();
+  if (doc.readyState === "complete") initMotion();
+  else doc.addEventListener("DOMContentLoaded", initMotion);
 })();

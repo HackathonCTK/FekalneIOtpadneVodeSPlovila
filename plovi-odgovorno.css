@@ -1,8 +1,8 @@
 /* =========================================================================
    ČistoMore — Dio 4: „Plovi odgovorno“
-   Paleta A „Dubina“. Stranica je namjerno tamna (more), neovisno o temi
-   koju korisnik odabere na Profilu; zajednička navigacija i toast i dalje
-   prate odabranu temu preko varijabli iz styles.css.
+   Dark način = paleta A „Dubina“, light način = paleta D „Ocean“
+   (html[data-po-mode], bira se gumbom ili prema postavci uređaja).
+   Zajednička navigacija i toast prate temu iz styles.css.
    Raspored: prvo mobitel (bottomnav), od 860 px plutajući lijevi izbornik.
    ========================================================================= */
 
@@ -46,7 +46,7 @@
   --po-gutter-l:max(16px, env(safe-area-inset-left, 0px));
   --po-gutter-r:max(16px, env(safe-area-inset-right, 0px));
   --po-nav-space:calc(var(--nav-h, 64px) + env(safe-area-inset-bottom, 0px));
-  --po-boat-w:clamp(150px, 34vw, 320px);
+  --po-boat-w:clamp(120px, min(34vw, 40svh), 320px);
   --po-radius:20px;
 
   /* Sučelje */
@@ -83,10 +83,10 @@
   --po-surface-2:#F2FBFD;
   --po-line:rgba(2,62,99,.12);
   --po-line-strong:rgba(2,62,99,.24);
-  --po-accent:#0077B6;
+  --po-accent:#006BA6;
   --po-accent-2:#023E63;
-  --po-warn:#C7354D;
-  --po-amber:#9A6200;
+  --po-warn:#A3192F;
+  --po-amber:#7A4D00;
   --po-text:#082A35;
   --po-muted:#4F6D78;
   --po-on-accent:#FFFFFF;
@@ -102,7 +102,7 @@
   --po-fab-1:#00B4D8; --po-fab-2:#0077B6; --po-on-fab:#FFFFFF;
   --po-shadow:0 10px 30px rgba(2,62,99,.10);
   --po-final-glow:rgba(0,180,216,.18);
-  --po-lvl-0:#14866D; --po-lvl-1:#9A6200; --po-lvl-2:#C7354D; --po-lvl-3:#A3192F;
+  --po-lvl-0:#0F7A63; --po-lvl-1:#7A4D00; --po-lvl-2:#A3192F; --po-lvl-3:#7F1022;
 
   --po-intro-title:#023E63;
   --po-title-shadow:none;
@@ -120,7 +120,12 @@
 }
 
 /* ---------- Osnova ---------- */
-html{ height:auto; }
+html{
+  height:auto;
+  /* fokusirani element ne smije završiti ispod fiksne trake, chipova ili donje navigacije */
+  scroll-padding-top:calc(var(--po-header-h) + 64px + env(safe-area-inset-top, 0px));
+  scroll-padding-bottom:calc(var(--po-nav-space) + 16px);
+}
 body.po-body{
   height:auto; min-height:100%;
   background:var(--po-bg); color:var(--po-text);
@@ -131,7 +136,16 @@ body.po-body{
 }
 .po-body h1, .po-body h2, .po-body h3{ font-family:var(--po-display); text-wrap:balance; margin:0; }
 .po-body a{ color:inherit; }
-.po-body :focus-visible{ outline:2px solid var(--po-accent-2); outline-offset:3px; border-radius:8px; }
+.po-body :focus-visible{ outline:2px solid var(--po-accent-2); outline-offset:3px; }
+.po-sr{
+  position:absolute !important; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;
+}
+.po-noscript{
+  position:relative; z-index:61; margin:0;
+  padding:calc(var(--po-header-h) + env(safe-area-inset-top, 0px) + 12px) 16px 12px;
+  text-align:center; background:var(--po-surface); color:var(--po-text);
+}
 .po-body button{ font:inherit; color:inherit; }
 
 .po-skip{
@@ -202,6 +216,9 @@ body.po-body{
     transition:background .2s, color .2s;
   }
   .po-body .sidenav .nav-item:hover{ background:var(--po-tint-weak); color:var(--po-text); }
+  .po-body .sidenav .nav-item.active{ background:var(--po-accent-soft); color:var(--po-accent-2); }
+  /* styles.css od 860 px stavlja body{display:flex}; ova stranica ima svoj raspored */
+  body.po-body{ display:block; }
   .po-body .sidenav .nav-fab{
     background:linear-gradient(135deg, var(--po-fab-1), var(--po-fab-2)); color:var(--po-on-fab);
     box-shadow:0 8px 18px rgba(46,196,182,.35); margin:4px 0;
@@ -223,7 +240,8 @@ body.po-body{
    ========================================================================= */
 .po-intro{ position:relative; background:var(--po-deep); }
 .po-scene{ position:relative; height:100vh; height:100svh; overflow:hidden; }
-.po-world{ position:absolute; left:0; top:0; width:100%; height:300%; will-change:transform; }
+.po-world{ position:absolute; left:0; top:0; width:100%; height:300%; }
+.po-anim .po-world{ will-change:transform; }
 
 /* Površina mora je na 55 % visine zaslona = 18.333 % svijeta */
 .po-sky{
@@ -309,30 +327,37 @@ body.po-body{
 }
 .po-title{
   font-weight:800; color:var(--po-intro-title);
-  font-size:clamp(3.4rem, 15.5vw, 10.5rem); line-height:.86; letter-spacing:-.045em;
+  /* ograničeno i visinom, da na mobitelu položenom vodoravno ne prekrije brod i slogan */
+  font-size:clamp(2.6rem, min(15.5vw, 16svh), 10.5rem); line-height:.86; letter-spacing:-.045em;
   font-variation-settings:"opsz" 96;
   text-shadow:var(--po-title-shadow);
 }
+/* Donji red uvoda: slogan, uputa za skrolanje i opis u jednom redu, bez preklapanja */
+.po-intro-bottom{
+  position:absolute; left:var(--po-gutter-l); right:var(--po-gutter-r); bottom:calc(var(--po-nav-space) + 24px);
+  display:flex; align-items:flex-end; justify-content:space-between; gap:16px;
+}
 .po-tagline{
-  position:absolute; left:var(--po-gutter-l); bottom:calc(var(--po-nav-space) + 28px); margin:0;
-  font-family:var(--po-display); font-weight:700; font-size:clamp(1.35rem, 4.6vw, 2.3rem); line-height:1.08; letter-spacing:-.02em;
-  max-width:16ch; color:#F4FBFA;
+  margin:0; flex:0 1 auto;
+  font-family:var(--po-display); font-weight:700; font-size:clamp(1.25rem, min(4.6vw, 5svh), 2.3rem); line-height:1.08; letter-spacing:-.02em;
+  max-width:16ch; color:#F4FBFA; text-shadow:0 2px 18px rgba(2,20,32,.55);
 }
-.po-scrollhint{
-  position:absolute; right:var(--po-gutter-r); bottom:calc(var(--po-nav-space) + 32px); margin:0;
-  font-family:var(--po-mono); font-size:11.5px; letter-spacing:.12em; text-transform:uppercase; color:rgba(232,244,242,.8);
+.po-scrollhint, .po-corner{
+  margin:0; flex:none; color:#F4FBFA;
+  background:rgba(2,24,36,.5); border-radius:12px; padding:6px 10px;
+  -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
 }
+.po-scrollhint{ display:none; font-family:var(--po-mono); font-size:11.5px; letter-spacing:.12em; text-transform:uppercase; white-space:nowrap; }
+.po-anim .po-scrollhint{ display:block; }  /* „skrolaj i zaroni“ samo kad zaron stvarno postoji */
 .po-scrollhint-arrow{ display:inline-block; animation:po-nudge 1.8s ease-in-out infinite; }
 @keyframes po-nudge{ 50%{ transform:translateY(4px); } }
 .po-corner{ display:none; }
+@media (max-width:339px){ .po-anim .po-scrollhint{ display:none; } }
 @media (min-width:860px){
-  .po-title{ font-size:clamp(4rem, 8.6vw, 9.5rem); }
+  .po-title{ font-size:clamp(3.4rem, min(8.6vw, 17svh), 9.5rem); }
   .po-title br{ display:none; }
-  .po-scrollhint{ right:auto; left:50%; transform:translateX(-50%); }
-  .po-corner{
-    display:block; position:absolute; right:var(--po-gutter-r); bottom:32px; margin:0;
-    max-width:26ch; text-align:right; font-size:13px; line-height:1.45; color:rgba(232,244,242,.82);
-  }
+  .po-intro-bottom{ bottom:32px; }
+  .po-corner{ display:block; max-width:26ch; text-align:right; font-size:13px; line-height:1.45; }
 }
 
 /* Priča: zadano (bez animacije) teče ispod scene */
@@ -406,7 +431,7 @@ body.po-body{
 .po-chips a:hover{ color:var(--po-text); border-color:var(--po-accent); }
 .po-chips a.is-active{ background:var(--po-accent); border-color:var(--po-accent); color:var(--po-on-accent); }
 
-.po-section{ padding-block:clamp(64px, 9vw, 112px); scroll-margin-top:calc(var(--po-header-h) + 56px); }
+.po-section{ padding-block:clamp(64px, 9vw, 112px); } /* razmak ispod trake daje html{scroll-padding-top} */
 .po-section + .po-section{ border-top:1px solid var(--po-line); }
 .po-head{ max-width:760px; margin-bottom:clamp(28px, 4vw, 44px); }
 .po-eyebrow{
@@ -459,7 +484,7 @@ body.po-body{
 .po-seg{ grid-template-columns:1fr 1fr; }
 .po-seg legend{ grid-column:1 / -1; }
 .po-seg label, .po-choice label{ position:relative; cursor:pointer; }
-.po-seg input, .po-choice input{ position:absolute; opacity:0; width:1px; height:1px; }
+.po-seg input, .po-choice input{ position:absolute; opacity:0; width:1px; height:1px; outline:none; }
 .po-seg span, .po-choice span{
   display:flex; align-items:center; justify-content:center; text-align:center; min-height:44px;
   padding:10px 12px; border-radius:14px; border:1px solid var(--po-line-strong);
@@ -468,11 +493,11 @@ body.po-body{
 .po-seg input:checked + span, .po-choice input:checked + span{ background:var(--po-text); color:var(--po-on-accent); border-color:var(--po-text); }
 .po-seg input:focus-visible + span, .po-choice input:focus-visible + span{ outline:2px solid var(--po-accent-2); outline-offset:2px; }
 
-.po-meters{ margin:0; display:grid; gap:12px; }
+.po-meters{ list-style:none; margin:0; padding:0; display:grid; gap:12px; }
 .po-meter{ display:grid; grid-template-columns:minmax(0,1fr) auto; gap:6px 12px; align-items:center; }
-.po-meter dt{ font-size:13.5px; }
-.po-meter dd{ margin:0; font-family:var(--po-mono); font-size:12px; font-weight:600; letter-spacing:.04em; }
-.po-meter-bar{ grid-column:1 / -1; height:8px; border-radius:99px; background:var(--po-tint-weak); overflow:hidden; }
+.po-meter-label{ font-size:13.5px; }
+.po-meter-val{ font-family:var(--po-mono); font-size:12px; font-weight:600; letter-spacing:.04em; }
+.po-meter-bar{ grid-column:1 / -1; display:block; height:8px; border-radius:99px; background:var(--po-tint-weak); overflow:hidden; }
 .po-meter-bar i{ display:block; height:100%; width:0; border-radius:99px; transition:width .4s ease, background .4s ease; }
 .po-bay-verdict{ margin:0; font-weight:700; font-size:15px; min-height:2.6em; }
 
@@ -485,13 +510,13 @@ body.po-body{
 /* ---------- 3. Vodič ---------- */
 .po-guide{ display:grid; gap:16px; margin-bottom:28px; }
 @media (min-width:900px){ .po-guide{ grid-template-columns:240px minmax(0,1fr); align-items:start; } }
-.po-tabs{ display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px; }
-.po-tabs::-webkit-scrollbar{ display:none; }
-@media (min-width:900px){ .po-tabs{ flex-direction:column; } }
+/* Mobitel: kartice u mreži 2×2 (sve vidljive, fokus se ne reže); računalo: stupac */
+.po-tabs{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:8px; padding:4px; }
+@media (min-width:900px){ .po-tabs{ grid-template-columns:1fr; } }
 .po-tab{
-  flex:0 0 auto; text-align:left; cursor:pointer; min-height:44px;
-  padding:12px 18px; border-radius:14px; border:1px solid var(--po-line-strong); background:transparent;
-  font-weight:600; font-size:14.5px; color:var(--po-muted); transition:all .2s;
+  text-align:left; cursor:pointer; min-height:44px;
+  padding:12px 16px; border-radius:14px; border:1px solid var(--po-line-strong); background:transparent;
+  font-weight:600; font-size:14.5px; color:var(--po-muted); transition:background .2s, color .2s, border-color .2s;
 }
 .po-tab:hover{ color:var(--po-text); }
 .po-tab[aria-selected="true"]{ background:var(--po-surface-2); color:var(--po-text); border-color:var(--po-accent); }
@@ -501,7 +526,7 @@ body.po-body{
 .po-panel ul{ list-style:none; margin:0; padding:0; display:grid; gap:10px; }
 .po-panel li{ display:grid; grid-template-columns:22px minmax(0,1fr); gap:10px; align-items:start; }
 .po-panel li::before{
-  content:"✓"; width:22px; height:22px; margin-top:1px; border-radius:50%;
+  content:"✓"; content:"✓" / ""; width:22px; height:22px; margin-top:1px; border-radius:50%;
   display:grid; place-items:center; font-size:12px; font-weight:800; line-height:1;
   background:var(--po-accent-soft); color:var(--po-accent-2);
 }
@@ -622,6 +647,33 @@ body.po-body{
 .po-result-score{ font-family:var(--po-display); font-weight:800; font-size:clamp(3rem, 12vw, 5rem); line-height:1; color:var(--po-accent-2); letter-spacing:-.04em; font-variant-numeric:tabular-nums; }
 .po-result p{ margin:0; max-width:44ch; }
 .po-result .po-note{ margin:0; }
+.po-cert-need{ color:var(--po-muted); }
+
+/* Certifikat „Odgovorni nautičar“ */
+.po-cert{
+  width:100%; max-width:520px; display:grid; gap:14px; text-align:left;
+  padding-top:18px; margin-top:4px; border-top:1px solid var(--po-line);
+}
+.po-cert-earned{ font-family:var(--po-display); font-weight:700; font-size:1.2rem; text-align:center; }
+.po-cert-form{ display:grid; gap:8px; }
+.po-cert-form label{ font-weight:600; font-size:14px; }
+.po-cert-row{ display:flex; flex-wrap:wrap; gap:8px; }
+.po-cert-row input{
+  flex:1 1 200px; min-width:0; min-height:46px; padding:0 14px; border-radius:12px;
+  border:1px solid var(--po-line-strong); background:var(--po-inset); color:var(--po-text);
+  font:inherit; font-size:16px;
+}
+.po-cert-row input::placeholder{ color:var(--po-muted); opacity:1; }
+.po-cert-row input:focus-visible{ outline:2px solid var(--po-accent-2); outline-offset:2px; }
+.po-cert-row input[aria-invalid="true"]{ border-color:var(--po-warn); }
+.po-cert-row .po-btn{ flex:0 0 auto; }
+.po-cert-err{ margin:0; min-height:1.3em; font-size:13px; font-weight:600; color:var(--po-warn); }
+.po-cert-out{ margin:0; }
+.po-cert-out img{
+  display:block; width:100%; max-width:360px; height:auto; margin:0 auto;
+  border-radius:16px; border:1px solid var(--po-line); box-shadow:0 18px 40px rgba(0,0,0,.25);
+}
+.po-option-key{ font-weight:700; }
 
 /* ---------- 6. Završni poziv i podnožje ---------- */
 .po-final{
@@ -637,7 +689,7 @@ body.po-body{
 .po-footer{ background:var(--po-deep); padding-block:40px 48px; border-top:1px solid var(--po-line); }
 .po-footer-title{ font-family:var(--po-mono) !important; font-size:12px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--po-accent-2); margin-bottom:12px !important; }
 .po-sources{ margin:0; padding-left:18px; display:grid; gap:6px; font-size:13.5px; }
-.po-sources a{ color:var(--po-text); text-decoration-color:var(--po-line-strong); text-underline-offset:3px; overflow-wrap:anywhere; }
+.po-sources a{ color:var(--po-text); text-decoration:underline; text-decoration-color:var(--po-line-strong); text-underline-offset:3px; overflow-wrap:anywhere; }
 .po-sources a:hover{ text-decoration-color:var(--po-accent); }
 .po-footer-line{ margin:20px 0 0; font-family:var(--po-mono); font-size:11.5px; letter-spacing:.06em; color:var(--po-muted); }
 

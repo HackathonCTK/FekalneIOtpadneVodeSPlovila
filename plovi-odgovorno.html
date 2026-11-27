@@ -9,15 +9,18 @@
 <script>
   /* Light (paleta D) ili dark (paleta A): spremljeni izbor, inače postavka uređaja. Prije crtanja, bez bljeska. */
   (function () {
-    var m = null;
-    try { m = localStorage.getItem("po-mode"); } catch (e) {}
+    var root = document.documentElement, m = null, theme = null;
+    try { m = localStorage.getItem("po-mode"); theme = localStorage.getItem("cm-theme"); } catch (e) {}
     if (m !== "light" && m !== "dark") m = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
-    document.documentElement.setAttribute("data-po-mode", m);
+    root.setAttribute("data-po-mode", m);
+    root.classList.add("js");
+    // Zajednička navigacija prati način stranice, osim ako je na Profilu izabrana tema
+    if (!theme) root.setAttribute("data-theme", m === "light" ? "ocean" : "dubina");
   })();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;600&family=Manrope:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=JetBrains+Mono:wght@400;600&family=Manrope:wght@400;600;700&display=swap">
 <!-- Zajednički stilovi aplikacije (navigacija, toast), zatim stilovi dijela 4 -->
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="plovi-odgovorno.css">
@@ -25,6 +28,10 @@
 <body class="po-body">
 
 <a class="po-skip" href="#po-main" data-i18n="ui.skip">Preskoči uvod</a>
+
+<noscript>
+  <p class="po-noscript">Za vodič, kviz i animacije uključi JavaScript. / Turn on JavaScript for the guide, quiz and animations.</p>
+</noscript>
 
 <!-- ===== GORNJA TRAKA ===== -->
 <header class="po-top" id="po-top">
@@ -40,8 +47,8 @@
   <div class="po-top-actions">
     <button type="button" class="po-mode" id="po-mode" aria-label="Uključi svijetli način"></button>
     <div class="po-lang" role="group" aria-label="Jezik" data-i18n-aria="ui.lang">
-      <button type="button" data-lang="hr" aria-pressed="true">HR</button>
-      <button type="button" data-lang="en" aria-pressed="false">EN</button>
+      <button type="button" data-lang="hr" aria-pressed="true" aria-label="Hrvatski" lang="hr">HR</button>
+      <button type="button" data-lang="en" aria-pressed="false" aria-label="English" lang="en">EN</button>
     </div>
   </div>
 </header>
@@ -63,6 +70,14 @@
   <a class="nav-item" href="book.html">
     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
     <span class="nlabel" data-i18n="nav.log">Dnevnik</span>
+  </a>
+  <a class="nav-item active" href="plovi-odgovorno.html" aria-current="page">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v14"/><path d="M12 4l7 11h-7"/><path d="M10 7l-5 8h5"/><path d="M3 18h18l-2 3H5z"/></svg>
+    <span class="nlabel" data-i18n="nav.plovi">Plovi odgovorno</span>
+  </a>
+  <a class="nav-item" href="obrada.html">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="m9 13 2 2 4-4"/></svg>
+    <span class="nlabel" data-i18n="nav.obrada">Obrada prijava</span>
   </a>
   <a class="nav-item" href="profile.html">
     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 6-6 8-6s6.5 2 8 6"/></svg>
@@ -119,9 +134,11 @@
 
     <div class="po-intro-ui">
       <h1 id="po-title" class="po-title" data-i18n-html="intro.title">Plovi <br>odgovorno</h1>
-      <p class="po-tagline" data-i18n-html="intro.tagline">More pamti.<br>Ono što ispustiš, ostaje.</p>
-      <p class="po-scrollhint"><span data-i18n="intro.scroll">Skrolaj i zaroni</span> <span class="po-scrollhint-arrow" aria-hidden="true">↓</span></p>
-      <p class="po-corner" data-i18n="intro.corner">Vodič za nautičare o fekalnim i otpadnim vodama s plovila</p>
+      <div class="po-intro-bottom">
+        <p class="po-tagline" data-i18n-html="intro.tagline">More pamti.<br>Ono što ispustiš, ostaje.</p>
+        <p class="po-scrollhint"><span data-i18n="intro.scroll">Skrolaj i zaroni</span> <span class="po-scrollhint-arrow" aria-hidden="true">↓</span></p>
+        <p class="po-corner" data-i18n="intro.corner">Vodič za nautičare o fekalnim i otpadnim vodama s plovila</p>
+      </div>
     </div>
 
     <!-- Rečenice i brojke: u animiranom načinu prikazuju se preko scene, inače ispod nje -->
@@ -170,17 +187,17 @@
             <p class="po-note" data-i18n="impact.bay.note"></p>
           </div>
           <div class="po-bay-controls">
-            <label class="po-range-label" for="po-bay-range">
-              <span data-i18n="impact.bay.label">Brodova u uvali</span>
-              <output id="po-bay-count" for="po-bay-range">20</output>
-            </label>
-            <input type="range" id="po-bay-range" min="1" max="60" step="1" value="20">
+            <div class="po-range-label">
+              <span id="po-bay-label" data-i18n="impact.bay.label">Brodova u uvali</span>
+              <output id="po-bay-count" for="po-bay-range" aria-hidden="true">20</output>
+            </div>
+            <input type="range" id="po-bay-range" min="1" max="60" step="1" value="20" aria-labelledby="po-bay-label">
             <fieldset class="po-seg">
               <legend data-i18n="impact.bay.mode">Što rade sa spremnikom?</legend>
               <label><input type="radio" name="po-bay-mode" id="po-bay-dump" value="dump" checked><span data-i18n="impact.bay.dump">Ispuštaju u uvalu</span></label>
               <label><input type="radio" name="po-bay-mode" id="po-bay-pump" value="pump"><span data-i18n="impact.bay.pump">Prazne na stanici</span></label>
             </fieldset>
-            <dl class="po-meters" id="po-meters"></dl>
+            <ul class="po-meters" id="po-meters"></ul>
             <p class="po-bay-verdict" id="po-bay-verdict" aria-live="polite"></p>
           </div>
         </div>
@@ -261,32 +278,33 @@
           <p class="po-lead" data-i18n="quiz.lead"></p>
         </header>
         <div class="po-quiz po-card" id="po-quiz"></div>
+        <p class="po-sr" id="po-quiz-status" role="status" aria-live="polite"></p>
       </div>
     </section>
 
     <!-- ===== 6. ZAVRŠNI POZIV ===== -->
     <section class="po-final" aria-labelledby="final-title">
       <div class="po-wrap">
-        <h2 id="final-title" data-i18n="final.title">Prazni u luci, ne u uvali.</h2>
+        <h2 id="final-title" data-i18n="final.title">Prazni na stanici, ne u uvali.</h2>
         <p class="po-lead" data-i18n="final.lead"></p>
         <div class="po-final-actions">
           <a class="po-btn po-btn-primary" href="map.html" data-i18n="final.map">Otvori kartu stanica</a>
           <a class="po-btn po-btn-ghost" href="report.html" data-i18n="final.report">Prijavi onečišćenje</a>
-          <a class="po-btn po-btn-ghost" href="book.html" data-i18n="final.log">Zabilježi pražnjenje</a>
+          <a class="po-btn po-btn-ghost" href="book.html" data-i18n="final.log">Moj dnevnik</a>
         </div>
       </div>
     </section>
-
-    <footer class="po-footer">
-      <div class="po-wrap">
-        <h2 class="po-footer-title" data-i18n="sources.title">Izvori</h2>
-        <ul class="po-sources" id="po-sources"></ul>
-        <p class="po-note" data-i18n="sources.note"></p>
-        <p class="po-footer-line" data-i18n="footer"></p>
-      </div>
-    </footer>
   </div>
 </main>
+
+<footer class="po-footer">
+  <div class="po-wrap">
+    <h2 class="po-footer-title" data-i18n="sources.title">Izvori</h2>
+    <ul class="po-sources" id="po-sources"></ul>
+    <p class="po-note" data-i18n="sources.note"></p>
+    <p class="po-footer-line" data-i18n="footer"></p>
+  </div>
+</footer>
 
 <!-- ===== DONJA NAVIGACIJA (mobitel) — iste poveznice kao index.html ===== -->
 <nav class="bottomnav" aria-label="Glavna navigacija" data-i18n-aria="nav.main">
@@ -301,9 +319,9 @@
   <a class="nav-fab" href="report.html" aria-label="Nova prijava" data-i18n-aria="nav.report">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
   </a>
-  <a class="nav-item" href="book.html">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
-    <span class="nlabel" data-i18n="nav.log">Dnevnik</span>
+  <a class="nav-item active" href="plovi-odgovorno.html" aria-current="page">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v14"/><path d="M12 4l7 11h-7"/><path d="M10 7l-5 8h5"/><path d="M3 18h18l-2 3H5z"/></svg>
+    <span class="nlabel" data-i18n="nav.ploviShort">Plovi</span>
   </a>
   <a class="nav-item" href="profile.html">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 6-6 8-6s6.5 2 8 6"/></svg>
@@ -314,9 +332,10 @@
 <div class="toast" id="toast" role="status"></div>
 
 <script src="app.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+<!-- Sadržaj se prikazuje odmah; GSAP (samo za animaciju uvoda) dolazi poslije i ne blokira tekst -->
 <script src="plovi-odgovorno-sadrzaj.js" defer></script>
 <script src="plovi-odgovorno.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer crossorigin="anonymous"></script>
 </body>
 </html>
