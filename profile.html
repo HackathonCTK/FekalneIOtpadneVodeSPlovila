@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#04141C">
+<title data-i18n="profile.title">ČistoMore – Profil</title>
+<script src="cm-boot.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=JetBrains+Mono:wght@400;600&family=Manrope:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="styles.css">
+<style>
+  /* Profil: privremena stranica dok se ne napravi korisnički račun (naknadno) */
+  .pf-soon{ display:inline-block; font-family:var(--font-mono); font-size:11.5px; font-weight:600; letter-spacing:.12em; text-transform:uppercase;
+    padding:5px 12px; border-radius:999px; background:var(--surface-2); color:var(--text); border:1px solid var(--border); }
+  .pf-lead{ margin:12px 0 0; color:var(--text-muted); line-height:1.6; max-width:60ch; }
+  .pf-badge{ display:flex; gap:14px; align-items:center; }
+  .pf-badge-icon{ width:52px; height:52px; border-radius:16px; flex-shrink:0; display:grid; place-items:center;
+    background:linear-gradient(135deg, var(--fab-grad-1), var(--fab-grad-2)); color:var(--on-fab); }
+  .pf-badge b{ display:block; font-family:var(--font-display); font-size:17px; }
+  .pf-badge span{ font-size:13px; color:var(--text-muted); }
+  .pf-links{ display:grid; gap:10px; grid-template-columns:repeat(auto-fit, minmax(min(100%, 200px), 1fr)); margin-top:4px; }
+  .pf-links a{ display:flex; align-items:center; justify-content:center; min-height:46px; padding:12px 16px; border-radius:var(--radius-sm);
+    border:1.5px solid var(--border); font-weight:700; font-size:14px; color:var(--text); background:var(--surface); }
+  .pf-links a:hover{ border-color:var(--primary); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="topbar-row">
+      <a class="brand" href="index.html">
+        <div class="brand-badge" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17c1.5 1 3 1 4.5 0s3-1 4.5 0 3 1 4.5 0 3-1 4.5 0"/><path d="M3 21c1.5 1 3 1 4.5 0s3-1 4.5 0 3 1 4.5 0 3-1 4.5 0"/><path d="M5 17V9a2 2 0 0 1 2-2h2V4h6v3h2a2 2 0 0 1 2 2v8"/><path d="M9 11h6"/></svg>
+        </div>
+        <div>
+          <div class="brand-name">ČistoMore</div>
+          <div class="brand-sub" data-i18n="profile.brandSub">Profil</div>
+        </div>
+      </a>
+    </div>
+    <h1 class="page-title" data-i18n="profile.heading">Profil</h1>
+    <div class="page-sub" data-i18n="profile.sub">Korisnički računi stižu uskoro</div>
+    <svg class="wave" viewBox="0 0 400 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0 20 Q 50 0 100 20 T 200 20 T 300 20 T 400 20 V40 H0 Z" fill="rgba(255,255,255,0.14)"/></svg>
+  </header>
+
+  <nav class="sidenav" data-cm-nav="profile"></nav>
+
+  <main class="content">
+    <div class="section-title" data-i18n="profile.sectionSoon">Uskoro</div>
+    <div class="card">
+      <span class="pf-soon" data-i18n="cm.soon">Uskoro</span>
+      <p class="pf-lead" data-i18n="profile.lead">Ovdje će biti tvoj profil: prijave koje si poslao, pražnjenja spremnika i postavke. Do tada se način (tamni ili svijetli) i jezik mijenjaju gumbima u gornjoj traci na svakoj stranici.</p>
+    </div>
+
+    <div class="section-title" data-i18n="profile.sectionBadges">Značke</div>
+    <div class="card" id="pf-badge-card">
+      <div class="pf-badge" id="pf-badge">
+        <div class="pf-badge-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v14"/><path d="M12 4l7 11h-7"/><path d="M10 7l-5 8h5"/><path d="M3 18h18l-2 3H5z"/></svg>
+        </div>
+        <div><b id="pf-badge-title" data-i18n="profile.badgeNone">Još nemaš značku</b><span id="pf-badge-text" data-i18n="profile.badgeNoneText">Riješi kviz „Plovi odgovorno“ s barem 6 točnih i dobit ćeš certifikat „Odgovorni nautičar“.</span></div>
+      </div>
+    </div>
+
+    <div class="pf-links">
+      <a href="plovi-odgovorno.html#kviz" data-i18n="profile.toQuiz">Kviz i certifikat</a>
+      <a href="report.html" data-i18n="cm.nav.report">Nova prijava</a>
+      <a href="obrada.html" data-i18n="cm.nav.obrada">Obrada prijava</a>
+    </div>
+  </main>
+
+  <nav class="bottomnav" data-cm-nav="profile"></nav>
+  <div class="toast" id="toast" role="status"></div>
+</div>
+
+<script src="app.js"></script>
+<script>
+  /* Profil: prijevodi i značka iz kviza (po-cert sprema plovi-odgovorno.js) */
+  (function () {
+    CM_i18n.add({
+      hr: { profile: {
+        title: "ČistoMore – Profil", brandSub: "Profil", heading: "Profil", sub: "Korisnički računi stižu uskoro",
+        sectionSoon: "Uskoro", sectionBadges: "Značke",
+        lead: "Ovdje će biti tvoj profil: prijave koje si poslao, pražnjenja spremnika i postavke. Do tada se način (tamni ili svijetli) i jezik mijenjaju gumbima u gornjoj traci na svakoj stranici.",
+        badgeNone: "Još nemaš značku",
+        badgeNoneText: "Riješi kviz „Plovi odgovorno“ s barem 6 točnih i dobit ćeš certifikat „Odgovorni nautičar“.",
+        badgeTitle: "Odgovorni nautičar",
+        badgeText: "{name} · {score}/{total} u kvizu · {date}",
+        toQuiz: "Kviz i certifikat"
+      } },
+      en: { profile: {
+        title: "ČistoMore – Profile", brandSub: "Profile", heading: "Profile", sub: "User accounts are coming soon",
+        sectionSoon: "Coming soon", sectionBadges: "Badges",
+        lead: "Your profile will live here: the reports you've sent, your pump-outs and your settings. Until then, switch dark or light mode and the language with the buttons in the top bar on every page.",
+        badgeNone: "No badge yet",
+        badgeNoneText: "Get at least 6 right in the “Sail responsibly” quiz to earn the “Responsible skipper” certificate.",
+        badgeTitle: "Responsible skipper",
+        badgeText: "{name} · {score}/{total} in the quiz · {date}",
+        toQuiz: "Quiz and certificate"
+      } }
+    });
+    function renderBadge() {
+      var c = null;
+      try { c = JSON.parse(localStorage.getItem("po-cert") || "null"); } catch (e) {}
+      var title = document.getElementById("pf-badge-title");
+      var text = document.getElementById("pf-badge-text");
+      if (!c || !c.name) return;
+      title.removeAttribute("data-i18n"); text.removeAttribute("data-i18n");
+      var lang = CM_i18n.lang();
+      var date = "";
+      try { date = new Date(c.date).toLocaleDateString(lang === "hr" ? "hr-HR" : "en-GB", { day: "numeric", month: "long", year: "numeric" }); } catch (e) {}
+      title.textContent = CM_i18n.t("profile.badgeTitle");
+      text.textContent = CM_i18n.t("profile.badgeText", { name: c.name, score: c.score, total: c.total, date: date });
+    }
+    renderBadge();
+    document.addEventListener("cm:lang", renderBadge);
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "cisto-more",
+  "version": "1.0.0",
+  "description": "Čisto more – praćenje i obrada prijava onečišćenja mora, s lokalnim serverom karata",
+  "private": true,
+  "license": "UNLICENSED",
+  "engines": { "node": ">=22.13" },
+  "scripts": {
+    "setup": "node scripts/setup.js",
+    "start": "node server.js",
+    "demo": "node server.js --mbtiles=demo/proba-split.mbtiles"
+  }
+}

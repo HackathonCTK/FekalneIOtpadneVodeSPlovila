@@ -1,9 +1,14 @@
 <!DOCTYPE html>
-<html lang="hr" data-theme="ocean">
+<html lang="hr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ČistoMore – Pražnjenje spremnika</title>
+<meta name="theme-color" content="#04141C">
+<title data-i18n="map.title">ČistoMore – Pražnjenje spremnika</title>
+<script src="cm-boot.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=JetBrains+Mono:wght@400;600&family=Manrope:wght@400;600;700&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css">
 <link rel="stylesheet" href="styles.css">
@@ -16,90 +21,72 @@
   <header class="topbar">
     <div class="topbar-row">
       <div class="brand">
-        <div class="brand-badge">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17c1.5 1 3 1 4.5 0s3-1 4.5 0 3 1 4.5 0 3-1 4.5 0"/><path d="M3 21c1.5 1 3 1 4.5 0s3-1 4.5 0 3 1 4.5 0 3-1 4.5 0"/><path d="M5 17V9a2 2 0 0 1 2-2h2V4h6v3h2a2 2 0 0 1 2 2v8"/><path d="M9 11h6"/></svg>
+        <div class="brand-badge" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17c1.5 1 3 1 4.5 0s3-1 4.5 0 3 1 4.5 0 3-1 4.5 0"/><path d="M3 21c1.5 1 3 1 4.5 0s3-1 4.5 0 3 1 4.5 0 3-1 4.5 0"/><path d="M5 17V9a2 2 0 0 1 2-2h2V4h6v3h2a2 2 0 0 1 2 2v8"/><path d="M9 11h6"/></svg>
         </div>
         <div>
           <div class="brand-name">ČistoMore</div>
-          <div class="brand-sub">Prihvatna mjesta</div>
+          <div class="brand-sub" data-i18n="map.brandSub">Prihvatna mjesta</div>
         </div>
       </div>
-      <a class="icon-btn" href="index.html" aria-label="Natrag na početnu">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      <a class="icon-btn" href="index.html" aria-label="Natrag na početnu" data-i18n-attr="aria-label:map.back; title:map.back">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
       </a>
     </div>
-    <h1 class="page-title">Pražnjenje spremnika</h1>
-    <div class="page-sub">Mjesta za prihvat fekalnih i otpadnih voda s plovila</div>
-    <svg class="wave" viewBox="0 0 400 40" preserveAspectRatio="none"><path d="M0 20 Q 50 0 100 20 T 200 20 T 300 20 T 400 20 V40 H0 Z" fill="rgba(255,255,255,0.14)"/></svg>
+    <h1 class="page-title" data-i18n="map.pageTitle">Pražnjenje spremnika</h1>
+    <div class="page-sub" data-i18n="map.pageSub">Mjesta za prihvat fekalnih i otpadnih voda s plovila</div>
+    <svg class="wave" viewBox="0 0 400 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0 20 Q 50 0 100 20 T 200 20 T 300 20 T 400 20 V40 H0 Z" fill="currentColor" fill-opacity="0.14"/></svg>
   </header>
 
-  <!-- ===== SIDE NAV (desktop) ===== -->
-  <nav class="sidenav" aria-label="Glavna navigacija">
-    <a class="nav-item" href="index.html">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
-      <span class="nlabel">Početna</span>
-    </a>
-    <a class="nav-item active" href="map.html" aria-current="page">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20 3 17V4l6 3m0 13 6-3m-6 3V7m6 10 6 3V7l-6-3m0 16V4m0 3-6-3"/></svg>
-      <span class="nlabel">Karta</span>
-    </a>
-    <a class="nav-fab" href="report.html">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-      <span>Nova prijava</span>
-    </a>
-    <a class="nav-item" href="book.html">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
-      <span class="nlabel">Dnevnik</span>
-    </a>
-    <a class="nav-item" href="profile.html">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 6-6 8-6s6.5 2 8 6"/></svg>
-      <span class="nlabel">Profil</span>
-    </a>
-  </nav>
+  <!-- ===== SIDE NAV (računalo); stavke iscrtava app.js ===== -->
+  <nav class="sidenav" data-cm-nav="map"></nav>
 
   <main class="content">
 
     <form class="map-tools" id="searchForm" role="search" autocomplete="off">
       <label class="map-search">
-        <span class="visually-hidden">Pretraži prihvatna mjesta</span>
+        <span class="visually-hidden" data-i18n="map.searchLabel">Pretraži prihvatna mjesta</span>
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input id="searchInput" type="search" placeholder="Marina ili mjesto"
+        <input id="searchInput" type="search" placeholder="Marina ili mjesto" data-i18n-attr="placeholder:map.searchPlaceholder"
                role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="searchSuggest">
       </label>
-      <button type="button" class="map-btn primary" id="nearestBtn" aria-label="Pronađi najbliže prihvatno mjesto">
+      <button type="button" class="map-btn primary" id="nearestBtn" aria-label="Pronađi najbliže prihvatno mjesto" data-i18n-attr="aria-label:map.nearestAria">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>
-        <span>Najbliže meni</span>
+        <span id="nearestLabel">Najbliže meni</span>
       </button>
-      <ul class="suggest" id="searchSuggest" role="listbox" aria-label="Prijedlozi" hidden></ul>
+      <ul class="suggest" id="searchSuggest" role="listbox" aria-label="Prijedlozi" data-i18n-attr="aria-label:map.suggestAria" hidden></ul>
     </form>
 
     <div class="map-pick" id="pickHint" hidden>
-      <span id="pickText">Dodirnite kartu na mjestu gdje se nalazite.</span>
-      <button type="button" class="map-btn" id="pickCancel">Odustani</button>
+      <span id="pickText"></span>
+      <button type="button" class="map-btn" id="pickCancel" data-i18n="map.cancel">Odustani</button>
     </div>
 
     <section class="card nearest-card" id="nearestCard" aria-labelledby="nearestTitle" hidden></section>
 
     <div class="map-wrap">
-      <div id="map" class="map" role="region" aria-label="Karta prihvatnih mjesta"></div>
+      <div id="map" class="map" role="region" aria-label="Karta prihvatnih mjesta" data-i18n-attr="aria-label:map.mapAria"></div>
     </div>
 
     <p class="map-legend">
-      <span class="legend-item"><span class="legend-marker" aria-hidden="true"></span>Prihvatno mjesto (približna lokacija)</span>
-      <span class="legend-item"><span class="legend-cluster" aria-hidden="true">3</span>Skupina mjesta</span>
-      <span class="legend-item" id="legendUser" hidden><span class="legend-user" aria-hidden="true"></span>Vaša lokacija</span>
+      <span class="legend-item"><span class="legend-marker" aria-hidden="true"></span><span data-i18n="map.legend.station">Prihvatno mjesto (približna lokacija)</span></span>
+      <span class="legend-item"><span class="legend-cluster" aria-hidden="true">3</span><span data-i18n="map.legend.cluster">Skupina mjesta</span></span>
+      <span class="legend-item" id="legendUser" hidden><span class="legend-user" aria-hidden="true"></span><span data-i18n="map.legend.user">Vaša lokacija</span></span>
     </p>
-    <p class="map-note" id="mapNotice">
+    <p class="map-note" id="mapNotice" data-i18n="map.notice">
       Popis se temelji na referencama ugrađenih uređaja. Prije dolaska provjerite kod operatora radi li uređaj i koje vode prima.
     </p>
 
-    <button type="button" class="card guide-card" id="guideBtn">
-      <span class="guide-card-text">
-        <span class="guide-card-title">Kako koristiti uslugu pražnjenja</span>
-        <span class="guide-card-sub">Sedam koraka, od najave do potvrde o predaji otpada</span>
-      </span>
-      <svg class="station-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
-    </button>
+    <div class="guide-block">
+      <button type="button" class="card guide-card" id="guideBtn">
+        <span class="guide-card-text">
+          <span class="guide-card-title" data-i18n="map.guide.title">Kako koristiti uslugu pražnjenja</span>
+          <span class="guide-card-sub" data-i18n="map.guide.cardSub">Sedam koraka, od najave do potvrde o predaji otpada</span>
+        </span>
+        <svg class="station-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+      <a class="guide-more" href="plovi-odgovorno.html#prihvat" data-i18n="map.guide.interactive">Interaktivni vodič i kviz</a>
+    </div>
 
     <div class="list-head">
       <h2 class="list-heading" id="listTitle">Prihvatna mjesta</h2>
@@ -117,7 +104,7 @@
         <h2 class="sheet-title" id="sheetTitle"></h2>
         <p class="sheet-sub" id="sheetSub" hidden></p>
       </div>
-      <button type="button" class="sheet-close" id="sheetClose" aria-label="Zatvori">
+      <button type="button" class="sheet-close" id="sheetClose" aria-label="Zatvori" data-i18n-attr="aria-label:map.close">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
       </button>
     </div>
@@ -125,37 +112,19 @@
     <div class="sheet-foot" id="sheetFoot" hidden></div>
   </section>
 
-  <!-- ===== BOTTOM NAV (mobile) ===== -->
-  <nav class="bottomnav" aria-label="Glavna navigacija">
-    <a class="nav-item" href="index.html">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
-      <span class="nlabel">Početna</span>
-    </a>
-    <a class="nav-item active" href="map.html" aria-current="page">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20 3 17V4l6 3m0 13 6-3m-6 3V7m6 10 6 3V7l-6-3m0 16V4m0 3-6-3"/></svg>
-      <span class="nlabel">Karta</span>
-    </a>
-    <a class="nav-fab" href="report.html" aria-label="Nova prijava">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-    </a>
-    <a class="nav-item" href="book.html">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
-      <span class="nlabel">Dnevnik</span>
-    </a>
-    <a class="nav-item" href="profile.html">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 6-6 8-6s6.5 2 8 6"/></svg>
-      <span class="nlabel">Profil</span>
-    </a>
-  </nav>
+  <!-- ===== BOTTOM NAV (mobitel); stavke iscrtava app.js ===== -->
+  <nav class="bottomnav" data-cm-nav="map"></nav>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </div>
 <script src="app.js"></script>
+<script src="map-i18n.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js"></script>
 <script src="data/stations.js"></script>
 <script src="data/kontakti.js"></script>
 <script src="data/upute.js"></script>
+<script src="data/upute-en.js"></script>
 <script src="data/regije.js"></script>
 <script src="map.js"></script>
 </body>
