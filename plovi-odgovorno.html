@@ -6,6 +6,15 @@
 <meta name="theme-color" content="#04141C">
 <title>ČistoMore – Plovi odgovorno</title>
 <meta name="description" content="Interaktivni vodič za nautičare: zašto i kako pravilno zbrinuti fekalne i otpadne vode s plovila.">
+<script>
+  /* Light (paleta D) ili dark (paleta A): spremljeni izbor, inače postavka uređaja. Prije crtanja, bez bljeska. */
+  (function () {
+    var m = null;
+    try { m = localStorage.getItem("po-mode"); } catch (e) {}
+    if (m !== "light" && m !== "dark") m = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+    document.documentElement.setAttribute("data-po-mode", m);
+  })();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;600&family=Manrope:wght@400;500;600;700&display=swap">
@@ -28,9 +37,12 @@
       <span class="po-brand-sub" data-i18n="ui.brandSub">Plovi odgovorno</span>
     </span>
   </a>
-  <div class="po-lang" role="group" aria-label="Jezik" data-i18n-aria="ui.lang">
-    <button type="button" data-lang="hr" aria-pressed="true">HR</button>
-    <button type="button" data-lang="en" aria-pressed="false">EN</button>
+  <div class="po-top-actions">
+    <button type="button" class="po-mode" id="po-mode" aria-label="Uključi svijetli način"></button>
+    <div class="po-lang" role="group" aria-label="Jezik" data-i18n-aria="ui.lang">
+      <button type="button" data-lang="hr" aria-pressed="true">HR</button>
+      <button type="button" data-lang="en" aria-pressed="false">EN</button>
+    </div>
   </div>
 </header>
 

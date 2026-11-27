@@ -19,7 +19,9 @@ window.PO_CONTENT = {
       lang: "Jezik",
       brand: "ČistoMore",
       brandSub: "Plovi odgovorno",
-      sections: "Sekcije stranice"
+      sections: "Sekcije stranice",
+      toLight: "Uključi svijetli način",
+      toDark: "Uključi tamni način"
     },
     nav: {
       main: "Glavna navigacija",
@@ -246,7 +248,9 @@ window.PO_CONTENT = {
       lang: "Language",
       brand: "ČistoMore",
       brandSub: "Sail responsibly",
-      sections: "Page sections"
+      sections: "Page sections",
+      toLight: "Switch to light mode",
+      toDark: "Switch to dark mode"
     },
     nav: {
       main: "Main navigation",

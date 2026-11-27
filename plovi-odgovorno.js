@@ -40,7 +40,9 @@
     algae: '<path d="M7 21c0-5 4-6 4-11S8 4 8 3"/><path d="M13 21c0-4 3-5 3-9s-2-5-2-6"/><path d="M18 21c0-3 2-4 2-7"/>',
     shell: '<path d="M12 4C7 4 3 8 3 13c0 2 1 4 3 5h12c2-1 3-3 3-5 0-5-4-9-9-9Z"/><path d="M12 4v14M8 5.5 9.5 18M16 5.5 14.5 18"/>',
     grass: '<path d="M6 21c0-6 2-10 1-16"/><path d="M10 21c0-5 3-8 2-13"/><path d="M14 21c0-6-2-9 0-15"/><path d="M18 21c0-4 1-7 0-10"/>',
-    pin: '<path d="M12 21s7-7.2 7-12a7 7 0 1 0-14 0c0 4.8 7 12 7 12Z"/><circle cx="12" cy="9" r="2.3"/>'
+    pin: '<path d="M12 21s7-7.2 7-12a7 7 0 1 0-14 0c0 4.8 7 12 7 12Z"/><circle cx="12" cy="9" r="2.3"/>',
+    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+    moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/>'
   };
   function icon(name, size) {
     return '<svg viewBox="0 0 24 24" width="' + (size || 22) + '" height="' + (size || 22) + '" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICON[name] + "</svg>";
@@ -165,7 +167,7 @@
     var pb = [1, 3, 5].map(function (i) { return parseInt(b.substr(i, 2), 16); });
     return "#" + pa.map(function (v, i) { return Math.round(v + (pb[i] - v) * k).toString(16).padStart(2, "0"); }).join("");
   }
-  var LEVEL_COLORS = ["#2EC4B6", "#FFB547", "#FF7A59", "#FF4D4D"];
+  var LEVEL_COLORS = ["var(--po-lvl-0)", "var(--po-lvl-1)", "var(--po-lvl-2)", "var(--po-lvl-3)"];
   function levelIdx(v) { return v < 0.25 ? 0 : v < 0.5 ? 1 : v < 0.8 ? 2 : 3; }
 
   function updateBay() {
@@ -353,6 +355,42 @@
   }
 
   /* =====================================================================
+     Light (paleta D) / dark (paleta A)
+     Početni način postavlja skripta u <head> (spremljeni izbor ili postavka uređaja).
+     ===================================================================== */
+  var MODE_KEY = "po-mode";
+  function getMode() { return root.getAttribute("data-po-mode") === "light" ? "light" : "dark"; }
+  function syncMode() {
+    var m = getMode();
+    var btn = $("#po-mode");
+    if (btn) {
+      var label = t(m === "light" ? "ui.toDark" : "ui.toLight");
+      btn.innerHTML = icon(m === "light" ? "moon" : "sun", 18);
+      btn.setAttribute("aria-label", label);
+      btn.setAttribute("title", label);
+    }
+    var meta = $('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", m === "light" ? "#EEF7FA" : "#04141C");
+    // Zajednička navigacija: ako korisnik nije odabrao temu na Profilu, prati način stranice
+    if (!sget("cm-theme")) root.setAttribute("data-theme", m === "light" ? "ocean" : "dubina");
+  }
+  function setMode(m, save) {
+    root.setAttribute("data-po-mode", m);
+    if (save) sset(MODE_KEY, m);
+    syncMode();
+  }
+  function initMode() {
+    var btn = $("#po-mode");
+    if (btn) btn.addEventListener("click", function () { setMode(getMode() === "light" ? "dark" : "light", true); });
+    if (window.matchMedia) {
+      var mq = window.matchMedia("(prefers-color-scheme: light)");
+      var onChange = function () { if (!sget(MODE_KEY)) setMode(mq.matches ? "light" : "dark", false); };
+      if (mq.addEventListener) mq.addEventListener("change", onChange);
+      else if (mq.addListener) mq.addListener(onChange);
+    }
+  }
+
+  /* =====================================================================
      Primjena jezika
      ===================================================================== */
   function applyLang() {
@@ -362,6 +400,7 @@
     $$("[data-i18n-html]").forEach(function (el) { var v = t(el.getAttribute("data-i18n-html")); if (v != null) el.innerHTML = v; });
     $$("[data-i18n-aria]").forEach(function (el) { var v = t(el.getAttribute("data-i18n-aria")); if (v != null) el.setAttribute("aria-label", v); });
     $$("[data-lang]").forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-lang") === lang); });
+    syncMode();
     updateBay();
     updateChecker();
     updateCaps();
@@ -389,7 +428,8 @@
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(function () {
-        top.classList.toggle("is-solid", main.getBoundingClientRect().top <= top.offsetHeight + 1);
+        // Puna pozadina čim počne zaron, da logo i gumbi ostanu čitljivi preko tamnog mora
+        top.classList.toggle("is-solid", window.scrollY > window.innerHeight * 0.2 || main.getBoundingClientRect().top <= top.offsetHeight + 1);
         ticking = false;
       });
     }
@@ -470,6 +510,7 @@
     initChecker();
     initCaps();
     initLang();
+    initMode();
     applyLang();
     initChrome();
     initMotion();
