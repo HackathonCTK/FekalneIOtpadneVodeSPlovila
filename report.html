@@ -58,124 +58,64 @@
     <div class="section-title">Podaci o ispuštanju</div>
     <div class="card">
       <form id="reportForm">
+        <div class="field">
+          <label>Vrsta otpada</label>
+          <div class="seg" id="wasteSeg">
+            <button type="button" class="active" data-val="otpadne">Otpadne vode</button>
+            <button type="button" data-val="fekalije">Fekalije</button>
+            <button type="button" data-val="mjesovito">Mješovito</button>
+          </div>
+        </div>
 
         <div class="field-row">
           <div class="field">
-            <label for="datetime">Vrijeme i datum</label>
+            <label for="shipName">Naziv broda</label>
+            <input id="shipName" type="text" placeholder="npr. Adriana Star" required>
+          </div>
+          <div class="field">
+            <label for="imo">IMO broj</label>
+            <input id="imo" type="text" placeholder="npr. 9123456" required>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="qty">Količina (m³)</label>
+            <input id="qty" type="number" min="0" step="0.1" placeholder="0.0" required>
+          </div>
+          <div class="field">
+            <label for="datetime">Datum i vrijeme</label>
             <input id="datetime" type="datetime-local" required>
           </div>
-          <div class="field">
-            <label for="wasteType">Vrsta otpada</label>
-            <select id="wasteType" required>
-              <option value="">Odaberite...</option>
-              <option value="fekalna">Fekalna</option>
-              <option value="otpadna">Otpadna</option>
-              <option value="ostalo">Ostalo</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="field-row">
-          <div class="field">
-            <label for="shipType">Vrsta broda</label>
-            <select id="shipType" required>
-              <option value="">Odaberite...</option>
-              <option>Jahta</option>
-              <option>Jedrilica</option>
-              <option>Ribarski brod</option>
-              <option>Putnički brod / trajekt</option>
-              <option>Teretni brod</option>
-              <option>Tanker</option>
-              <option>Mali čamac</option>
-              <option>Ostalo</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="shipSize">Veličina broda</label>
-            <select id="shipSize" required>
-              <option value="">Odaberite...</option>
-              <option>Mali (do 10 m)</option>
-              <option>Srednji (10–24 m)</option>
-              <option>Veliki (24–50 m)</option>
-              <option>Vrlo veliki (preko 50 m)</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="field-row">
-          <div class="field">
-            <label for="shipColor">Boja broda</label>
-            <div class="color-field">
-              <input id="shipColor" type="color" class="color-swatch-input" value="#0077b6">
-              <input id="shipColorHex" type="text" class="color-hex" value="#0077b6" maxlength="7" placeholder="#0077b6">
-            </div>
-          </div>
-          <div class="field">
-            <label for="registration">Registracija</label>
-            <input id="registration" type="text" placeholder="npr. ST-1234-AB">
-          </div>
         </div>
 
         <div class="field">
-          <label for="notes">Opis</label>
-          <textarea id="notes" placeholder="Opišite što ste uočili..."></textarea>
+          <label for="location">Luka / sidrište</label>
+          <input id="location" type="text" placeholder="npr. Luka Split ili GPS koordinate">
         </div>
 
         <div class="field">
-          <label>Fotografije / datoteke</label>
+          <label for="method">Način zbrinjavanja</label>
+          <select id="method">
+            <option>Lučka prihvatna stanica</option>
+            <option>Ovlašteni brod sakupljač</option>
+            <option>Pročišćavanje na brodu (MSD)</option>
+            <option>Drugo</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="notes">Napomena</label>
+          <textarea id="notes" placeholder="Dodatne informacije o prijavi..."></textarea>
+        </div>
+
+        <div class="field">
+          <label>Fotografija / dokumentacija (opcionalno)</label>
           <div class="file-drop" id="fileDrop">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 4px; display:block;"><path d="M12 16V4m0 0 4 4m-4-4-4 4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
-            Dodirnite za učitavanje slika (.png, .jpg, .webp, .heic...)
-            <input id="fileInput" type="file" accept=".png,.jpg,.jpeg,.webp,.heic,.heif,image/*" multiple>
-          </div>
-          <div class="file-gallery" id="fileGallery"></div>
-        </div>
-
-        <div class="field">
-          <label>GPS lokacija</label>
-          <div class="card" style="box-shadow:none; background:var(--surface-2); padding:12px;">
-            <div class="gps-box">
-              <button type="button" class="btn ghost" id="gpsBtn" style="width:auto; padding:10px 14px;">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-7.2 7-12a7 7 0 1 0-14 0c0 4.8 7 12 7 12Z"/><circle cx="12" cy="9" r="2.3"/></svg>
-                Dohvati GPS lokaciju
-              </button>
-              <span class="gps-coord" id="gpsCoord">Lokacija nije dohvaćena</span>
-            </div>
-            <div class="field-row" style="margin-top:12px;">
-              <div class="field" style="margin-bottom:0;">
-                <label for="lat">Zemljopisna širina</label>
-                <input id="lat" type="text" placeholder="npr. N 43.5081">
-              </div>
-              <div class="field" style="margin-bottom:0;">
-                <label for="lon">Zemljopisna dužina</label>
-                <input id="lon" type="text" placeholder="npr. E 16.4402">
-              </div>
-            </div>
-
-            <div class="row-toggle" style="margin-top:4px;">
-              <div>
-                <div class="row-label">Promatram s kopna</div>
-                <div class="row-sub">Nisam na moru — uključi kompas za smjer broda</div>
-              </div>
-              <div class="switch" id="toggleLand"></div>
-            </div>
-
-            <div id="compassSection" style="display:none; margin-top:10px;">
-              <div class="hint">Lokacija koju ste dohvatili nije na moru. Uperite telefon prema brodu i dohvatite smjer kompasa kako bismo mogli procijeniti gdje se brod nalazi.</div>
-              <div class="compass-wrap">
-                <div class="compass-ring" id="compassRing">
-                  <div class="compass-arrow" id="compassArrow"></div>
-                </div>
-                <div>
-                  <div class="compass-deg" id="compassDeg">—°</div>
-                  <button type="button" class="btn ghost" id="compassBtn" style="width:auto; padding:8px 12px; margin-top:6px;">Dohvati smjer kompasa</button>
-                </div>
-              </div>
-              <div class="field" style="margin-top:10px;">
-                <label for="bearingManual">Ili unesite smjer ručno (0–359°)</label>
-                <input id="bearingManual" type="number" min="0" max="359" placeholder="npr. 135">
-              </div>
-            </div>
+            Dodirnite za učitavanje slike ili dokumenta
+            <div class="fname" id="fname"></div>
+            <input id="fileInput" type="file" accept="image/*,.pdf">
           </div>
         </div>
 
@@ -214,186 +154,32 @@
 </div>
 <script src="app.js"></script>
 <script>
-(function(){
-
-  // ---------- Color picker <-> hex field sync ----------
-  var colorInput = document.getElementById("shipColor");
-  var colorHex = document.getElementById("shipColorHex");
-  colorInput.addEventListener("input", function(){ colorHex.value = colorInput.value; });
-  colorHex.addEventListener("input", function(){
-    var v = colorHex.value.trim();
-    if(/^#[0-9a-fA-F]{6}$/.test(v)) colorInput.value = v;
-  });
-
-  // ---------- File uploads: multi preview gallery ----------
-  var fileInput = document.getElementById("fileInput");
-  var gallery = document.getElementById("fileGallery");
-  var selectedFiles = [];
-
-  function renderGallery(){
-    gallery.innerHTML = "";
-    selectedFiles.forEach(function(f, i){
-      var thumb = document.createElement("div");
-      thumb.className = "file-thumb";
-      if(f.type && f.type.indexOf("image/") === 0 && f.type !== "image/heic" && f.type !== "image/heif"){
-        var img = document.createElement("img");
-        img.src = URL.createObjectURL(f);
-        thumb.appendChild(img);
-      } else {
-        thumb.textContent = f.name.length > 14 ? f.name.slice(0,11) + "…" : f.name;
-      }
-      var rm = document.createElement("div");
-      rm.className = "rm";
-      rm.textContent = "×";
-      rm.addEventListener("click", function(){
-        selectedFiles.splice(i,1);
-        renderGallery();
-      });
-      thumb.appendChild(rm);
-      gallery.appendChild(thumb);
+  // Waste type segmented control
+  var seg = document.getElementById("wasteSeg");
+  seg.querySelectorAll("button").forEach(function(b){
+    b.addEventListener("click", function(){
+      seg.querySelectorAll("button").forEach(function(x){ x.classList.remove("active"); });
+      b.classList.add("active");
     });
-  }
+  });
 
+  // File input preview name
+  var fileInput = document.getElementById("fileInput");
   fileInput.addEventListener("change", function(){
-    Array.prototype.forEach.call(fileInput.files, function(f){ selectedFiles.push(f); });
-    fileInput.value = "";
-    renderGallery();
+    var f = fileInput.files && fileInput.files[0];
+    document.getElementById("fname").textContent = f ? f.name : "";
   });
 
-  // ---------- GPS ----------
-  var gpsBtn = document.getElementById("gpsBtn");
-  var gpsCoord = document.getElementById("gpsCoord");
-  var latInput = document.getElementById("lat");
-  var lonInput = document.getElementById("lon");
-  var toggleLand = document.getElementById("toggleLand");
-  var compassSection = document.getElementById("compassSection");
-
-  function fmtCoord(lat, lon){
-    var ns = lat >= 0 ? "N" : "S";
-    var ew = lon >= 0 ? "E" : "W";
-    return ns + " " + Math.abs(lat).toFixed(4) + "°, " + ew + " " + Math.abs(lon).toFixed(4) + "°";
-  }
-
-  function setLand(isLand){
-    toggleLand.classList.toggle("on", !!isLand);
-    compassSection.style.display = isLand ? "block" : "none";
-  }
-
-  toggleLand.addEventListener("click", function(){
-    setLand(!toggleLand.classList.contains("on"));
-  });
-
-  gpsBtn.addEventListener("click", function(){
-    if(!("geolocation" in navigator)){
-      showToast("Geolokacija nije podržana na ovom uređaju.");
-      return;
-    }
-    gpsCoord.textContent = "Dohvaćam lokaciju...";
-    navigator.geolocation.getCurrentPosition(function(pos){
-      var lat = pos.coords.latitude, lon = pos.coords.longitude;
-      gpsCoord.textContent = fmtCoord(lat, lon);
-      latInput.value = (lat >= 0 ? "N " : "S ") + Math.abs(lat).toFixed(4);
-      lonInput.value = (lon >= 0 ? "E " : "W ") + Math.abs(lon).toFixed(4);
-
-      // Best-effort check whether the point is at sea; if the lookup fails,
-      // fall back to leaving the land/compass toggle for the user to set by hand.
-      fetch("https://api.bigdatacloud.net/data/is-a-point-in-the-ocean?latitude=" + lat + "&longitude=" + lon)
-        .then(function(r){ return r.json(); })
-        .then(function(data){
-          setLand(!data.isOcean);
-          if(!data.isOcean){ showToast("Lokacija je na kopnu — uključen je unos smjera kompasa."); }
-        })
-        .catch(function(){ /* leave toggle as the user set it */ });
-    }, function(){
-      gpsCoord.textContent = "Nije moguće dohvatiti lokaciju";
-      showToast("Dohvaćanje GPS lokacije nije uspjelo. Unesite ručno.");
-    }, { enableHighAccuracy:true, timeout:10000 });
-  });
-
-  // ---------- Compass ----------
-  var compassBtn = document.getElementById("compassBtn");
-  var compassArrow = document.getElementById("compassArrow");
-  var compassDeg = document.getElementById("compassDeg");
-  var bearingManual = document.getElementById("bearingManual");
-
-  function applyHeading(deg){
-    deg = ((deg % 360) + 360) % 360;
-    compassDeg.textContent = Math.round(deg) + "°";
-    compassArrow.style.transform = "translate(-50%,-100%) rotate(" + deg + "deg)";
-    bearingManual.value = Math.round(deg);
-  }
-
-  function onOrientation(e){
-    var heading = (typeof e.webkitCompassHeading === "number")
-      ? e.webkitCompassHeading
-      : (e.alpha != null ? (360 - e.alpha) : null);
-    if(heading != null) applyHeading(heading);
-  }
-
-  compassBtn.addEventListener("click", function(){
-    // The Device Orientation API only works in a secure context (HTTPS, or
-    // localhost). On file:// or plain http:// it fails silently with no
-    // error, which looks exactly like "the compass does nothing" — so warn
-    // about that case explicitly instead of just doing nothing.
-    if(!window.isSecureContext){
-      showToast("Kompas radi samo na HTTPS stranici (npr. na GitHub Pages), ne lokalno iz datoteke. Unesite smjer ručno.");
-      return;
-    }
-
-    var gotReading = false;
-    var onFirstReading = function(e){
-      gotReading = true;
-      onOrientation(e);
-    };
-
-    function attachListeners(){
-      window.addEventListener("deviceorientationabsolute", onFirstReading);
-      window.addEventListener("deviceorientation", onFirstReading);
-      showToast("Kompas aktivan — okrenite telefon prema brodu.");
-      // If no sensor event arrives at all, the device likely has none —
-      // tell the user instead of leaving the button looking inert.
-      setTimeout(function(){
-        if(!gotReading){
-          showToast("Nema očitanja sa senzora smjera na ovom uređaju. Unesite smjer ručno.");
-        }
-      }, 4000);
-    }
-
-    if(typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function"){
-      DeviceOrientationEvent.requestPermission().then(function(state){
-        if(state === "granted"){
-          attachListeners();
-        } else {
-          showToast("Pristup senzoru smjera nije odobren. Unesite smjer ručno.");
-        }
-      }).catch(function(){ showToast("Senzor smjera nije dostupan. Unesite smjer ručno."); });
-    } else if("ondeviceorientationabsolute" in window || "ondeviceorientation" in window){
-      attachListeners();
-    } else {
-      showToast("Ovaj uređaj nema senzor smjera. Unesite smjer ručno.");
-    }
-  });
-
-  bearingManual.addEventListener("input", function(){
-    if(bearingManual.value !== "") applyHeading(parseFloat(bearingManual.value));
-  });
-
-  // ---------- Report form submit (demo only — no backend) ----------
+  // Report form submit (demo only — no backend)
   var form = document.getElementById("reportForm");
   form.addEventListener("submit", function(e){
     e.preventDefault();
-    showToast("Prijava je uspješno poslana.");
+    var ship = document.getElementById("shipName").value || "brod";
+    showToast("Prijava za " + ship + " je uspješno poslana.");
     form.reset();
-    selectedFiles = [];
-    renderGallery();
-    colorHex.value = colorInput.value = "#0077b6";
-    gpsCoord.textContent = "Lokacija nije dohvaćena";
-    setLand(false);
-    compassDeg.textContent = "—°";
-    compassArrow.style.transform = "translate(-50%,-100%) rotate(0deg)";
+    document.getElementById("fname").textContent = "";
+    seg.querySelectorAll("button").forEach(function(x,i){ x.classList.toggle("active", i===0); });
   });
-
-})();
 </script>
 </body>
 </html>
