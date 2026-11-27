@@ -1,10 +1,37 @@
 <!DOCTYPE html>
-<html lang="hr" data-theme="ocean">
+<html lang="hr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ČistoMore – Početna</title>
+<meta name="theme-color" content="#04141C">
+<title data-i18n="home.docTitle">ČistoMore – Početna</title>
+<script src="cm-boot.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=JetBrains+Mono:wght@400;600&family=Manrope:wght@400;600;700&display=swap">
 <link rel="stylesheet" href="styles.css">
+<style>
+  /* Samo Početna: 6 brzih radnji (2 x 3 na mobitelu, 3 x 2 na širokom zaslonu) */
+  @media (min-width:1100px){ .quick-actions{ grid-template-columns:repeat(3,1fr); } }
+  .qa-btn:nth-child(5){ animation-delay:.24s; }
+  .qa-btn:nth-child(6){ animation-delay:.3s; }
+  /* Nedavna aktivnost: cijeli red je poveznica na obradu */
+  a.list-row{ border-radius:10px; transition:background .2s ease; }
+  a.list-row:hover{ background:var(--surface-2); }
+  .list-title, .list-sub{ overflow-wrap:anywhere; }
+  .home-more{ display:inline-flex; align-items:center; gap:6px; margin:12px 4px 0; font-weight:700; font-size:13px; color:var(--primary); }
+  [data-theme="dubina"] .home-more{ color:var(--accent); }
+  .home-more:hover{ text-decoration:underline; }
+  .home-empty{ text-align:center; padding:10px 4px 6px; }
+  .home-empty-icon{ width:48px; height:48px; margin:0 auto 10px; border-radius:14px; display:grid; place-items:center; background:var(--surface-2); color:var(--primary); }
+  .home-empty-title{ font-family:var(--font-display); font-weight:800; font-size:16px; }
+  .home-empty-text{ font-size:13px; color:var(--text-muted); margin:4px auto 14px; max-width:36ch; }
+  .home-empty-actions{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+  .home-empty-actions .btn{ width:auto; padding:10px 14px; font-size:13.5px; }
+  /* Čitljivost oznaka statusa u svijetlom načinu (WCAG AA) */
+  [data-mode="light"] .badge.ok{ color:color-mix(in srgb, var(--success) 55%, var(--text)); }
+  [data-mode="light"] .badge.wait{ color:color-mix(in srgb, var(--warning) 50%, var(--text)); }
+</style>
 </head>
 <body>
 <div class="app">
@@ -13,134 +40,81 @@
   <header class="topbar">
     <div class="topbar-row">
       <div class="brand">
-        <div class="brand-badge">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17c1.5 1 3 1 4.5 0s3-1 4.5 0 3 1 4.5 0 3-1 4.5 0"/><path d="M3 21c1.5 1 3 1 4.5 0s3-1 4.5 0 3 1 4.5 0 3-1 4.5 0"/><path d="M5 17V9a2 2 0 0 1 2-2h2V4h6v3h2a2 2 0 0 1 2 2v8"/><path d="M9 11h6"/></svg>
+        <div class="brand-badge" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17c1.5 1 3 1 4.5 0s3-1 4.5 0 3 1 4.5 0 3-1 4.5 0"/><path d="M3 21c1.5 1 3 1 4.5 0s3-1 4.5 0 3 1 4.5 0 3-1 4.5 0"/><path d="M5 17V9a2 2 0 0 1 2-2h2V4h6v3h2a2 2 0 0 1 2 2v8"/><path d="M9 11h6"/></svg>
         </div>
         <div>
           <div class="brand-name">ČistoMore</div>
-          <div class="brand-sub">Prijava otpadnih voda s brodova</div>
+          <div class="brand-sub" data-i18n="home.brandSub">Prijava otpadnih voda s brodova</div>
         </div>
       </div>
-      <button class="icon-btn" aria-label="Obavijesti" onclick="showToast('Nemate novih obavijesti.')">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <button type="button" class="icon-btn" id="bellBtn" aria-label="Obavijesti" data-i18n-attr="aria-label:home.notif; title:home.notif">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
       </button>
     </div>
-    <div class="page-title">Dobrodošli, kapetane</div>
-    <div class="page-sub">Pregled vaših prijava i stanja flote</div>
-    <svg class="wave" viewBox="0 0 400 40" preserveAspectRatio="none"><path d="M0 20 Q 50 0 100 20 T 200 20 T 300 20 T 400 20 V40 H0 Z" fill="rgba(255,255,255,0.14)"/></svg>
+    <h1 class="page-title" data-i18n="home.title">Dobrodošli, kapetane</h1>
+    <div class="page-sub" data-i18n="home.sub">Pregled vaših prijava i stanja flote</div>
+    <svg class="wave" viewBox="0 0 400 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0 20 Q 50 0 100 20 T 200 20 T 300 20 T 400 20 V40 H0 Z" fill="currentColor" fill-opacity="0.14"/></svg>
   </header>
 
-  <!-- ===== SIDE NAV (desktop) ===== -->
-  <nav class="sidenav" aria-label="Glavna navigacija">
-    <a class="nav-item active" href="index.html">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
-      <span class="nlabel">Početna</span>
-    </a>
-    <a class="nav-item" href="map.html">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20 3 17V4l6 3m0 13 6-3m-6 3V7m6 10 6 3V7l-6-3m0 16V4m0 3-6-3"/></svg>
-      <span class="nlabel">Karta</span>
-    </a>
-    <a class="nav-fab" href="report.html">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-      <span>Nova prijava</span>
-    </a>
-    <a class="nav-item" href="book.html">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
-      <span class="nlabel">Dnevnik</span>
-    </a>
-    <a class="nav-item" href="profile.html">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 6-6 8-6s6.5 2 8 6"/></svg>
-      <span class="nlabel">Profil</span>
-    </a>
-  </nav>
+  <!-- ===== SIDE NAV (desktop) — generira app.js ===== -->
+  <nav class="sidenav" data-cm-nav="home"></nav>
 
-  <div class="content">
-    <div class="section-title">Pregled</div>
+  <main class="content">
+    <div class="section-title" data-i18n="home.overview">Pregled</div>
     <div class="stat-grid">
-      <div class="stat"><div class="stat-num">12</div><div class="stat-label">Prijava ovaj mjesec</div></div>
-      <div class="stat"><div class="stat-num">9</div><div class="stat-label">Odobreno</div></div>
-      <div class="stat"><div class="stat-num">2</div><div class="stat-label">U obradi</div></div>
-      <div class="stat"><div class="stat-num">38.4 m³</div><div class="stat-label">Ukupno zbrinuto</div></div>
+      <div class="stat"><div class="stat-num" id="statTotal">0</div><div class="stat-label" data-i18n="home.stat.total">Ukupno prijava</div></div>
+      <div class="stat"><div class="stat-num" id="statResolved">0</div><div class="stat-label" data-i18n="home.stat.resolved">Riješeno</div></div>
+      <div class="stat"><div class="stat-num" id="statProgress">0</div><div class="stat-label" data-i18n="home.stat.progress">U obradi</div></div>
+      <div class="stat"><div class="stat-num" id="statStations">29</div><div class="stat-label" data-i18n="home.stat.stations">Prihvatnih stanica</div></div>
     </div>
 
-    <div class="section-title">Brze radnje</div>
+    <div class="section-title" data-i18n="home.quick">Brze radnje</div>
     <div class="quick-actions">
       <a class="qa-btn" href="report.html">
-        <div class="qa-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>
-        <div class="qa-title">Nova prijava</div>
-        <div class="qa-sub">Prijavi ispust otpadnih voda</div>
+        <div class="qa-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>
+        <div class="qa-title" data-i18n="home.qa.report">Nova prijava</div>
+        <div class="qa-sub" data-i18n="home.qa.reportSub">Prijavi ispust otpadnih voda</div>
       </a>
       <a class="qa-btn" href="map.html">
-        <div class="qa-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-7.2 7-12a7 7 0 1 0-14 0c0 4.8 7 12 7 12Z"/><circle cx="12" cy="9" r="2.3"/></svg></div>
-        <div class="qa-title">Prihvatne stanice</div>
-        <div class="qa-sub">Pronađi najbližu luku</div>
+        <div class="qa-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-7.2 7-12a7 7 0 1 0-14 0c0 4.8 7 12 7 12Z"/><circle cx="12" cy="9" r="2.3"/></svg></div>
+        <div class="qa-title" data-i18n="home.qa.map">Prihvatne stanice</div>
+        <div class="qa-sub" data-i18n="home.qa.mapSub">Pronađi najbližu luku</div>
       </a>
-      <a class="qa-btn" href="book.html">
-        <div class="qa-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11.5 11 13.5 15.5 9"/><circle cx="12" cy="12" r="9"/></svg></div>
-        <div class="qa-title">Moj dnevnik</div>
-        <div class="qa-sub">Povijest svih prijava</div>
+      <a class="qa-btn" href="plovi-odgovorno.html">
+        <div class="qa-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v14"/><path d="M12 4l7 11h-7"/><path d="M10 7l-5 8h5"/><path d="M3 18h18l-2 3H5z"/></svg></div>
+        <div class="qa-title" data-i18n="home.qa.plovi">Plovi odgovorno</div>
+        <div class="qa-sub" data-i18n="home.qa.ploviSub">Vodič i kviz za nautičare</div>
       </a>
-      <button class="qa-btn" onclick="showToast('Pravilnik je otvoren samo u ovom demu.')">
-        <div class="qa-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 6v6c0 5 3.8 8.7 9 10 5.2-1.3 9-5 9-10V6l-9-4Z"/></svg></div>
-        <div class="qa-title">MARPOL pravila</div>
-        <div class="qa-sub">Propisi o ispuštanju</div>
-      </button>
+      <a class="qa-btn" href="plovi-odgovorno.html#vodic">
+        <div class="qa-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 6v6c0 5 3.8 8.7 9 10 5.2-1.3 9-5 9-10V6l-9-4Z"/></svg></div>
+        <div class="qa-title" data-i18n="home.qa.marpol">MARPOL pravila</div>
+        <div class="qa-sub" data-i18n="home.qa.marpolSub">Propisi o ispuštanju</div>
+      </a>
+      <a class="qa-btn" href="obrada.html">
+        <div class="qa-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="m9 13 2 2 4-4"/></svg></div>
+        <div class="qa-title" data-i18n="home.qa.obrada">Obrada prijava</div>
+        <div class="qa-sub" data-i18n="home.qa.obradaSub">Za nadležne službe</div>
+      </a>
+      <a class="qa-btn" href="plovi-odgovorno.html#prihvat">
+        <div class="qa-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v10"/><path d="m8 9 4 4 4-4"/><path d="M4 15v3a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-3"/></svg></div>
+        <div class="qa-title" data-i18n="home.qa.pump">Pražnjenje spremnika</div>
+        <div class="qa-sub" data-i18n="home.qa.pumpSub">Korak po korak u luci</div>
+      </a>
     </div>
 
-    <div class="section-title">Nedavna aktivnost</div>
-    <div class="card">
-      <div class="list-row">
-        <div class="list-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17c1.5 1 3 1 4.5 0s3-1 4.5 0 3 1 4.5 0 3-1 4.5 0"/><path d="M5 17V9a2 2 0 0 1 2-2h2V4h6v3h2a2 2 0 0 1 2 2v8"/></svg></div>
-        <div class="list-grow">
-          <div class="list-title">Adriana Star — fekalne vode</div>
-          <div class="list-sub">Luka Split · jučer, 14:20</div>
-        </div>
-        <span class="badge ok">Odobreno</span>
-      </div>
-      <div class="list-row">
-        <div class="list-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17c1.5 1 3 1 4.5 0s3-1 4.5 0 3 1 4.5 0 3-1 4.5 0"/><path d="M5 17V9a2 2 0 0 1 2-2h2V4h6v3h2a2 2 0 0 1 2 2v8"/></svg></div>
-        <div class="list-grow">
-          <div class="list-title">Neptun II — sanitarne otpadne vode</div>
-          <div class="list-sub">Luka Rijeka · prije 3 dana</div>
-        </div>
-        <span class="badge wait">U obradi</span>
-      </div>
-      <div class="list-row">
-        <div class="list-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17c1.5 1 3 1 4.5 0s3-1 4.5 0 3 1 4.5 0 3-1 4.5 0"/><path d="M5 17V9a2 2 0 0 1 2-2h2V4h6v3h2a2 2 0 0 1 2 2v8"/></svg></div>
-        <div class="list-grow">
-          <div class="list-title">Adriana Star — mješovite otpadne vode</div>
-          <div class="list-sub">Luka Zadar · prije 5 dana</div>
-        </div>
-        <span class="badge sent">Poslano</span>
-      </div>
-    </div>
-  </div>
+    <div class="section-title" data-i18n="home.recent">Nedavna aktivnost</div>
+    <div class="card" id="recentCard" aria-live="polite"></div>
+  </main>
 
-  <!-- ===== BOTTOM NAV (mobile) ===== -->
-  <nav class="bottomnav" aria-label="Glavna navigacija">
-    <a class="nav-item active" href="index.html">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
-      <span class="nlabel">Početna</span>
-    </a>
-    <a class="nav-item" href="map.html">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20 3 17V4l6 3m0 13 6-3m-6 3V7m6 10 6 3V7l-6-3m0 16V4m0 3-6-3"/></svg>
-      <span class="nlabel">Karta</span>
-    </a>
-    <a class="nav-fab" href="report.html" aria-label="Nova prijava">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-    </a>
-    <a class="nav-item" href="book.html">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
-      <span class="nlabel">Dnevnik</span>
-    </a>
-    <a class="nav-item" href="profile.html">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 6-6 8-6s6.5 2 8 6"/></svg>
-      <span class="nlabel">Profil</span>
-    </a>
-  </nav>
+  <!-- ===== BOTTOM NAV (mobile) — generira app.js ===== -->
+  <nav class="bottomnav" data-cm-nav="home"></nav>
 
-  <div class="toast" id="toast"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </div>
+<script src="data/stations.js"></script>
 <script src="app.js"></script>
+<script src="index-i18n.js"></script>
+<script src="index.js"></script>
 </body>
 </html>

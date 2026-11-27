@@ -412,12 +412,17 @@ button{ font-family:inherit; }
 }
 [data-theme="ocean"]{
   --primary:#006BA6; --primary-dark:#023E63;
+  --text-muted:#4F6E79;   /* AA kontrast na bijelim karticama */
   --topbar-1:#023E63; --topbar-2:#0077B6; --on-topbar:#FFFFFF;
   --focus:#023E63;
   color-scheme:light;
 }
 
 body{ font-family:var(--font-body); -webkit-font-smoothing:antialiased; }
+/* Svijetli način: tekst značaka tamniji radi AA kontrasta */
+[data-theme="ocean"] .badge.ok{ color:color-mix(in srgb, var(--success) 55%, var(--text)); }
+[data-theme="ocean"] .badge.wait{ color:color-mix(in srgb, var(--warning) 50%, var(--text)); }
+.field-row > *{ min-width:0; }
 .brand-name, .page-title, .stat-num, .qa-title, .list-title, .card h2, .card h3,
 .content h1, .content h2, .content h3{ font-family:var(--font-display); }
 .page-title{ font-weight:800; letter-spacing:-.02em; font-size:23px; }
