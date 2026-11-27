@@ -256,8 +256,9 @@
     all: function () { var db = this.load(); return db ? db.reports : []; },
     // Prijava iz report.html (grupa 1). Polja kao kod grupe 3; službu i županiju određuje obrada.html.
     add: function (p) {
-      var db = this.load() || { v: 1, seq: 1170, reports: [], warnings: {} };
-      db.seq = (db.seq || 1170) + 1;
+      // Demo prijave grupe 3 zauzimaju brojeve 1170–1185, pa prave prijave kreću od 1186
+      var db = this.load() || { v: 1, seq: 1185, reports: [], warnings: {} };
+      db.seq = Math.max(Number(db.seq) || 0, 1185) + 1;
       var now = new Date();
       var r = {
         id: now.getFullYear() + "-" + db.seq,

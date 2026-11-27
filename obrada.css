@@ -53,9 +53,10 @@
 .ob{ --panelH:clamp(440px, calc(100vh - 170px), 900px); font-size:14px; line-height:1.45; }
 /* Zajednička animacija ulaska (cm-rise) ostavlja transform na sekcijama, a to bi ladice
    s position:fixed vezalo za sekciju umjesto za ekran. Ovdje je ulazak samo prozirnošću. */
-@keyframes ob-fade{ from{ opacity:0; } to{ opacity:1; } }
+/* Ne kreće od 0: sadržaj mora biti vidljiv i ako se animacija ne izvrši (štednja baterije, okna u pozadini) */
+@keyframes ob-fade{ from{ opacity:.35; } to{ opacity:1; } }
 /* fill-mode backwards: nakon animacije nema ni stacking contexta, pa ladica (z-index) ide iznad donje trake */
-.content.ob > *{ animation-name:ob-fade; animation-fill-mode:backwards; }
+.content.ob > *{ animation:none; } /* bez ulazne animacije: fiksni elementi i vidljivost uvijek ispravni */
 .ob h2, .ob h3, .ob-dialog h2{ margin:0; line-height:1.2; font-family:var(--font-display); }
 .ob-sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
 

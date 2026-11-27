@@ -253,7 +253,7 @@ function seed(prevSeq){
     return {id: year + '-' + String(SEED_BASE + i), type:r[0], lat:r[1], lng:r[2], place:r[3], desc:r[4], createdAt:created, status:r[6], vessel:r[7], heading:r[8],
       service:rt.service, reasons:rt.reasons.map(x => reasonText(x, true)), county:rt.county, confirmed: idx >= 1, history:hist, photo:null, pending:false};
   });
-  return {v:1, seq:Math.max(SEED_BASE + raw.length, Number(prevSeq) || 0), reports, warnings:{}};
+  return {v:1, seq:Math.max(SEED_BASE + raw.length, Number(prevSeq) || 0), reports, warnings:{}, seeded:true};
 }
 
 /* Prijave iz drugih stranica (report.html) dolaze bez službe/županije: dopuni ih ovdje */
@@ -299,6 +299,15 @@ function readStore(){
 function load(){
   let s = readStore(), dirty = false;
   if (!s || !s.reports.length){ s = seed(s && s.seq); dirty = true; }
+  else if (!s.seeded){
+    // Prve prijave stigle su iz report.html prije prvog otvaranja obrade: demo podatke dodaj jednom, uz njih
+    const demo = seed(s.seq);
+    const ids = new Set(s.reports.map(r => String(r.id)));
+    s.reports = s.reports.concat(demo.reports.filter(d => !ids.has(d.id)));
+    s.seq = Math.max(Number(s.seq) || 0, demo.seq);
+    s.seeded = true;
+    dirty = true;
+  }
   if (s.v !== 1){ s.v = 1; dirty = true; }
   if (!s.warnings || typeof s.warnings !== 'object'){ s.warnings = {}; dirty = true; }
   const before = s.reports.length;
