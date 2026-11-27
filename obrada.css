@@ -1,0 +1,426 @@
+/*
+ * ČistoMore — Obrada prijava (grupa 3), statična verzija za GitHub Pages.
+ * Raspored: grupa 1 (styles.css: .app, .topbar, .sidenav, .bottomnav, .toast).
+ * Boje i fontovi: grupa 4 (teme "dubina" = tamno, "ocean" = svijetlo).
+ * Sve klase ove stranice imaju prefiks "ob-" da se ne sudaraju sa zajedničkim stilovima.
+ */
+
+/* ---------- Boje stranice (statusi, rizik, karta) ---------- */
+:root, [data-theme="ocean"], [data-theme="turquoise"]{
+  --ob-zaprimljeno:#E07A2E; --ob-zaprimljeno-fg:#9A410A; --ob-zaprimljeno-bg:#FDEBDC;
+  --ob-obrada:#2F74C0;      --ob-obrada-fg:#1B5699;      --ob-obrada-bg:#E3EDF9;
+  --ob-rijeseno:#3E8E50;    --ob-rijeseno-fg:#2A6636;    --ob-rijeseno-bg:#E2F1E5;
+  --ob-visok:#C2560F;       --ob-visok-fg:#9A410A;       --ob-visok-bg:#FDEBDC;
+  --ob-srednji:#C99A06;     --ob-srednji-fg:#6F5300;     --ob-srednji-bg:#FBF1CC;
+  --ob-nizak:#3E8E50;       --ob-nizak-fg:#2A6636;       --ob-nizak-bg:#E2F1E5;
+  --ob-pend-fg:#8A3F0A; --ob-pend-bg:#FFF4E8; --ob-pend-border:#F2C9A0;
+  --ob-track:#C2560F; --ob-port:#2F74C0; --ob-conc:#B07D0F; --ob-conc-fill:#E0A526;
+  --ob-lk:#023E63; --ob-station:#0B6E79; --ob-station-fg:#FFFFFF; --ob-waste:#5B4A86;
+  --ob-ring:#082A35; --ob-arrow:#0E2A3A;
+  --ob-hover:rgba(0,107,166,.06); --ob-selected:rgba(0,107,166,.12);
+  --ob-input-border:#93ACB8; --ob-err:#B3261E;
+  --ob-stripe-1:#E8EEF1; --ob-stripe-2:#F2F6F8; --ob-track-off:#D5E0E5;
+  --ob-scrim:rgba(2,30,45,.45); --ob-map-bg:#CFE5EE; --ob-tile-filter:none;
+  --ob-badge-fg:#1A0E04;
+}
+[data-theme="dubina"], [data-theme="deepsea"], [data-theme="midnight"]{
+  --ob-zaprimljeno:#FF9447; --ob-zaprimljeno-fg:#FFC193; --ob-zaprimljeno-bg:#3A2A22;
+  --ob-obrada:#5EA4F2;      --ob-obrada-fg:#AFCFFF;      --ob-obrada-bg:#1B3350;
+  --ob-rijeseno:#4CC27A;    --ob-rijeseno-fg:#93E5B1;    --ob-rijeseno-bg:#173D2E;
+  --ob-visok:#FF8A4C;       --ob-visok-fg:#FFC193;       --ob-visok-bg:#3A2A22;
+  --ob-srednji:#F2C94C;     --ob-srednji-fg:#F7DC8A;     --ob-srednji-bg:#3A3520;
+  --ob-nizak:#4CC27A;       --ob-nizak-fg:#93E5B1;       --ob-nizak-bg:#173D2E;
+  --ob-pend-fg:#FFD29E; --ob-pend-bg:#3A2F1C; --ob-pend-border:#6E5530;
+  --ob-track:#FF7A2F; --ob-port:#3F86DB; --ob-conc:#D9A21E; --ob-conc-fill:#F2C14E;
+  --ob-lk:#04141C; --ob-station:#2EC4B6; --ob-station-fg:#04141C; --ob-waste:#7C68C4;
+  --ob-ring:#04141C; --ob-arrow:#04141C;
+  --ob-hover:rgba(46,196,182,.08); --ob-selected:rgba(46,196,182,.16);
+  --ob-input-border:#3D6A78; --ob-err:#FF8A7A;
+  --ob-stripe-1:#0F3442; --ob-stripe-2:#0B2A36; --ob-track-off:#1E4A58;
+  --ob-scrim:rgba(0,0,0,.6); --ob-map-bg:#0B2A36;
+  --ob-tile-filter:brightness(.78) contrast(1.06) saturate(.85);
+  --ob-badge-fg:#1A0E04;
+}
+
+/* ---------- Široki raspored za nadzornu ploču ---------- */
+.app.app-wide{ max-width:100%; }
+.app-wide .topbar{ position:relative; }
+.app-wide .brand{ color:inherit; }
+.app-wide .toast{ z-index:2500; }
+@media (min-width:860px){
+  .app.app-wide{ max-width:1600px; }
+}
+.ob{ --panelH:clamp(440px, calc(100vh - 170px), 900px); font-size:14px; line-height:1.45; }
+/* Zajednička animacija ulaska (cm-rise) ostavlja transform na sekcijama, a to bi ladice
+   s position:fixed vezalo za sekciju umjesto za ekran. Ovdje je ulazak samo prozirnošću. */
+@keyframes ob-fade{ from{ opacity:0; } to{ opacity:1; } }
+/* fill-mode backwards: nakon animacije nema ni stacking contexta, pa ladica (z-index) ide iznad donje trake */
+.content.ob > *{ animation-name:ob-fade; animation-fill-mode:backwards; }
+.ob h2, .ob h3, .ob-dialog h2{ margin:0; line-height:1.2; font-family:var(--font-display); }
+.ob-sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+
+/* ---------- Izbornik postavki (u gornjoj traci) ---------- */
+.ob-menu{
+  position:absolute; right:0; top:calc(100% + 8px); z-index:60;
+  width:min(320px, calc(100vw - 32px));
+  background:var(--surface); color:var(--text); border:1px solid var(--border);
+  border-radius:14px; box-shadow:var(--shadow); padding:12px; display:none;
+}
+.ob-menu.open{ display:block; }
+.ob-menu label{ display:flex; gap:10px; align-items:center; min-height:44px; font-weight:700; font-size:14px; cursor:pointer; }
+.ob-menu input[type=checkbox]{ width:20px; height:20px; accent-color:var(--primary); }
+.ob-menu p{ margin:6px 0 10px; font-size:12.5px; color:var(--text-muted); }
+
+/* ---------- Traka s karticama modula ---------- */
+.ob-bar{ display:flex; flex-wrap:wrap; align-items:center; gap:10px 12px; margin-bottom:16px; }
+.ob-tabs{
+  display:flex; gap:4px; padding:4px; min-width:0; overflow-x:auto;
+  background:var(--surface); border:1px solid var(--border); border-radius:999px; box-shadow:var(--shadow);
+}
+.ob-tabs a{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  min-height:40px; padding:0 16px; border-radius:999px; white-space:nowrap;
+  font-weight:700; font-size:13.5px; color:var(--text-muted);
+  transition:background .2s ease, color .2s ease;
+}
+.ob-tabs a:hover{ color:var(--text); background:var(--surface-2); }
+.ob-tabs a[aria-current="page"]{ background:var(--primary); color:var(--on-primary); }
+.ob-tabs .t-short{ display:none; }
+.ob-badge{
+  background:var(--ob-zaprimljeno); color:var(--ob-badge-fg); border-radius:10px; padding:0 7px;
+  font-size:12px; font-weight:800; min-width:20px; text-align:center; line-height:20px;
+}
+.ob-bar-right{ margin-left:auto; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.ob-net{
+  display:inline-flex; align-items:center; gap:8px; border-radius:999px; padding:8px 12px;
+  font-size:13px; font-weight:700; white-space:nowrap; border:1px solid transparent;
+}
+.ob-net.on{ background:var(--ob-rijeseno-bg); color:var(--ob-rijeseno-fg); }
+.ob-net.off{ background:var(--ob-pend-bg); color:var(--ob-pend-fg); border-color:var(--ob-pend-border); }
+
+/* ---------- Gumbi i polja ---------- */
+.ob-btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px; width:auto;
+  min-height:44px; padding:0 16px; border-radius:var(--radius-sm); border:1.5px solid transparent;
+  font-family:inherit; font-weight:700; font-size:14px; white-space:nowrap; cursor:pointer; text-decoration:none;
+  transition:background .2s ease, border-color .2s ease, filter .2s ease, transform .15s ease;
+}
+.ob-btn:active{ transform:scale(.98); }
+.ob-btn-primary{ background:var(--primary); color:var(--on-primary); }
+.ob-btn-primary:hover{ filter:brightness(1.08); }
+.ob-btn-dark{ background:var(--text); color:var(--bg); }
+.ob-btn-dark:hover{ filter:brightness(1.15); }
+.ob-btn-ghost{ background:transparent; border-color:var(--primary); color:var(--primary); }
+.ob-btn-ghost:hover{ background:var(--ob-hover); }
+.ob-btn-plain{ background:transparent; border-color:var(--ob-input-border); color:var(--text); }
+.ob-btn-plain:hover{ background:var(--surface-2); }
+.ob-btn[disabled]{ opacity:.5; cursor:not-allowed; }
+.ob-btn-sm{ min-height:36px; padding:0 12px; font-size:13px; }
+.ob-x{
+  display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px;
+  border-radius:12px; border:0; background:transparent; color:var(--text); cursor:pointer;
+}
+.ob-x:hover{ background:var(--surface-2); }
+
+.ob-field{ display:flex; flex-direction:column; gap:5px; font-size:12.5px; font-weight:700; color:var(--text-muted); min-width:0; }
+.ob-field input, .ob-field select, .ob-field textarea{
+  width:100%; height:44px; min-width:0; padding:0 12px;
+  border:1.5px solid var(--ob-input-border); border-radius:var(--radius-sm);
+  background:var(--surface-2); color:var(--text);
+  font-family:inherit; font-size:14px; font-weight:500;
+}
+.ob-field textarea{ height:auto; min-height:84px; padding:10px 12px; resize:vertical; }
+.ob-field input:focus, .ob-field select:focus, .ob-field textarea:focus{ border-color:var(--primary); }
+.ob-field .ob-file{ padding-top:9px; }
+.ob-svc-field{ min-width:240px; }
+
+/* ---------- Zaglavlja pogleda i filteri ---------- */
+.ob-view{ display:none; }
+.ob-view.active{ display:block; }
+.ob-head{ display:flex; flex-wrap:wrap; align-items:flex-end; gap:12px 20px; margin-bottom:14px; }
+.ob-head h2{ font-size:24px; font-weight:800; letter-spacing:-.01em; }
+.ob-head p{ margin:4px 0 0; color:var(--text-muted); font-size:13.5px; max-width:75ch; }
+.ob-grow{ flex:1 1 300px; }
+.ob-filters{ display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; margin-bottom:12px; }
+.ob-filters .ob-field{ flex:1 1 150px; }
+.ob-filters .ob-field.search{ flex:2 1 220px; }
+.ob-filter-toggle{ display:none; }
+.ob-seg{ display:none; }
+
+/* ---------- Čipovi i oznake statusa ---------- */
+.ob-chip{
+  display:inline-flex; align-items:center; gap:6px; min-height:36px; padding:0 12px; border-radius:999px;
+  border:1.5px solid var(--ob-input-border); background:var(--surface); color:var(--text);
+  font-family:inherit; font-size:13px; font-weight:700; cursor:pointer;
+}
+.ob-chip:hover{ background:var(--surface-2); }
+.ob-chip[aria-pressed="true"]{ background:var(--primary); border-color:var(--primary); color:var(--on-primary); }
+.ob-chip .sw{ width:10px; height:10px; border-radius:3px; flex:none; box-shadow:0 0 0 1.5px var(--surface); }
+.ob-pill{ display:inline-block; font-size:12px; font-weight:700; border-radius:999px; padding:3px 10px; white-space:nowrap; }
+.ob-pill.zaprimljeno{ background:var(--ob-zaprimljeno-bg); color:var(--ob-zaprimljeno-fg); }
+.ob-pill.obrada{ background:var(--ob-obrada-bg); color:var(--ob-obrada-fg); }
+.ob-pill.rijeseno{ background:var(--ob-rijeseno-bg); color:var(--ob-rijeseno-fg); }
+.ob-pill.visok{ background:var(--ob-visok-bg); color:var(--ob-visok-fg); }
+.ob-pill.srednji{ background:var(--ob-srednji-bg); color:var(--ob-srednji-fg); }
+.ob-pill.nizak{ background:var(--ob-nizak-bg); color:var(--ob-nizak-fg); }
+.ob-pill.pending{ background:var(--ob-pend-bg); color:var(--ob-pend-fg); }
+.ob-pill.noloc{ background:transparent; color:var(--text-muted); border:1px dashed var(--ob-input-border); padding:2px 9px; }
+
+/* ---------- Ploče: popis, karta, detalji ---------- */
+.ob-panel{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); min-width:0; box-shadow:var(--shadow); }
+.ob-work{ display:grid; grid-template-columns:300px minmax(0,1fr); gap:14px; align-items:start; }
+.ob-work2{ display:grid; grid-template-columns:minmax(0,1fr); gap:14px; align-items:start; }
+@media (min-width:1500px){
+  .ob-work{ grid-template-columns:320px minmax(0,1fr) 400px; }
+  .ob-work2{ grid-template-columns:minmax(0,1fr) 400px; }
+}
+.ob-list-panel{ height:var(--panelH); display:flex; flex-direction:column; overflow:hidden; }
+.ob-list-head{ display:flex; flex-wrap:wrap; gap:6px; padding:10px 12px; border-bottom:1px solid var(--border); align-items:center; }
+.ob-count{ font-size:12px; color:var(--text-muted); margin-left:auto; font-family:var(--font-mono); }
+.ob-list{ overflow:auto; flex:1; margin:0; padding:0; list-style:none; }
+.ob-row{
+  display:flex; flex-direction:column; gap:5px; width:100%; min-height:44px; padding:13px 14px;
+  text-align:left; border:0; border-bottom:1px solid var(--border); background:transparent; color:var(--text);
+  font-family:inherit; font-size:14px; cursor:pointer;
+}
+.ob-row:hover{ background:var(--ob-hover); }
+.ob-row[aria-current="true"]{ background:var(--ob-selected); box-shadow:inset 3px 0 0 var(--primary); }
+.ob-row .meta{ display:flex; justify-content:space-between; gap:8px; align-items:center; font-size:12px; color:var(--text-muted); font-weight:700; }
+.ob-row .meta .id{ font-family:var(--font-mono); font-weight:600; }
+.ob-row .meta .pills{ display:inline-flex; gap:4px; flex-wrap:wrap; justify-content:flex-end; }
+.ob-row .t{ font-size:15px; font-weight:700; }
+.ob-row .p{ font-size:13px; color:var(--text-muted); }
+.ob-row .s{ display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--primary); font-weight:700; }
+.ob-row .s.none{ color:var(--text-muted); }
+.ob-empty{ padding:28px 16px; text-align:center; color:var(--text-muted); }
+
+.ob-map-panel{ position:relative; height:var(--panelH); overflow:hidden; display:flex; flex-direction:column; isolation:isolate; }
+.ob-map-tools{ display:flex; flex-wrap:wrap; gap:6px; padding:10px 12px; border-bottom:1px solid var(--border); align-items:center; }
+.ob-map-tools .lbl{ font-size:12px; font-weight:700; color:var(--text-muted); margin-right:4px; }
+.ob-map{ flex:1; min-height:260px; background:var(--ob-map-bg); position:relative; z-index:0; }
+.ob-map-note{
+  position:absolute; left:12px; right:12px; bottom:12px; z-index:500; display:none;
+  background:var(--ob-pend-bg); border:1px solid var(--ob-pend-border); color:var(--ob-pend-fg);
+  border-radius:10px; padding:10px 12px; font-size:13px;
+}
+.ob-map-note.show{ display:block; }
+.ob-legend{
+  position:absolute; left:12px; bottom:28px; z-index:400; pointer-events:none;
+  background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:10px;
+  padding:8px 10px; font-size:12px; display:flex; flex-direction:column; gap:5px; opacity:.97;
+}
+.ob-legend > span{ display:flex; align-items:center; gap:8px; }
+.ob-dot{ width:12px; height:12px; border-radius:50%; flex:none; border:2px solid #fff; box-shadow:0 0 0 1px rgba(0,0,0,.3); }
+
+/* Leaflet unutar stranice: tamni način prigušuje pločice, kontrole prate temu */
+.ob-mapbox.leaflet-container{ font-family:var(--font-body); background:var(--ob-map-bg); }
+.ob-mapbox .leaflet-tile-pane{ filter:var(--ob-tile-filter); }
+.ob-mapbox .leaflet-tooltip{ background:var(--surface); color:var(--text); border:1px solid var(--border); box-shadow:var(--shadow); font-size:12px; }
+.ob-mapbox .leaflet-tooltip-top:before{ border-top-color:var(--surface); }
+.ob-mapbox .leaflet-tooltip-bottom:before{ border-bottom-color:var(--surface); }
+.ob-mapbox .leaflet-tooltip-left:before{ border-left-color:var(--surface); }
+.ob-mapbox .leaflet-tooltip-right:before{ border-right-color:var(--surface); }
+.ob-mapbox .leaflet-bar a{ background:var(--surface); color:var(--text); border-bottom-color:var(--border); }
+.ob-mapbox .leaflet-bar a:hover{ background:var(--surface-2); }
+.ob-mapbox .leaflet-control-attribution{ background:var(--surface); color:var(--text-muted); opacity:.92; }
+.ob-mapbox .leaflet-control-attribution a{ color:var(--primary); }
+.ob-arrow svg{ display:block; }
+.ob-lk-ico{ width:22px; height:22px; border-radius:5px; background:var(--ob-lk); border:2px solid #fff; box-shadow:0 1px 3px rgba(0,0,0,.4); }
+.ob-st-ico{
+  width:26px; height:26px; border-radius:6px; background:var(--ob-station); color:var(--ob-station-fg);
+  border:2px solid #fff; box-shadow:0 1px 3px rgba(0,0,0,.35); display:flex; align-items:center; justify-content:center;
+}
+.ob-waste-ico{ width:12px; height:12px; background:var(--ob-waste); border:1px solid #fff; transform:rotate(45deg); }
+.ob-bay-ring{ border-radius:50%; display:flex; align-items:center; justify-content:center; border:3px solid; box-shadow:0 0 0 1px rgba(255,255,255,.7); }
+
+/* ---------- Detalji prijave ---------- */
+.ob-detail{ height:var(--panelH); overflow:auto; padding:18px; display:flex; flex-direction:column; gap:14px; }
+.ob-detail > *{ flex:none; }
+.ob-dtop{ display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; }
+.ob-dtop .id{ font-size:13px; color:var(--text-muted); font-weight:600; font-family:var(--font-mono); }
+.ob-dtop .pills{ display:inline-flex; gap:4px; flex-wrap:wrap; }
+.ob-dback{ display:none; }
+.ob-detail h3{ font-size:21px; font-weight:800; }
+.ob-photo{
+  border-radius:12px; border:1px solid var(--border); overflow:hidden; min-height:110px;
+  background:repeating-linear-gradient(135deg, var(--ob-stripe-1) 0 10px, var(--ob-stripe-2) 10px 20px);
+  display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:13px; text-align:center; padding:0;
+}
+.ob-photo img{ display:block; width:100%; max-height:260px; object-fit:cover; }
+.ob-desc{ margin:0; white-space:pre-line; }
+.ob-kv{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 16px; margin:0; font-size:13px; }
+.ob-kv dt{ color:var(--text-muted); }
+.ob-kv dd{ margin:2px 0 0; font-weight:700; overflow-wrap:anywhere; }
+.ob-card{ border:1px solid var(--border); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:8px; background:var(--surface); }
+.ob-card.route{ background:var(--surface-2); border-left:4px solid var(--primary); }
+.ob-card.route.none{ border-left-color:var(--ob-zaprimljeno); }
+.ob-eyebrow{ font-family:var(--font-mono); font-size:11.5px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.1em; }
+.ob-card.route .ob-eyebrow{ color:var(--primary); }
+.ob-card.route .svc{ font-size:17px; font-weight:800; font-family:var(--font-display); }
+.ob-reasons{ margin:0; padding-left:18px; font-size:13px; display:flex; flex-direction:column; gap:4px; }
+.ob-btns{ display:flex; flex-wrap:wrap; gap:8px; }
+.ob-steps{ display:flex; gap:6px; list-style:none; margin:0; padding:0; }
+.ob-steps li{ flex:1; display:flex; flex-direction:column; gap:6px; font-size:12px; color:var(--text-muted); }
+.ob-steps li i{ display:block; height:6px; border-radius:3px; background:var(--ob-track-off); }
+.ob-steps li.on{ color:var(--text); }
+.ob-steps li.cur{ font-weight:800; }
+.ob-public{ background:var(--surface-2); border-radius:12px; padding:12px 14px; font-size:13px; }
+.ob-history{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; font-size:13px; }
+.ob-history li{ display:grid; grid-template-columns:96px 1fr; gap:8px; }
+.ob-history time{ color:var(--text-muted); font-size:12px; font-family:var(--font-mono); }
+.ob-backdrop{ display:none; }
+
+/* ---------- Ispuštanja ---------- */
+.ob-compass{
+  width:84px; height:84px; border-radius:50%; border:2px solid var(--border); background:var(--surface-2);
+  position:relative; flex:none; display:flex; align-items:center; justify-content:center; color:var(--ob-track);
+}
+.ob-compass .n{ position:absolute; top:3px; font-size:10px; font-weight:800; color:var(--text-muted); }
+.ob-compass .unk{ font-size:11px; color:var(--text-muted); text-align:center; }
+.ob-ahead{ display:flex; justify-content:space-between; gap:8px; padding:8px 0; border-top:1px solid var(--border); }
+.ob-ahead:first-of-type{ border-top:0; }
+.ob-ahead small{ display:block; color:var(--text-muted); font-size:12px; }
+.ob-ahead .d{ color:var(--primary); font-weight:700; white-space:nowrap; font-family:var(--font-mono); }
+.ob-tbl-wrap{ margin-top:14px; overflow-x:auto; }
+table.ob-tbl{ width:100%; border-collapse:collapse; font-size:14px; }
+.ob-tbl th{
+  text-align:left; color:var(--text-muted); font-family:var(--font-mono); font-size:11.5px; font-weight:600;
+  text-transform:uppercase; letter-spacing:.08em; padding:12px 14px; border-bottom:1px solid var(--border);
+}
+.ob-tbl td{ padding:12px 14px; border-bottom:1px solid var(--border); }
+.ob-tbl tbody tr{ cursor:pointer; }
+.ob-tbl tbody tr:hover{ background:var(--ob-hover); }
+.ob-tbl tbody tr[aria-current="true"]{ background:var(--ob-selected); }
+.ob-link{
+  border:0; background:none; padding:0; min-height:24px; cursor:pointer;
+  color:var(--primary); font-weight:700; text-decoration:underline; font-family:var(--font-mono); font-size:13px;
+}
+
+/* ---------- Prognoza ---------- */
+.ob-daytabs{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+.ob-daytab{
+  display:flex; flex-direction:column; align-items:flex-start; gap:2px; min-height:56px; padding:8px 16px;
+  border-radius:12px; border:1.5px solid var(--ob-input-border); background:var(--surface); color:var(--text);
+  text-align:left; cursor:pointer; font-family:inherit;
+}
+.ob-daytab b{ font-size:14px; }
+.ob-daytab span{ font-size:12px; color:var(--text-muted); }
+.ob-daytab[aria-selected="true"]{ background:var(--primary); border-color:var(--primary); color:var(--on-primary); }
+.ob-daytab[aria-selected="true"] span{ color:var(--on-primary); }
+.ob-src{
+  display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text);
+  background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:8px 14px;
+}
+.ob-src.warn{ background:var(--ob-pend-bg); border-color:var(--ob-pend-border); color:var(--ob-pend-fg); border-radius:14px; }
+.ob-wfc{ display:grid; grid-template-columns:minmax(0,1fr); gap:14px; align-items:start; }
+@media (min-width:1200px){ .ob-wfc{ grid-template-columns:minmax(0,1fr) 380px; } }
+.ob-bays{ height:var(--panelH); overflow:auto; padding:16px; display:flex; flex-direction:column; gap:10px; }
+.ob-bays > *{ flex:none; }
+.ob-bays h3{ font-size:19px; font-weight:800; }
+.ob-bay{
+  border:1px solid var(--border); border-radius:12px; padding:12px 14px; background:var(--surface-2);
+  display:flex; flex-direction:column; gap:6px; text-align:left; width:100%;
+}
+.ob-bay[aria-current="true"]{ border-color:var(--primary); box-shadow:0 0 0 2px var(--primary); }
+.ob-bay .h{ display:flex; justify-content:space-between; gap:8px; align-items:center; }
+.ob-bay .m{ font-size:13px; color:var(--text-muted); }
+.ob-bay-name{
+  border:0; background:none; padding:0; min-height:32px; cursor:pointer; text-align:left;
+  font-family:inherit; font-weight:800; font-size:15px; color:var(--text);
+}
+.ob-bay-name:hover{ text-decoration:underline; }
+.ob-sent{ display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:700; color:var(--ob-rijeseno-fg); }
+@media (max-width:1199px){
+  .ob-bays{ height:auto; }
+  .ob-wfc .ob-map-panel{ height:60vh; min-height:340px; }
+}
+
+/* ---------- Dijalozi ---------- */
+.ob-dialog{
+  border:0; border-radius:18px; padding:0; width:min(760px, calc(100vw - 24px)); max-height:calc(100dvh - 24px);
+  background:var(--surface); color:var(--text); box-shadow:var(--shadow); font-family:var(--font-body);
+}
+.ob-dialog-sm{ width:min(480px, calc(100vw - 24px)); }
+.ob-dialog::backdrop{ background:var(--ob-scrim); }
+.ob-dlg{ display:flex; flex-direction:column; max-height:calc(100dvh - 24px); }
+.ob-dlg-h{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:16px 20px; border-bottom:1px solid var(--border); }
+.ob-dlg-h h2{ font-size:20px; font-weight:800; }
+.ob-dlg-b{ padding:16px 20px; overflow:auto; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.ob-dlg-b .full{ grid-column:1/-1; }
+.ob-dlg-f{ display:flex; justify-content:flex-end; gap:8px; padding:14px 20px; border-top:1px solid var(--border); flex-wrap:wrap; }
+#pickMap{ height:260px; border-radius:12px; border:1px solid var(--border); }
+.ob-coords{ display:flex; flex-wrap:wrap; gap:8px; align-items:flex-end; margin-top:8px; }
+.ob-coords .ob-field{ flex:1 1 120px; }
+.ob-hint{ font-size:12.5px; color:var(--text-muted); font-weight:500; }
+.ob-preview{ background:var(--surface-2); border:1px solid var(--border); border-left:4px solid var(--primary); border-radius:10px; padding:10px 12px; font-size:13px; }
+.ob-err{ color:var(--ob-err); font-size:13px; font-weight:700; }
+.ob-err:empty{ display:none; }
+
+.ob-foot{ margin:18px 2px 0; color:var(--text-muted); font-size:12px; }
+
+/* ---------- Tablet i manji desktop: detalji kao bočna ladica ---------- */
+@media (max-width:1499px){
+  .ob-detail{
+    position:fixed; top:0; right:0; bottom:0; width:min(440px, 100vw); height:auto; z-index:2000;
+    border-radius:0; padding-top:calc(18px + var(--safe-t)); padding-bottom:calc(18px + var(--safe-b));
+    transform:translateX(105%); visibility:hidden;
+    transition:transform .22s ease, visibility 0s linear .22s;
+    box-shadow:-12px 0 32px rgba(0,0,0,.25);
+  }
+  .ob-detail.open{ transform:none; visibility:visible; transition:transform .22s ease, visibility 0s; }
+  .ob-dback{ display:inline-flex; }
+  .ob-backdrop.open{ display:block; position:fixed; inset:0; background:var(--ob-scrim); z-index:1900; }
+}
+
+/* ---------- Mobitel ---------- */
+@media (max-width:759px){
+  .ob{ --panelH:auto; }
+  .ob-bar{ gap:8px; }
+  .ob-tabs{ width:100%; }
+  .ob-tabs a{ flex:1; padding:0 8px; gap:6px; }
+  .ob-tabs .t-long{ display:none; }
+  .ob-tabs .t-short{ display:inline; }
+  .ob-bar-right{ margin-left:0; width:100%; justify-content:space-between; }
+  .ob-head h2{ font-size:21px; }
+  .ob-head .ob-field{ flex:1 1 140px; }
+  .ob-svc-field{ min-width:0; flex:1 1 200px; }
+  .ob-filter-toggle{ display:inline-flex; }
+  .ob-filters{ display:none; }
+  .ob-filters.open{ display:flex; }
+  .ob-filters .ob-field{ flex:1 1 140px; }
+  .ob-seg{
+    display:flex; gap:4px; padding:4px; margin-bottom:10px;
+    background:var(--surface-2); border:1px solid var(--border); border-radius:999px;
+  }
+  .ob-seg button{
+    flex:1; min-height:40px; border:0; border-radius:999px; background:transparent; cursor:pointer;
+    font-family:inherit; font-weight:700; font-size:13.5px; color:var(--text-muted);
+  }
+  .ob-seg button[aria-pressed="true"]{ background:var(--primary); color:var(--on-primary); }
+  .ob-work{ grid-template-columns:minmax(0,1fr); }
+  .ob-work[data-show="map"] .ob-list-panel{ display:none; }
+  .ob-work[data-show="list"] .ob-map-panel{ display:none; }
+  .ob-list-panel{ height:auto; }
+  .ob-list{ overflow:visible; }
+  .ob-map-panel{ height:62vh; min-height:320px; }
+  .ob-work2[data-show="list"] .ob-map-panel{ display:none; }
+  /* detalji kao cijeli ekran (sheet odozdo) */
+  .ob-detail{ left:0; width:100vw; transform:translateY(100%); box-shadow:none; }
+  .ob-legend{ display:none; }
+  .ob-dlg-b{ grid-template-columns:minmax(0,1fr); flex:1; }
+  .ob-dialog{ width:100vw; max-width:100vw; max-height:100dvh; height:100dvh; border-radius:0; margin:0; }
+  .ob-dialog-sm{ height:auto; max-height:100dvh; margin:auto 0 0; border-radius:18px 18px 0 0; }
+  .ob-dlg{ max-height:100dvh; height:100%; }
+  .ob-tbl thead{ display:none; }
+  .ob-tbl, .ob-tbl tbody, .ob-tbl tr, .ob-tbl td{ display:block; width:100%; }
+  .ob-tbl tr{ border-bottom:1px solid var(--border); padding:8px 0; }
+  .ob-tbl td{ border:0; padding:4px 14px; display:flex; justify-content:space-between; gap:12px; text-align:right; }
+  .ob-tbl td::before{ content:attr(data-label); color:var(--text-muted); font-size:12px; font-weight:700; text-align:left; }
+  .ob-history li{ grid-template-columns:84px 1fr; }
+  .ob-kv{ grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .ob-detail, .ob-detail.open{ transition:none; }
+  .ob-btn, .ob-tabs a{ transition:none; }
+}
