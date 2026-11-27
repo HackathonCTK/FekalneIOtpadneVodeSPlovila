@@ -101,7 +101,8 @@
 }
 
 *{ box-sizing:border-box; }
-html,body{ height:100%; }
+/* height:auto (ne 100%): na dugim stranicama pozadina se ne ponavlja i gornja traka se ne stišće */
+html,body{ min-height:100%; }
 body{
   margin:0;
   font-family:'Segoe UI', system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
@@ -376,4 +377,95 @@ button{ font-family:inherit; }
 @media (min-width:860px) and (max-width:1099px){
   .stat-grid{ grid-template-columns:repeat(2,1fr); }
   .quick-actions{ grid-template-columns:repeat(2,1fr); }
+}
+
+
+/* =========================================================================
+   ZAJEDNIČKI DIZAJN — boje, fontovi i animacije grupe 4 („Plovi odgovorno“)
+   Raspored (topbar, sidenav, bottomnav, kartice) ostaje od grupe 1.
+   Dark = paleta A „Dubina“ (data-theme="dubina"), light = paleta D „Ocean“ (data-theme="ocean").
+   Način bira cm-boot.js / CM_setMode() u app.js.
+   ========================================================================= */
+:root{
+  --font-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body:"Manrope", "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+  --font-mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+  --topbar-1: var(--primary-dark); --topbar-2: var(--primary); --on-topbar:#fff;
+  --on-fab:#fff; --on-primary:#fff; --toast-bg: var(--primary-dark); --toast-text:#fff;
+  --focus: var(--accent);
+}
+[data-theme="dubina"]{
+  --bg:#04141C; --bg-grad-1:#04141C; --bg-grad-2:#0B2A36;
+  --surface:#0B2A36; --surface-2:#0F3442;
+  --text:#E8F4F2; --text-muted:#8FB3B0;
+  --primary:#2EC4B6; --primary-dark:#0A3442;
+  --accent:#9EF0E0; --accent-2:#6FE0D3;
+  --success:#2EC4B6; --warning:#FFB547; --danger:#FF7A59;
+  --border:#173C48;
+  --nav-bg:#071D27; --nav-text:#8FB3B0; --nav-text-active:#2EC4B6;
+  --fab-grad-1:#9EF0E0; --fab-grad-2:#2EC4B6;
+  --shadow:0 10px 30px rgba(0,0,0,.45);
+  --topbar-1:#0B2A36; --topbar-2:#0F4452; --on-topbar:#E8F4F2;
+  --on-fab:#04141C; --on-primary:#04141C; --toast-bg:#E8F4F2; --toast-text:#04141C;
+  --focus:#9EF0E0;
+  color-scheme:dark;
+}
+[data-theme="ocean"]{
+  --primary:#006BA6; --primary-dark:#023E63;
+  --topbar-1:#023E63; --topbar-2:#0077B6; --on-topbar:#FFFFFF;
+  --focus:#023E63;
+  color-scheme:light;
+}
+
+body{ font-family:var(--font-body); -webkit-font-smoothing:antialiased; }
+.brand-name, .page-title, .stat-num, .qa-title, .list-title, .card h2, .card h3,
+.content h1, .content h2, .content h3{ font-family:var(--font-display); }
+.page-title{ font-weight:800; letter-spacing:-.02em; font-size:23px; }
+.stat-num{ letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
+.section-title{ font-family:var(--font-mono); font-weight:600; letter-spacing:.14em; font-size:12px; color:var(--primary); }
+[data-theme="dubina"] .section-title{ color:var(--accent); }
+.brand-sub{ font-family:var(--font-mono); letter-spacing:.08em; text-transform:uppercase; font-size:10.5px; }
+
+.topbar{ background:linear-gradient(135deg, var(--topbar-1), var(--topbar-2)); color:var(--on-topbar); }
+.icon-btn{ color:var(--on-topbar); }
+.btn.primary, .qa-icon, .nav-fab{ color:var(--on-fab); }
+.seg button.active{ color:var(--on-primary); }
+.toast{ background:var(--toast-bg); color:var(--toast-text); }
+:focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+
+/* Prekidači u gornjoj traci: način (sunce/mjesec) i jezik (HR/EN) */
+.cm-controls{ display:flex; align-items:center; gap:8px; margin-left:auto; position:relative; }
+.cm-mode{
+  width:38px; height:38px; border-radius:12px; border:0; cursor:pointer;
+  display:grid; place-items:center; color:var(--on-topbar); background:rgba(255,255,255,.16);
+}
+.cm-mode:active{ transform:scale(.94); }
+.cm-lang{ display:flex; padding:3px; gap:2px; border-radius:999px; background:rgba(255,255,255,.14); }
+.cm-lang button{
+  border:0; background:transparent; cursor:pointer; color:var(--on-topbar); opacity:.8;
+  font-family:var(--font-mono); font-size:12px; font-weight:600; letter-spacing:.08em;
+  min-width:40px; min-height:32px; padding:6px 10px; border-radius:999px;
+}
+.cm-lang button[aria-pressed="true"]{ background:var(--on-topbar); color:var(--topbar-1); opacity:1; }
+@media (max-width:380px){ .brand-sub{ display:none; } .cm-lang button{ min-width:34px; padding:6px 7px; } }
+
+/* Animacije u stilu grupe 4: blagi ulazak sadržaja, val u gornjoj traci, podizanje kartica */
+@keyframes cm-rise{ from{ opacity:0; transform:translateY(12px); } to{ opacity:1; transform:none; } }
+@keyframes cm-wave{ 50%{ transform:translateY(3px) scaleY(1.15); } }
+.wave path{ transform-origin:50% 100%; animation:cm-wave 6s ease-in-out infinite; }
+.content > *, .stat, .qa-btn{ animation:cm-rise .55s cubic-bezier(.2,.7,.2,1) both; }
+.content > *:nth-child(2){ animation-delay:.05s; } .content > *:nth-child(3){ animation-delay:.1s; }
+.content > *:nth-child(4){ animation-delay:.15s; } .content > *:nth-child(5){ animation-delay:.2s; }
+.content > *:nth-child(n+6){ animation-delay:.25s; }
+.stat:nth-child(2), .qa-btn:nth-child(2){ animation-delay:.06s; }
+.stat:nth-child(3), .qa-btn:nth-child(3){ animation-delay:.12s; }
+.stat:nth-child(4), .qa-btn:nth-child(4){ animation-delay:.18s; }
+.card, .stat, .qa-btn, .btn{ transition:transform .2s ease, box-shadow .2s ease, background .35s ease, border-color .35s ease; }
+@media (hover:hover){
+  .qa-btn:hover, .stat:hover{ transform:translateY(-2px); }
+}
+.nav-item, .nav-fab{ transition:color .2s ease, background .2s ease, transform .15s ease; }
+@media (prefers-reduced-motion: reduce){
+  .content > *, .stat, .qa-btn, .wave path{ animation:none !important; }
+  .card, .stat, .qa-btn, .btn, .nav-item, .nav-fab{ transition:none; }
 }
