@@ -40,6 +40,19 @@
   .pf-links a{ display:flex; justify-content:space-between; align-items:center; gap:12px; padding:12px 2px; text-decoration:none; font-weight:600; }
   .pf-links a:hover span:first-child{ text-decoration:underline; text-underline-offset:3px; }
   .pf-count{ background:var(--po-tint); color:var(--po-text); font-family:var(--po-mono); }
+  .pf-avatar{ overflow:hidden; }
+  .pf-avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .pf-edit{ grid-column:1 / -1; }
+  .pf-edit-grid{ display:grid; gap:24px; }
+  @media (min-width:760px){ .pf-edit-grid{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
+  .pf-photo{ display:flex; gap:16px; align-items:center; margin-bottom:6px; }
+  .pf-avatar-lg{ width:88px; height:88px; border-radius:26px; font-size:2rem; }
+  .pf-photo-actions{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; min-width:0; }
+  .pf-photo-actions .cm-hint{ flex-basis:100%; }
+  .pf-file{ position:relative; overflow:hidden; }
+  .pf-file input{ position:absolute; inset:0; opacity:0; cursor:pointer; font-size:0; }
+  .pf-file:focus-within{ outline:2px solid var(--po-accent-2); outline-offset:3px; }
+  .pf-sub{ font-size:1rem; margin:0 0 12px; }
 </style>
 </head>
 <body class="cm-body">
@@ -58,6 +71,54 @@
   </div>
 
   <div class="pf-grid">
+    <!-- Uređivanje profila: slika, ime, lozinka (PATCH /api/me, POST /api/me/password) -->
+    <section class="cm-card pf-card pf-edit" aria-labelledby="editTitle">
+      <h2 id="editTitle" data-t="prof.edit">Uredi profil</h2>
+      <div class="pf-edit-grid">
+        <div class="pf-edit-col">
+          <div class="pf-photo">
+            <div class="pf-avatar pf-avatar-lg" id="avatarEdit" aria-hidden="true">?</div>
+            <div class="pf-photo-actions">
+              <label class="po-btn po-btn-ghost po-btn-sm pf-file">
+                <input type="file" id="avatarFile" accept="image/*">
+                <span data-t="prof.photoChange">Promijeni sliku</span>
+              </label>
+              <button type="button" class="po-btn po-btn-ghost po-btn-sm" id="avatarRemove" data-t="prof.photoRemove">Ukloni sliku</button>
+              <p class="cm-hint" data-t="prof.photoHint">Slika se izreže u kvadrat i smanji prije slanja.</p>
+            </div>
+          </div>
+          <p class="cm-error" id="avatarErr" role="alert"></p>
+          <form id="nameForm" novalidate>
+            <div class="cm-field">
+              <label for="nameInput" data-t="prof.nameLabel">Ime i prezime</label>
+              <input id="nameInput" type="text" autocomplete="name" maxlength="60">
+              <p class="cm-hint" id="userHint"></p>
+            </div>
+            <p class="cm-error" id="nameErr" role="alert"></p>
+            <button type="submit" class="po-btn po-btn-primary po-btn-sm" data-t="prof.nameSave">Spremi ime</button>
+          </form>
+        </div>
+        <form class="pf-edit-col" id="passForm" novalidate>
+          <h3 class="pf-sub" data-t="prof.passTitle">Promjena lozinke</h3>
+          <div class="cm-field">
+            <label for="passCur" data-t="prof.passCur">Trenutna lozinka</label>
+            <input id="passCur" type="password" autocomplete="current-password">
+          </div>
+          <div class="cm-field">
+            <label for="passNew" data-t="prof.passNew">Nova lozinka</label>
+            <input id="passNew" type="password" autocomplete="new-password" aria-describedby="passHint">
+            <p class="cm-hint" id="passHint" data-t="prof.passHint">Najmanje 6 znakova. Ostali uređaji bit će odjavljeni.</p>
+          </div>
+          <div class="cm-field">
+            <label for="passNew2" data-t="prof.passNew2">Ponovi novu lozinku</label>
+            <input id="passNew2" type="password" autocomplete="new-password">
+          </div>
+          <p class="cm-error" id="passErr" role="alert"></p>
+          <button type="submit" class="po-btn po-btn-primary po-btn-sm" data-t="prof.passSave">Promijeni lozinku</button>
+        </form>
+      </div>
+    </section>
+
     <!-- Certifikat iz kviza grupe 4 (po-cert) -->
     <section class="cm-card pf-card" aria-labelledby="certTitle">
       <h2 id="certTitle" data-t="prof.cert">Odgovorni nautičar</h2>
@@ -140,9 +201,142 @@
       'prof.logout': 'Log out', 'prof.adminNote': 'For authorities:', 'prof.adminLink': 'report handling portal'
     }
   });
+  CM.addI18n({
+    hr: {
+      'prof.edit': 'Uredi profil', 'prof.photoChange': 'Promijeni sliku', 'prof.photoRemove': 'Ukloni sliku',
+      'prof.photoHint': 'Slika se izreže u kvadrat i smanji prije slanja.', 'prof.photoSaved': 'Profilna slika je spremljena.',
+      'prof.photoRemoved': 'Profilna slika je uklonjena.', 'prof.photoBad': 'Odaberi sliku (JPG, PNG ili WebP).',
+      'prof.photoBig': 'Slika je prevelika. Odaberi manju (do 15 MB).', 'prof.photoBusy': 'Spremam sliku…',
+      'prof.nameLabel': 'Ime i prezime', 'prof.nameSave': 'Spremi ime', 'prof.nameSaved': 'Ime je spremljeno.',
+      'prof.userHint': 'Korisničko ime: @{user} (ne mijenja se)',
+      'prof.passTitle': 'Promjena lozinke', 'prof.passCur': 'Trenutna lozinka', 'prof.passNew': 'Nova lozinka',
+      'prof.passNew2': 'Ponovi novu lozinku', 'prof.passHint': 'Najmanje 6 znakova. Ostali uređaji bit će odjavljeni.',
+      'prof.passSave': 'Promijeni lozinku', 'prof.passSaved': 'Lozinka je promijenjena. Ostali uređaji su odjavljeni.',
+      'prof.busy': 'Spremam…',
+      'prof.err.invalid_name': 'Upiši ime (najmanje 2 znaka).', 'prof.err.invalid_avatar': 'Slika nije ispravna. Pokušaj s drugom.',
+      'prof.err.avatar_too_large': 'Slika je prevelika.', 'prof.err.wrong_password': 'Trenutna lozinka nije točna.',
+      'prof.err.weak_password': 'Nova lozinka mora imati najmanje 6 znakova.', 'prof.err.mismatch': 'Nove lozinke se ne podudaraju.',
+      'prof.err.required': 'Upiši trenutnu i novu lozinku.', 'prof.err.network': 'Za promjenu profila potrebna je internetska veza.',
+      'prof.err.unauthorized': 'Prijava je istekla. Prijavi se ponovno.', 'prof.err.server': 'Spremanje nije uspjelo. Pokušaj ponovno.'
+    },
+    en: {
+      'prof.edit': 'Edit profile', 'prof.photoChange': 'Change photo', 'prof.photoRemove': 'Remove photo',
+      'prof.photoHint': 'The photo is cropped to a square and resized before upload.', 'prof.photoSaved': 'Profile photo saved.',
+      'prof.photoRemoved': 'Profile photo removed.', 'prof.photoBad': 'Choose an image (JPG, PNG or WebP).',
+      'prof.photoBig': 'That image is too large. Choose a smaller one (up to 15 MB).', 'prof.photoBusy': 'Saving photo…',
+      'prof.nameLabel': 'Full name', 'prof.nameSave': 'Save name', 'prof.nameSaved': 'Name saved.',
+      'prof.userHint': 'Username: @{user} (can’t be changed)',
+      'prof.passTitle': 'Change password', 'prof.passCur': 'Current password', 'prof.passNew': 'New password',
+      'prof.passNew2': 'Repeat new password', 'prof.passHint': 'At least 6 characters. Other devices will be logged out.',
+      'prof.passSave': 'Change password', 'prof.passSaved': 'Password changed. Other devices have been logged out.',
+      'prof.busy': 'Saving…',
+      'prof.err.invalid_name': 'Enter a name (at least 2 characters).', 'prof.err.invalid_avatar': 'That image isn’t valid. Try another one.',
+      'prof.err.avatar_too_large': 'That image is too large.', 'prof.err.wrong_password': 'The current password is wrong.',
+      'prof.err.weak_password': 'The new password needs at least 6 characters.', 'prof.err.mismatch': 'The new passwords don’t match.',
+      'prof.err.required': 'Enter your current and new password.', 'prof.err.network': 'Editing your profile needs an internet connection.',
+      'prof.err.unauthorized': 'Your session has expired. Please log in again.', 'prof.err.server': 'Saving failed. Please try again.'
+    }
+  });
   CM.applyI18n();
 
   var $ = function (id) { return document.getElementById(id); };
+  function errText(code) { var k = 'prof.err.' + code; return CM.t(k) === k ? CM.t('prof.err.server') : CM.t(k); }
+  function setAvatar(el, u) {
+    if (u && u.avatar) { el.innerHTML = ''; var img = document.createElement('img'); img.src = u.avatar; img.alt = ''; el.appendChild(img); }
+    else el.textContent = initials(u && (u.name || u.username));
+  }
+  // Odgovor API-ja: greška → kod; mreža → 'network'
+  function apiCall(method, path, body) {
+    return CM.api(method, path, body).then(function (r) {
+      if (r.ok) return r.data;
+      var code = (r.data && r.data.error) || (r.status === 401 ? 'unauthorized' : 'server');
+      throw { code: code };
+    }, function () { throw { code: 'network' }; });
+  }
+  function busyBtn(btn, on) {
+    if (on) { btn.dataset.label = btn.textContent; btn.textContent = CM.t('prof.busy'); btn.setAttribute('aria-disabled', 'true'); }
+    else { btn.textContent = btn.dataset.label || btn.textContent; btn.removeAttribute('aria-disabled'); }
+  }
+  function onSaved(user, msgKey) { CM.setUser(user); render(); CM.toast(CM.t(msgKey)); }
+
+  /* ---------- profilna slika: izreži u kvadrat, smanji na 256 px, JPEG ---------- */
+  function resizeImage(file) {
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(file), img = new Image();
+      img.onload = function () {
+        var s = Math.min(img.naturalWidth, img.naturalHeight), size = 256;
+        var c = document.createElement('canvas'); c.width = c.height = size;
+        var g = c.getContext('2d');
+        g.fillStyle = '#ffffff'; g.fillRect(0, 0, size, size);
+        g.drawImage(img, (img.naturalWidth - s) / 2, (img.naturalHeight - s) / 2, s, s, 0, 0, size, size);
+        URL.revokeObjectURL(url);
+        resolve(c.toDataURL('image/jpeg', 0.86));
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); reject({ code: 'invalid_avatar' }); };
+      img.src = url;
+    });
+  }
+  $('avatarFile').addEventListener('change', function () {
+    var f = this.files && this.files[0], input = this;
+    $('avatarErr').textContent = '';
+    if (!f) return;
+    if (!/^image\//.test(f.type)) { $('avatarErr').textContent = CM.t('prof.photoBad'); input.value = ''; return; }
+    if (f.size > 15 * 1024 * 1024) { $('avatarErr').textContent = CM.t('prof.photoBig'); input.value = ''; return; }
+    var hint = document.querySelector('.pf-photo .cm-hint');
+    hint.textContent = CM.t('prof.photoBusy');
+    resizeImage(f).then(function (dataUrl) {
+      return apiCall('PATCH', '/api/me', { avatar: dataUrl });
+    }).then(function (d) {
+      onSaved(d.user, 'prof.photoSaved');
+      if (CM.motion) CM.motion.pop($('avatarEdit'));
+    }).catch(function (e) {
+      $('avatarErr').textContent = errText(e && e.code);
+    }).then(function () { hint.textContent = CM.t('prof.photoHint'); input.value = ''; });
+  });
+  $('avatarRemove').addEventListener('click', function () {
+    var btn = this;
+    if (btn.getAttribute('aria-disabled') === 'true') return;
+    $('avatarErr').textContent = '';
+    busyBtn(btn, true);
+    apiCall('PATCH', '/api/me', { avatar: null }).then(function (d) { onSaved(d.user, 'prof.photoRemoved'); })
+      .catch(function (e) { $('avatarErr').textContent = errText(e && e.code); })
+      .then(function () { busyBtn(btn, false); });
+  });
+
+  /* ---------- ime ---------- */
+  $('nameForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var btn = this.querySelector('button[type="submit"]'), name = $('nameInput').value.trim().replace(/\s+/g, ' ');
+    $('nameErr').textContent = ''; $('nameInput').removeAttribute('aria-invalid');
+    if (name.length < 2) { $('nameErr').textContent = errText('invalid_name'); $('nameInput').setAttribute('aria-invalid', 'true'); $('nameInput').focus(); return; }
+    if (btn.getAttribute('aria-disabled') === 'true') return;
+    busyBtn(btn, true);
+    apiCall('PATCH', '/api/me', { name: name }).then(function (d) { onSaved(d.user, 'prof.nameSaved'); })
+      .catch(function (er) { $('nameErr').textContent = errText(er && er.code); })
+      .then(function () { busyBtn(btn, false); });
+  });
+
+  /* ---------- lozinka ---------- */
+  $('passForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var btn = this.querySelector('button[type="submit"]');
+    var cur = $('passCur').value, nw = $('passNew').value, nw2 = $('passNew2').value;
+    ['passCur', 'passNew', 'passNew2'].forEach(function (id) { $(id).removeAttribute('aria-invalid'); });
+    var fail = function (code, id) { $('passErr').textContent = errText(code); if (id) { $(id).setAttribute('aria-invalid', 'true'); $(id).focus(); } };
+    $('passErr').textContent = '';
+    if (!cur || !nw) return fail('required', !cur ? 'passCur' : 'passNew');
+    if (nw.length < 6) return fail('weak_password', 'passNew');
+    if (nw !== nw2) return fail('mismatch', 'passNew2');
+    if (btn.getAttribute('aria-disabled') === 'true') return;
+    busyBtn(btn, true);
+    apiCall('POST', '/api/me/password', { current: cur, next: nw }).then(function () {
+      $('passForm').reset();
+      CM.toast(CM.t('prof.passSaved'));
+    }).catch(function (er) {
+      var c = er && er.code;
+      fail(c, c === 'wrong_password' ? 'passCur' : c === 'weak_password' ? 'passNew' : null);
+    }).then(function () { busyBtn(btn, false); });
+  });
 
   function initials(name) {
     var p = String(name || '').trim().split(/\s+/).filter(Boolean);
@@ -152,7 +346,11 @@
     var u = CM.user;
     if (!u) return;
     $('pName').textContent = u.name || u.username;
-    $('avatar').textContent = initials(u.name || u.username);
+    setAvatar($('avatar'), u);
+    setAvatar($('avatarEdit'), u);
+    $('avatarRemove').hidden = !u.avatar;
+    if (document.activeElement !== $('nameInput')) $('nameInput').value = u.name || '';
+    $('userHint').textContent = CM.t('prof.userHint', { user: u.username });
     $('pSub').textContent = CM.t('prof.member', { user: u.username, date: u.createdAt ? CM.fmtDate(new Date(u.createdAt), true) : '' });
 
     var cert = CM.getJSON('po-cert', null);

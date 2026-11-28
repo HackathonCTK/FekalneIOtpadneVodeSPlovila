@@ -342,6 +342,12 @@
     map.on("click", function(e){
       if(picking) pickAt(e.latlng.lat, e.latlng.lng);
     });
+    // Za map-zone.js (zone zabrane, crte 3/12 NM, provjera dodirom, nevrijeme)
+    window.CM_MAP = {
+      map: map, places: places,
+      isPicking: function(){ return picking; },
+      select: function(p){ selectPlace(p, { openDetails: true, pan: true }); showOnMap(p, 12); }
+    };
   }
 
   function fitTo(list, extra){
