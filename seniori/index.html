@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head><script src="preview.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#04141C">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<title data-t="home.docTitle">ČistoMore – Početna</title>
+<script>
+  /* Način (tamni/svijetli) i jezik prije crtanja, bez bljeska; stranice samo za prijavljene šalju na prijavu. */
+  (function(){var d=document.documentElement,m=null,l=null,u=null;try{m=localStorage.getItem("cm-mode")||localStorage.getItem("po-mode");l=localStorage.getItem("cm-lang");u=localStorage.getItem("cm-user");}catch(e){}
+  if(m!=="light"&&m!=="dark")m=window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";d.setAttribute("data-mode",m);
+  if(l!=="hr"&&l!=="en"){var n=(navigator.language||"hr").toLowerCase();l=/^(hr|bs|sr|sl|cnr)/.test(n)?"hr":"en";}d.lang=l;d.classList.add("js");
+  if(d.getAttribute("data-auth")==="user"&&!u){location.replace("login.html?next="+encodeURIComponent((location.pathname.replace(/^.*\//,"")||"index.html")+location.search));}})();
+</script>
+<link rel="stylesheet" href="vendor/fonts/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="cm-body">
+<a class="cm-skip" href="#main" data-t="ui.skip">Preskoči na sadržaj</a>
+<header data-cm-header data-cm-sub="sub.home"></header>
+<div data-cm-nav="home"></div>
+
+<main class="cm-main" id="main" tabindex="-1">
+  <div class="cm-head">
+    <p class="cm-eyebrow" data-t="home.eyebrow">Početna</p>
+    <h1 id="homeTitle">Dobrodošli, kapetane</h1>
+    <p class="cm-lead" id="homeLead">Pregled vaših prijava</p>
+  </div>
+
+  <!-- Gost (nije prijavljen) -->
+  <section class="po-card cm-guest" id="guestCard" aria-labelledby="guestTitle" hidden>
+    <h2 id="guestTitle" data-t="home.guestTitle">Prijavi onečišćenje u nekoliko dodira</h2>
+    <p data-t="home.guestText">Uz korisnički račun šalješ prijave s fotografijom, lokacijom i smjerom plovila, a u dnevniku pratiš status: zaprimljeno, u obradi, riješeno.</p>
+    <div class="cm-actions">
+      <a class="po-btn po-btn-primary" href="login.html?next=index.html" data-t="home.login">Prijavi se</a>
+      <a class="po-btn po-btn-ghost" href="login.html?next=index.html#novi-racun" data-t="home.register">Izradi račun</a>
+    </div>
+  </section>
+
+  <!-- Pregled (grupa 1) -->
+  <section id="statsSection" aria-labelledby="statsTitle" hidden>
+    <h2 class="cm-section-title" id="statsTitle" data-t="home.overview">Pregled</h2>
+    <div class="cm-stats">
+      <div class="cm-stat"><div class="cm-stat-num" id="sTotal">0</div><div class="cm-stat-label" data-t="home.sTotal">Ukupno prijava</div></div>
+      <div class="cm-stat"><div class="cm-stat-num" id="sNew">0</div><div class="cm-stat-label" data-t="home.sNew">Zaprimljeno</div></div>
+      <div class="cm-stat"><div class="cm-stat-num" id="sWork">0</div><div class="cm-stat-label" data-t="home.sWork">U obradi</div></div>
+      <div class="cm-stat"><div class="cm-stat-num" id="sDone">0</div><div class="cm-stat-label" data-t="home.sDone">Riješeno</div></div>
+    </div>
+    <p class="cm-note" id="pendingNote" hidden></p>
+  </section>
+
+  <!-- Brze radnje (grupa 1) -->
+  <h2 class="cm-section-title" data-t="home.quick">Brze radnje</h2>
+  <div class="cm-quick">
+    <a class="cm-qa" href="report.html">
+      <span class="cm-qa-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>
+      <span class="cm-qa-title" data-t="home.qaReport">Nova prijava</span>
+      <span class="cm-qa-sub" data-t="home.qaReportSub">Prijavi ispust otpadnih voda</span>
+    </a>
+    <a class="cm-qa" href="map.html">
+      <span class="cm-qa-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-7.2 7-12a7 7 0 1 0-14 0c0 4.8 7 12 7 12Z"/><circle cx="12" cy="9" r="2.3"/></svg></span>
+      <span class="cm-qa-title" data-t="home.qaMap">Prihvatne stanice</span>
+      <span class="cm-qa-sub" data-t="home.qaMapSub">Pronađi najbližu luku</span>
+    </a>
+    <a class="cm-qa" href="book.html">
+      <span class="cm-qa-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11.5 11 13.5 15.5 9"/><circle cx="12" cy="12" r="9"/></svg></span>
+      <span class="cm-qa-title" data-t="home.qaLog">Moj dnevnik</span>
+      <span class="cm-qa-sub" data-t="home.qaLogSub">Povijest svih prijava</span>
+    </a>
+    <a class="cm-qa" href="plovi-odgovorno.html#vodic">
+      <span class="cm-qa-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 3 6v6c0 5 3.8 8.7 9 10 5.2-1.3 9-5 9-10V6l-9-4Z"/></svg></span>
+      <span class="cm-qa-title" data-t="home.qaRules">MARPOL pravila</span>
+      <span class="cm-qa-sub" data-t="home.qaRulesSub">Propisi o ispuštanju</span>
+    </a>
+  </div>
+
+  <!-- Nedavna aktivnost (grupa 1) -->
+  <section id="recentSection" aria-labelledby="recentTitle" hidden>
+    <h2 class="cm-section-title" id="recentTitle" data-t="home.recent">Nedavna aktivnost</h2>
+    <div class="cm-card"><ul class="cm-list" id="recentList"></ul></div>
+  </section>
+</main>
+
+<footer class="cm-footer"><span data-t="footer">ČistoMore · Hackathon 2026 · spojena aplikacija grupa 1–4</span></footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="routing.js"></script>
+<script src="app.js"></script>
+<script>
+(function () {
+  'use strict';
+  CM.addI18n({
+    hr: {
+      'home.docTitle': 'ČistoMore – Početna', 'home.eyebrow': 'Početna',
+      'home.titleGuest': 'Dobrodošli, kapetane', 'home.titleUser': 'Dobrodošli, {name}',
+      'home.leadGuest': 'Prijavite ispuštanje otpadnih voda s plovila, pronađite prihvatnu stanicu i saznajte kako ploviti odgovorno.',
+      'home.leadUser': 'Pregled vaših prijava',
+      'home.guestTitle': 'Prijavi onečišćenje u nekoliko dodira',
+      'home.guestText': 'Uz korisnički račun šalješ prijave s fotografijom, lokacijom i smjerom plovila, a u dnevniku pratiš status: zaprimljeno, u obradi, riješeno.',
+      'home.login': 'Prijavi se', 'home.register': 'Izradi račun',
+      'home.overview': 'Pregled', 'home.sTotal': 'Ukupno prijava', 'home.sNew': 'Zaprimljeno', 'home.sWork': 'U obradi', 'home.sDone': 'Riješeno',
+      'home.pending': 'Prijava koje čekaju slanje: {n}. Poslat će se čim se veza vrati.',
+      'home.quick': 'Brze radnje',
+      'home.qaReport': 'Nova prijava', 'home.qaReportSub': 'Prijavi ispust otpadnih voda',
+      'home.qaMap': 'Prihvatne stanice', 'home.qaMapSub': 'Pronađi najbližu luku',
+      'home.qaLog': 'Moj dnevnik', 'home.qaLogSub': 'Povijest svih prijava',
+      'home.qaRules': 'MARPOL pravila', 'home.qaRulesSub': 'Propisi o ispuštanju',
+      'home.recent': 'Nedavna aktivnost', 'home.empty': 'Još nemate prijava.', 'home.emptyCta': 'Pošalji prvu prijavu'
+    },
+    en: {
+      'home.docTitle': 'ČistoMore – Home', 'home.eyebrow': 'Home',
+      'home.titleGuest': 'Welcome, captain', 'home.titleUser': 'Welcome, {name}',
+      'home.leadGuest': 'Report wastewater discharged from boats, find a pump-out station and learn how to sail responsibly.',
+      'home.leadUser': 'An overview of your reports',
+      'home.guestTitle': 'Report pollution in a few taps',
+      'home.guestText': 'With an account you send reports with a photo, location and the vessel’s heading, and follow their status in your logbook: received, in progress, resolved.',
+      'home.login': 'Log in', 'home.register': 'Create account',
+      'home.overview': 'Overview', 'home.sTotal': 'Total reports', 'home.sNew': 'Received', 'home.sWork': 'In progress', 'home.sDone': 'Resolved',
+      'home.pending': 'Reports waiting to be sent: {n}. They will go out as soon as you are back online.',
+      'home.quick': 'Quick actions',
+      'home.qaReport': 'New report', 'home.qaReportSub': 'Report a wastewater discharge',
+      'home.qaMap': 'Pump-out stations', 'home.qaMapSub': 'Find the nearest port',
+      'home.qaLog': 'My logbook', 'home.qaLogSub': 'History of all your reports',
+      'home.qaRules': 'MARPOL rules', 'home.qaRulesSub': 'Discharge regulations',
+      'home.recent': 'Recent activity', 'home.empty': 'You have no reports yet.', 'home.emptyCta': 'Send your first report'
+    }
+  });
+  CM.applyI18n();
+
+  var $ = function (id) { return document.getElementById(id); };
+  var reports = CM.cachedReports();
+  var BOAT = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17c1.5 1 3 1 4.5 0s3-1 4.5 0 3 1 4.5 0 3-1 4.5 0"/><path d="M5 17V9a2 2 0 0 1 2-2h2V4h6v3h2a2 2 0 0 1 2 2v8"/></svg>';
+  var DROP = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/></svg>';
+
+  function firstName(u) { return String(u.name || u.username).trim().split(/\s+/)[0]; }
+
+  function render() {
+    var u = CM.user;
+    $('homeTitle').textContent = u ? CM.t('home.titleUser', { name: firstName(u) }) : CM.t('home.titleGuest');
+    $('homeLead').textContent = u ? CM.t('home.leadUser') : CM.t('home.leadGuest');
+    $('guestCard').hidden = !!u;
+    $('statsSection').hidden = !u;
+    $('recentSection').hidden = !u;
+    if (!u) return;
+
+    var pending = CM.outbox.mine();
+    var count = function (st) { return reports.filter(function (r) { return r.status === st; }).length; };
+    $('sTotal').textContent = reports.length + pending.length;
+    $('sNew').textContent = count('zaprimljeno');
+    $('sWork').textContent = count('obrada');
+    $('sDone').textContent = count('rijeseno');
+    $('pendingNote').hidden = !pending.length;
+    $('pendingNote').textContent = CM.t('home.pending', { n: pending.length });
+
+    var items = pending.map(function (p) {
+      return { pending: true, failed: !!p.error, type: p.payload.type, vessel: p.payload.vessel, place: null, lat: p.payload.lat, lng: p.payload.lng, createdAt: p.queuedAt, href: 'book.html' };
+    }).concat(reports.map(function (r) {
+      return { pending: false, type: r.type, vessel: r.vessel, place: r.place, status: r.status, createdAt: r.createdAt, href: 'book.html#r-' + r.id };
+    })).sort(function (a, b) { return String(b.createdAt).localeCompare(String(a.createdAt)); }).slice(0, 3);
+
+    var ul = $('recentList');
+    ul.innerHTML = '';
+    if (!items.length) {
+      ul.innerHTML = '<li class="cm-empty"><p>' + CM.esc(CM.t('home.empty')) + '</p><a class="po-btn po-btn-primary po-btn-sm" href="report.html">' + CM.esc(CM.t('home.emptyCta')) + '</a></li>';
+      return;
+    }
+    items.forEach(function (it) {
+      var li = document.createElement('li');
+      var place = it.place ? (CM.lang === 'en' ? it.place.replace(/^Blizu: /, 'Near ') : it.place) : (it.lat != null ? it.lat.toFixed(4) + ', ' + it.lng.toFixed(4) : '');
+      var title = CM.label.type(it.type) + (it.vessel ? ' · ' + CM.label.vessel(it.vessel) : '');
+      var pill = it.pending
+        ? '<span class="cm-pill st-pending">' + CM.esc(CM.t(it.failed ? 'st.failed' : 'st.pending')) + '</span>'
+        : '<span class="cm-pill st-' + it.status + '">' + CM.esc(CM.label.status(it.status)) + '</span>';
+      li.innerHTML = '<a class="cm-list-row" href="' + it.href + '">' +
+        '<span class="cm-list-icon">' + (R_VESSEL(it.type) ? BOAT : DROP) + '</span>' +
+        '<span class="cm-list-grow"><span class="cm-list-title">' + CM.esc(title) + '</span>' +
+        '<span class="cm-list-sub" style="display:block">' + CM.esc(place) + ' · ' + CM.esc(CM.fmtWhen(it.createdAt)) + '</span></span>' + pill + '</a>';
+      ul.appendChild(li);
+    });
+  }
+  function R_VESSEL(type) { return window.CM_ROUTING && CM_ROUTING.TYPES[type] && CM_ROUTING.TYPES[type].vessel; }
+
+  render();
+  var lastUserId = CM.user ? CM.user.id : null;
+  function refresh() { if (CM.user) CM.fetchMyReports().then(function (list) { reports = list; render(); }); else render(); }
+  refresh();
+  window.addEventListener('cm:lang', render);
+  window.addEventListener('cm:user', function () {
+    var id = CM.user ? CM.user.id : null;
+    if (id === lastUserId) { render(); return; }
+    lastUserId = id; reports = CM.cachedReports(); refresh();
+  });
+  window.addEventListener('cm:sync', refresh);
+})();
+</script>
+</body>
+</html>

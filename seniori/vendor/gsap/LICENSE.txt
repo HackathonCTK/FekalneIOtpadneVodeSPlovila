@@ -1,0 +1,8 @@
+GSAP 3.12.5 (gsap.min.js, ScrollTrigger.min.js)
+Copyright (c) 2008-2023, GreenSock. All rights reserved.
+
+Distributed under GreenSock's standard "no charge" license:
+https://gsap.com/standard-license
+
+Grupa 4 je GSAP učitavala s cdnjs.cloudflare.com; ovdje su iste datoteke (npm paket gsap@3.12.5)
+spremljene lokalno kako bi animacija uvoda radila i bez interneta.

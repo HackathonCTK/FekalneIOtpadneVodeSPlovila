@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head><script src="preview.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#04141C">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<title data-t="login.docTitle">ČistoMore – Prijava</title>
+<script>
+  /* Način (tamni/svijetli) i jezik prije crtanja, bez bljeska; stranice samo za prijavljene šalju na prijavu. */
+  (function(){var d=document.documentElement,m=null,l=null,u=null;try{m=localStorage.getItem("cm-mode")||localStorage.getItem("po-mode");l=localStorage.getItem("cm-lang");u=localStorage.getItem("cm-user");}catch(e){}
+  if(m!=="light"&&m!=="dark")m=window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";d.setAttribute("data-mode",m);
+  if(l!=="hr"&&l!=="en"){var n=(navigator.language||"hr").toLowerCase();l=/^(hr|bs|sr|sl|cnr)/.test(n)?"hr":"en";}d.lang=l;d.classList.add("js");
+  if(d.getAttribute("data-auth")==="user"&&!u){location.replace("login.html?next="+encodeURIComponent((location.pathname.replace(/^.*\//,"")||"index.html")+location.search));}})();
+</script>
+<link rel="stylesheet" href="vendor/fonts/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="cm-body">
+<a class="cm-skip" href="#main" data-t="ui.skip">Preskoči na sadržaj</a>
+<header data-cm-header data-cm-sub="sub.login"></header>
+<div data-cm-nav="profile"></div>
+
+<main class="cm-main is-narrow" id="main" tabindex="-1">
+  <div class="cm-head">
+    <p class="cm-eyebrow" data-t="login.eyebrow">Korisnički račun</p>
+    <h1 data-t="login.title">Prijavi se u ČistoMore</h1>
+    <p class="cm-lead" data-t="login.lead">S računom šalješ prijave onečišćenja i u dnevniku pratiš što se s njima događa.</p>
+  </div>
+
+  <div class="cm-auth">
+    <div class="cm-notice is-ok" id="already" hidden>
+      <span class="cm-notice-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5 11 15l4.5-5"/></svg></span>
+      <div>
+        <p id="alreadyText"></p>
+        <div class="cm-actions" style="margin-top:12px">
+          <a class="po-btn po-btn-primary po-btn-sm" id="continueBtn" href="index.html" data-t="login.continue">Nastavi</a>
+          <button type="button" class="po-btn po-btn-ghost po-btn-sm" id="logoutBtn" data-t="login.logout">Odjavi se</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="cm-card" id="authCard">
+      <div class="cm-tabs" role="tablist" data-t-aria="login.tabs" aria-label="Prijava ili novi račun">
+        <button type="button" role="tab" id="tab-login" aria-controls="panel-login" aria-selected="true" data-t="login.tabLogin">Prijavi se</button>
+        <button type="button" role="tab" id="tab-register" aria-controls="panel-register" aria-selected="false" tabindex="-1" data-t="login.tabRegister">Novi račun</button>
+      </div>
+
+      <form id="panel-login" role="tabpanel" aria-labelledby="tab-login" novalidate>
+        <div class="cm-field">
+          <label for="lUser" data-t="login.username">Korisničko ime</label>
+          <input id="lUser" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+        </div>
+        <div class="cm-field">
+          <label for="lPass" data-t="login.password">Lozinka</label>
+          <input id="lPass" type="password" autocomplete="current-password" required>
+        </div>
+        <p class="cm-error" id="lErr" role="alert"></p>
+        <button type="submit" class="po-btn po-btn-primary po-btn-block" data-t="login.submit">Prijavi se</button>
+      </form>
+
+      <form id="panel-register" role="tabpanel" aria-labelledby="tab-register" novalidate hidden>
+        <div class="cm-field">
+          <label for="rName" data-t="login.name">Ime i prezime</label>
+          <input id="rName" type="text" autocomplete="name" maxlength="60" required>
+        </div>
+        <div class="cm-field">
+          <label for="rUser" data-t="login.username">Korisničko ime</label>
+          <input id="rUser" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="32" required aria-describedby="rUserHint">
+          <p class="cm-hint" id="rUserHint" data-t="login.usernameHint">3–32 znaka: slova bez kvačica, brojke, točka, crtica ili donja crta.</p>
+        </div>
+        <div class="cm-grid-2">
+          <div class="cm-field">
+            <label for="rPass" data-t="login.password">Lozinka</label>
+            <input id="rPass" type="password" autocomplete="new-password" minlength="6" required aria-describedby="rPassHint">
+            <p class="cm-hint" id="rPassHint" data-t="login.passwordHint">Barem 6 znakova.</p>
+          </div>
+          <div class="cm-field">
+            <label for="rPass2" data-t="login.password2">Ponovi lozinku</label>
+            <input id="rPass2" type="password" autocomplete="new-password" required>
+          </div>
+        </div>
+        <p class="cm-error" id="rErr" role="alert"></p>
+        <button type="submit" class="po-btn po-btn-primary po-btn-block" data-t="login.create">Izradi račun</button>
+      </form>
+    </div>
+
+    <div class="cm-notice" id="demoBox" hidden>
+      <span class="cm-notice-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg></span>
+      <div>
+        <p><strong data-t="login.demoTitle">Demo račun za predstavljanje</strong></p>
+        <p><span data-t="login.demoText">Korisničko ime i lozinka:</span> <code class="cm-code">korisnik</code> / <code class="cm-code">korisnik</code></p>
+        <button type="button" class="cm-link-btn" id="demoFill" style="margin-top:6px" data-t="login.demoFill">Ispuni podatke demo računa</button>
+      </div>
+    </div>
+
+    <p class="cm-note cm-admin-link"><span data-t="login.adminNote">Radite u nadležnoj službi?</span> <a class="cm-link" href="admin-login.html" data-t="login.adminLink">Prijava u portal za obradu prijava</a></p>
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="routing.js"></script>
+<script src="app.js"></script>
+<script>
+(function () {
+  'use strict';
+  CM.addI18n({
+    hr: {
+      'login.docTitle': 'ČistoMore – Prijava', 'login.eyebrow': 'Korisnički račun', 'login.title': 'Prijavi se u ČistoMore',
+      'login.lead': 'S računom šalješ prijave onečišćenja i u dnevniku pratiš što se s njima događa.',
+      'login.tabs': 'Prijava ili novi račun', 'login.tabLogin': 'Prijavi se', 'login.tabRegister': 'Novi račun',
+      'login.username': 'Korisničko ime', 'login.password': 'Lozinka', 'login.password2': 'Ponovi lozinku', 'login.name': 'Ime i prezime',
+      'login.usernameHint': '3–32 znaka: slova bez kvačica, brojke, točka, crtica ili donja crta.', 'login.passwordHint': 'Barem 6 znakova.',
+      'login.submit': 'Prijavi se', 'login.create': 'Izradi račun', 'login.busy': 'Šaljem…',
+      'login.demoTitle': 'Demo račun za predstavljanje', 'login.demoText': 'Korisničko ime i lozinka:', 'login.demoFill': 'Ispuni podatke demo računa',
+      'login.adminNote': 'Radite u nadležnoj službi?', 'login.adminLink': 'Prijava u portal za obradu prijava',
+      'login.already': 'Prijavljeni ste kao {name}.', 'login.continue': 'Nastavi', 'login.logout': 'Odjavi se',
+      'login.welcome': 'Dobrodošli, {name}!', 'login.created': 'Račun je izrađen. Dobrodošli, {name}!',
+      'err.required': 'Upišite korisničko ime i lozinku.',
+      'err.invalid_credentials': 'Pogrešno korisničko ime ili lozinka.',
+      'err.username_taken': 'To korisničko ime je zauzeto. Odaberite drugo.',
+      'err.invalid_username': 'Korisničko ime: 3–32 znaka, slova bez kvačica, brojke, točka, crtica ili donja crta.',
+      'err.invalid_name': 'Upišite ime (barem 2 znaka).',
+      'err.weak_password': 'Lozinka mora imati barem 6 znakova.',
+      'err.mismatch': 'Lozinke se ne podudaraju.',
+      'err.network': 'Nema veze sa serverom. Za prijavu je potrebna internetska veza.',
+      'err.server': 'Prijava trenutačno nije uspjela. Pokušajte ponovno.'
+    },
+    en: {
+      'login.docTitle': 'ČistoMore – Log in', 'login.eyebrow': 'Your account', 'login.title': 'Log in to ČistoMore',
+      'login.lead': 'With an account you can send pollution reports and follow what happens to them in your logbook.',
+      'login.tabs': 'Log in or create an account', 'login.tabLogin': 'Log in', 'login.tabRegister': 'Create account',
+      'login.username': 'Username', 'login.password': 'Password', 'login.password2': 'Repeat password', 'login.name': 'Full name',
+      'login.usernameHint': '3–32 characters: letters without accents, digits, dot, hyphen or underscore.', 'login.passwordHint': 'At least 6 characters.',
+      'login.submit': 'Log in', 'login.create': 'Create account', 'login.busy': 'Sending…',
+      'login.demoTitle': 'Demo account for presentations', 'login.demoText': 'Username and password:', 'login.demoFill': 'Fill in the demo account',
+      'login.adminNote': 'Working for an authority?', 'login.adminLink': 'Log in to the report handling portal',
+      'login.already': 'You are logged in as {name}.', 'login.continue': 'Continue', 'login.logout': 'Log out',
+      'login.welcome': 'Welcome, {name}!', 'login.created': 'Account created. Welcome, {name}!',
+      'err.required': 'Enter your username and password.',
+      'err.invalid_credentials': 'Wrong username or password.',
+      'err.username_taken': 'That username is taken. Choose another one.',
+      'err.invalid_username': 'Username: 3–32 characters, letters without accents, digits, dot, hyphen or underscore.',
+      'err.invalid_name': 'Enter your name (at least 2 characters).',
+      'err.weak_password': 'The password must be at least 6 characters long.',
+      'err.mismatch': 'The passwords don’t match.',
+      'err.network': 'Can’t reach the server. Logging in needs an internet connection.',
+      'err.server': 'Logging in didn’t work right now. Please try again.'
+    }
+  });
+  CM.applyI18n();
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  // Kamo nakon prijave (samo stranice ove aplikacije)
+  function nextPage() {
+    var n = new URLSearchParams(location.search).get('next') || '';
+    if (!/^[a-z0-9-]+\.html(\?[^#]*)?$/i.test(n) || /^(login|admin-login|obrada)\.html/i.test(n)) return 'index.html';
+    return n;
+  }
+  $('continueBtn').href = nextPage();
+
+  /* ---------- kartice: prijava / novi račun ---------- */
+  var tabs = [$('tab-login'), $('tab-register')], panels = [$('panel-login'), $('panel-register')];
+  function select(i, focus) {
+    tabs.forEach(function (t, j) {
+      t.setAttribute('aria-selected', String(i === j));
+      t.tabIndex = i === j ? 0 : -1;
+      panels[j].hidden = i !== j;
+    });
+    if (focus) tabs[i].focus();
+  }
+  tabs.forEach(function (t, i) {
+    t.addEventListener('click', function () { select(i); });
+    t.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); select(i === 0 ? 1 : 0, true); }
+    });
+  });
+  if (location.hash === '#novi-racun') select(1);
+
+  /* ---------- već prijavljen ---------- */
+  function showAlready() {
+    if (CM.user) {
+      $('alreadyText').textContent = CM.t('login.already', { name: CM.user.name || CM.user.username });
+      $('already').hidden = false;
+    } else $('already').hidden = true;
+  }
+  showAlready();
+  window.addEventListener('cm:user', showAlready);
+  window.addEventListener('cm:lang', showAlready);
+  $('logoutBtn').addEventListener('click', function () {
+    var done = function () { CM.setUser(null); CM.sdel('cm-my-reports'); showAlready(); $('lUser').focus(); };
+    CM.api('POST', '/api/logout', {}).then(done, done);
+  });
+
+  function errText(code) {
+    var k = 'err.' + code;
+    return CM.t(k) === k ? CM.t('err.server') : CM.t(k);
+  }
+  function busy(form, on) {
+    var b = form.querySelector('button[type="submit"]');
+    if (on) { b.dataset.label = b.textContent; b.textContent = CM.t('login.busy'); b.setAttribute('aria-disabled', 'true'); }
+    else { b.textContent = b.dataset.label || b.textContent; b.removeAttribute('aria-disabled'); }
+  }
+  function done(user, msgKey) {
+    CM.setUser(user);
+    CM.sset('cm-welcome', CM.t(msgKey, { name: user.name || user.username }));
+    location.replace(nextPage());
+  }
+
+  /* ---------- prijava ---------- */
+  $('panel-login').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var form = this, err = $('lErr');
+    var u = $('lUser').value.trim(), p = $('lPass').value;
+    [$('lUser'), $('lPass')].forEach(function (x) { x.removeAttribute('aria-invalid'); });
+    if (!u || !p) {
+      err.textContent = CM.t('err.required');
+      (!u ? $('lUser') : $('lPass')).setAttribute('aria-invalid', 'true');
+      (!u ? $('lUser') : $('lPass')).focus();
+      return;
+    }
+    if (form.dataset.busy) return;
+    form.dataset.busy = '1'; busy(form, true); err.textContent = '';
+    CM.api('POST', '/api/login', { username: u, password: p }).then(function (r) {
+      delete form.dataset.busy; busy(form, false);
+      if (r.ok && r.data.user) return done(r.data.user, 'login.welcome');
+      err.textContent = errText(r.data.error || 'server');
+      $('lPass').value = ''; $('lPass').focus();
+    }, function () {
+      delete form.dataset.busy; busy(form, false);
+      err.textContent = CM.t('err.network');
+    });
+  });
+
+  /* ---------- novi račun ---------- */
+  $('panel-register').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var form = this, err = $('rErr');
+    var name = $('rName').value.trim(), u = $('rUser').value.trim(), p = $('rPass').value, p2 = $('rPass2').value;
+    ['rName', 'rUser', 'rPass', 'rPass2'].forEach(function (id) { $(id).removeAttribute('aria-invalid'); });
+    var fail = function (code, id) { err.textContent = errText(code); $(id).setAttribute('aria-invalid', 'true'); $(id).focus(); };
+    if (name.length < 2) return fail('invalid_name', 'rName');
+    if (!/^[A-Za-z0-9._-]{3,32}$/.test(u)) return fail('invalid_username', 'rUser');
+    if (p.length < 6) return fail('weak_password', 'rPass');
+    if (p !== p2) return fail('mismatch', 'rPass2');
+    if (form.dataset.busy) return;
+    form.dataset.busy = '1'; busy(form, true); err.textContent = '';
+    CM.api('POST', '/api/register', { name: name, username: u, password: p }).then(function (r) {
+      delete form.dataset.busy; busy(form, false);
+      if (r.ok && r.data.user) return done(r.data.user, 'login.created');
+      var code = r.data.error || 'server';
+      fail(code, code === 'username_taken' || code === 'invalid_username' ? 'rUser' : code === 'invalid_name' ? 'rName' : 'rPass');
+    }, function () {
+      delete form.dataset.busy; busy(form, false);
+      err.textContent = CM.t('err.network');
+    });
+  });
+
+  /* ---------- demo račun: prikazuje se samo dok ima početnu lozinku ---------- */
+  CM.api('GET', '/api/me').then(function (r) { $('demoBox').hidden = !(r.ok && r.data.demo); }, function () { /* bez veze */ });
+  $('demoFill').addEventListener('click', function () {
+    select(0);
+    $('lUser').value = 'korisnik'; $('lPass').value = 'korisnik';
+    $('panel-login').querySelector('button[type="submit"]').focus();
+  });
+})();
+</script>
+</body>
+</html>

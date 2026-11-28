@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html lang="hr" data-app="admin">
+<head><script src="preview.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#04141C">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<title>ČistoMore – praćenje i obrada prijava</title>
+<script>
+  /* Način (tamni/svijetli) prije crtanja; portal je samo za prijavljene službenike (admin-login.html). */
+  (function(){var d=document.documentElement,m=null,a=null;try{m=localStorage.getItem("cm-mode")||localStorage.getItem("po-mode");a=localStorage.getItem("cm-admin");}catch(e){}
+  if(m!=="light"&&m!=="dark")m=window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";d.setAttribute("data-mode",m);d.classList.add("js");
+  if(!a){location.replace("admin-login.html");}})();
+</script>
+<link rel="stylesheet" href="vendor/fonts/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="vendor/maplibre-gl/maplibre-gl.css">
+<style>
+/* Portal grupe 3, preoblikovan u dizajn grupe 4 (tokeni iz tokens.css: tamni „Dubina“, svijetli „Ocean“) */
+:root{
+  --ink:var(--po-text); --muted:var(--po-muted); --line:var(--po-line); --line-strong:var(--po-line-strong);
+  --link:var(--po-accent-2);
+  --s-new:var(--st-new); --s-work:var(--st-work); --s-done:var(--st-done);
+  --hdr:64px; --radius:16px;
+  --panelH:clamp(460px, calc(100vh - 210px), 900px);
+}
+:root[data-mode="light"]{ --link:var(--po-accent); }
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:var(--po-body);color:var(--ink);background:var(--po-bg);font-size:14px;line-height:1.45;-webkit-text-size-adjust:100%;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--po-display);margin:0;line-height:1.15;letter-spacing:-.015em}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--link)} a:hover{color:var(--ink)}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+:focus-visible{outline:2px solid var(--po-accent-2);outline-offset:2px}
+[hidden]{display:none !important}
+
+/* header */
+.hdr{position:sticky;top:0;z-index:1000;height:var(--hdr);background:var(--po-header-bg);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);color:var(--ink);display:flex;align-items:center;gap:16px;padding:0 20px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);flex:none}
+.brand:hover{color:var(--ink)}
+.brand-badge{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:var(--po-tint);border:1px solid var(--line);color:var(--ink);flex:none}
+.brand b{display:block;font-family:var(--po-display);font-size:17px;line-height:1.1}
+.brand small{display:block;font-family:var(--po-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--po-accent-2);font-weight:600}
+:root[data-mode="light"] .brand small{color:var(--po-accent)}
+.tabs{display:flex;gap:4px;margin-left:12px}
+.tabs a{display:flex;align-items:center;gap:8px;color:var(--muted);text-decoration:none;padding:0 14px;height:40px;border-radius:999px;font-weight:700;font-size:14px;white-space:nowrap}
+.tabs a:hover{background:var(--po-tint-weak);color:var(--ink)}
+.tabs a[aria-current="page"]{background:var(--po-accent);color:var(--po-on-accent)}
+.badge{background:var(--s-new);color:#1A0E04;border-radius:10px;padding:0 7px;font-size:12px;font-weight:700;min-width:20px;text-align:center;line-height:20px}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.net{display:flex;align-items:center;gap:8px;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:700;white-space:nowrap}
+.net.on{background:var(--st-done-bg);color:var(--st-done-fg)}
+.net.off{background:var(--st-pending-bg);color:var(--st-pending-fg)}
+.icon-btn{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;border:1px solid var(--line-strong);background:var(--po-chrome-bg);color:inherit;flex:none}
+.icon-btn:hover{border-color:var(--po-accent)}
+.menu{position:absolute;right:16px;top:calc(var(--hdr) - 4px);background:var(--po-surface);color:var(--ink);border:1px solid var(--line-strong);border-radius:16px;box-shadow:0 18px 40px rgba(0,0,0,.3);padding:14px;width:320px;display:none;z-index:1100}
+.menu.open{display:block}
+.menu label{display:flex;gap:10px;align-items:center;min-height:44px;font-weight:700}
+.menu input[type=checkbox]{width:20px;height:20px;accent-color:var(--po-accent)}
+.menu p{margin:6px 0 10px;font-size:12.5px;color:var(--muted)}
+.menu .who{font-size:13px;color:var(--ink);margin:0 0 10px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.menu .sep{height:1px;background:var(--line);margin:10px 0}
+
+main{padding:16px 20px 24px;max-width:1800px;margin:0 auto}
+.view{display:none}
+.view.active{display:block}
+.view-head{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 20px;margin:6px 0 16px}
+.view-head h1{font-size:28px;font-weight:800;letter-spacing:-.03em}
+.view-head p{margin:4px 0 0;color:var(--muted)}
+.grow{flex:1 1 300px}
+
+/* controls (gumbi u obliku grupe 4) */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:999px;border:1px solid transparent;font-weight:700;font-size:14px;text-decoration:none;white-space:nowrap;transition:background .2s,border-color .2s,color .2s}
+.btn-primary{background:var(--po-accent);color:var(--po-on-accent)}
+.btn-primary:hover{background:var(--po-accent-2);color:var(--po-on-accent)}
+:root[data-mode="light"] .btn-primary:hover{color:#fff}
+.btn-dark{background:var(--ink);color:var(--po-bg)}
+.btn-dark:hover{background:var(--po-accent-2);color:var(--po-bg)}
+:root[data-mode="light"] .btn-dark:hover{color:#fff}
+.btn-ghost{background:transparent;border-color:var(--po-accent);color:var(--link)}
+.btn-ghost:hover{background:var(--po-accent-soft)}
+.btn-plain{background:transparent;color:var(--muted);border-color:var(--line-strong)}
+.btn-plain:hover{color:var(--ink);border-color:var(--po-accent)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.btn-sm{min-height:36px;padding:0 14px;font-size:13px}
+.field{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700;color:var(--muted)}
+.field input,.field select,.field textarea{height:42px;border:1px solid var(--line-strong);border-radius:12px;padding:0 12px;font-size:14px;background:var(--po-inset);color:var(--ink);font-weight:400;min-width:0}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--po-accent);outline:none;box-shadow:0 0 0 3px var(--po-accent-soft)}
+.field textarea{height:auto;min-height:80px;padding:10px 12px;resize:vertical}
+.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:12px}
+.filters .field{flex:1 1 150px}
+.filters .field.search{flex:2 1 220px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--line-strong);background:transparent;font-size:13px;font-weight:700;color:var(--muted)}
+.chip:hover{color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--po-bg)}
+.chip .sw{width:10px;height:10px;border-radius:3px;flex:none;box-shadow:0 0 0 1px var(--line-strong)}
+.pill{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.pill.zaprimljeno{background:var(--st-new-bg);color:var(--st-new-fg)}
+.pill.obrada{background:var(--st-work-bg);color:var(--st-work-fg)}
+.pill.rijeseno{background:var(--st-done-bg);color:var(--st-done-fg)}
+.pill.pending{background:var(--st-pending-bg);color:var(--st-pending-fg)}
+.pill.visok{background:var(--st-new-bg);color:var(--st-new-fg)}
+.pill.srednji{background:var(--st-pending-bg);color:var(--po-amber)}
+.pill.nizak{background:var(--st-done-bg);color:var(--st-done-fg)}
+.filter-toggle{display:none}
+.seg{display:none}
+
+/* panels */
+.panel{background:var(--po-surface);border:1px solid var(--line);border-radius:var(--radius);min-width:0;box-shadow:var(--po-shadow)}
+.work{display:grid;grid-template-columns:340px minmax(0,1fr) 410px;gap:12px;align-items:start}
+.list-panel{height:var(--panelH);display:flex;flex-direction:column;overflow:hidden}
+.list-head{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px;border-bottom:1px solid var(--line);align-items:center}
+.list-head .count{font-size:12px;color:var(--muted);margin-left:auto;font-family:var(--po-mono)}
+.list{overflow:auto;flex:1;margin:0;padding:0;list-style:none}
+.row{display:flex;flex-direction:column;gap:5px;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:transparent;padding:13px 14px;min-height:44px;color:var(--ink)}
+.row:hover{background:var(--po-tint-weak)}
+.row[aria-current="true"]{background:var(--po-accent-soft)}
+.row .meta{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:12px;color:var(--muted);font-weight:700}
+.row .meta > span:first-child{font-family:var(--po-mono);font-weight:600}
+.row .t{font-size:15px;font-weight:700;color:var(--ink)}
+.row .p{font-size:13px;color:var(--muted)}
+.row .s{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--link);font-weight:700}
+.empty{padding:28px 16px;text-align:center;color:var(--muted)}
+.map-panel{position:relative;height:var(--panelH);overflow:hidden;display:flex;flex-direction:column}
+.map-tools{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px;border-bottom:1px solid var(--line);align-items:center}
+.map-tools .lbl{font-size:11.5px;font-weight:600;color:var(--muted);margin-right:4px;font-family:var(--po-mono);text-transform:uppercase;letter-spacing:.08em}
+.map{flex:1;min-height:260px;background:var(--po-surface-2);position:relative;z-index:0}
+.map-panel{isolation:isolate}
+.map-note{position:absolute;left:12px;right:12px;bottom:12px;z-index:500;background:var(--po-surface);border:1px solid var(--po-amber);color:var(--ink);border-radius:12px;padding:10px 12px;font-size:13px;display:none}
+.map-note.show{display:block}
+.legend{position:absolute;left:12px;bottom:28px;z-index:400;background:var(--po-surface);border:1px solid var(--line-strong);border-radius:12px;padding:8px 10px;font-size:12px;display:flex;flex-direction:column;gap:5px;pointer-events:none;color:var(--ink)}
+.legend span{display:flex;align-items:center;gap:8px}
+.dot{width:12px;height:12px;border-radius:50%;flex:none;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.25)}
+.leaflet-container{font-family:var(--po-body)}
+.leaflet-tooltip{font-family:var(--po-body);font-size:12px}
+
+/* detail */
+.detail{height:var(--panelH);overflow:auto;padding:18px;display:flex;flex-direction:column;gap:14px}
+.d-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.d-top .id{font-size:12.5px;color:var(--muted);font-weight:600;font-family:var(--po-mono)}
+.d-back{display:none}
+.photo{border-radius:12px;border:1px solid var(--line);overflow:hidden;background:repeating-linear-gradient(135deg,var(--po-tint-weak) 0 10px,transparent 10px 20px);min-height:120px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;text-align:center;padding:0}
+.photo img{display:block;width:100%;max-height:260px;object-fit:cover}
+.photo .ph-missing{padding:16px}
+.thumbs{display:flex;gap:6px;flex-wrap:wrap}
+.thumbs button{width:56px;height:56px;padding:0;border-radius:10px;overflow:hidden;border:2px solid transparent;background:var(--po-inset)}
+.thumbs button[aria-pressed="true"]{border-color:var(--po-accent)}
+.thumbs img{width:100%;height:100%;object-fit:cover;display:block}
+.desc{margin:0;color:var(--ink);white-space:pre-line}
+dl.kv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px;margin:0;font-size:13px}
+dl.kv dt{color:var(--muted)}
+dl.kv dd{margin:2px 0 0;font-weight:700;overflow-wrap:anywhere}
+.swatch{display:inline-block;width:13px;height:13px;border-radius:4px;border:1px solid var(--line-strong);vertical-align:-2px;margin-right:6px}
+.card{border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;background:var(--po-surface-2)}
+.card.route{background:var(--po-accent-soft);border-color:var(--line-strong)}
+.eyebrow{font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-family:var(--po-mono)}
+.route .eyebrow{color:var(--link)}
+.route .svc{font-family:var(--po-display);font-size:18px;font-weight:700}
+.reasons{margin:0;padding-left:18px;color:var(--ink);font-size:13px;display:flex;flex-direction:column;gap:4px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.steps{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.steps li{flex:1;display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--muted)}
+.steps li i{display:block;height:6px;border-radius:3px;background:var(--line-strong)}
+.steps li.on{color:var(--ink)}
+.steps li.cur{font-weight:700}
+.public{background:var(--po-inset);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--ink)}
+.history{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:13px}
+.history li{display:grid;grid-template-columns:92px 1fr;gap:8px}
+.history time{color:var(--muted);font-size:12px;font-family:var(--po-mono)}
+.backdrop{display:none}
+
+/* discharge */
+.work2{display:grid;grid-template-columns:minmax(0,1fr) 410px;gap:12px;align-items:start}
+.compass{width:84px;height:84px;border-radius:50%;border:2px solid var(--line-strong);position:relative;flex:none;display:flex;align-items:center;justify-content:center;background:var(--po-inset)}
+.compass .n{position:absolute;top:3px;font-size:10px;font-weight:700;color:var(--muted);font-family:var(--po-mono)}
+.ahead{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
+.ahead:first-of-type{border-top:0}
+.ahead small{display:block;color:var(--muted);font-size:12px}
+.ahead .d{color:var(--link);font-weight:700;white-space:nowrap;font-family:var(--po-mono)}
+.tbl-wrap{margin-top:12px;overflow-x:auto}
+table.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{text-align:left;color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;padding:12px 14px;font-weight:600;border-bottom:1px solid var(--line-strong);font-family:var(--po-mono)}
+.tbl td{padding:12px 14px;border-bottom:1px solid var(--line)}
+.tbl tbody tr{cursor:pointer}
+.tbl tbody tr:hover{background:var(--po-tint-weak)}
+.tbl tbody tr[aria-current="true"]{background:var(--po-accent-soft)}
+.tbl button.link{border:0;background:none;padding:0;color:var(--link);font-weight:700;text-decoration:underline;min-height:24px;font-family:var(--po-mono)}
+
+/* forecast */
+.daytabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.daytab{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:56px;padding:8px 16px;border-radius:14px;border:1px solid var(--line-strong);background:transparent;text-align:left;color:var(--ink)}
+.daytab b{font-size:14px}
+.daytab span{font-size:12px;color:var(--muted)}
+.daytab[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:var(--po-bg)}
+.daytab[aria-selected="true"] span{color:var(--po-bg);opacity:.75}
+.src{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);background:var(--po-surface);border:1px solid var(--line);border-radius:999px;padding:8px 14px}
+.src.warn{background:var(--st-pending-bg);border-color:var(--po-amber);color:var(--st-pending-fg)}
+.bays{height:var(--panelH);overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+.bay{border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;background:var(--po-surface-2);text-align:left;width:100%}
+.bay[aria-current="true"]{border-color:var(--po-accent);box-shadow:0 0 0 2px var(--po-accent-soft)}
+.bay .h{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.bay .m{font-size:13px;color:var(--muted)}
+.bay button.link{color:var(--ink) !important}
+.sent{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--st-done-fg)}
+.bay-ico{position:relative}
+.bay-ring{border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid}
+
+/* dialog */
+dialog{border:1px solid var(--line-strong);border-radius:20px;padding:0;width:min(760px,calc(100vw - 24px));max-height:calc(100dvh - 24px);box-shadow:0 24px 64px rgba(0,0,0,.4);background:var(--po-surface);color:var(--ink)}
+dialog::backdrop{background:rgba(2,13,19,.6)}
+.dlg{display:flex;flex-direction:column;max-height:calc(100dvh - 24px)}
+.dlg-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:16px 20px;border-bottom:1px solid var(--line)}
+.dlg-b{padding:16px 20px;overflow:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.dlg-b .full{grid-column:1/-1}
+.dlg-f{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid var(--line);flex-wrap:wrap}
+#pickMap{height:260px;border-radius:12px;border:1px solid var(--line)}
+.hint{font-size:12.5px;color:var(--muted);font-weight:400}
+.preview-route{background:var(--po-accent-soft);border:1px solid var(--line-strong);border-radius:12px;padding:10px 12px;font-size:13px}
+.err{color:var(--po-warn);font-size:13px;font-weight:700}
+
+/* toast */
+.toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;z-index:3000;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:min(520px,calc(100vw - 24px))}
+.toast{background:var(--ink);color:var(--po-bg);border-radius:14px;padding:12px 16px;font-size:14px;font-weight:600;box-shadow:0 12px 30px rgba(0,0,0,.3);pointer-events:auto}
+footer{max-width:1800px;margin:0 auto;padding:0 20px 28px;color:var(--muted);font-size:12px}
+.bottom-nav{display:none}
+
+/* map markers */
+.arrow-ico svg{display:block}
+
+/* ---------- tablet ---------- */
+@media (max-width:1179px){
+  .work{grid-template-columns:300px minmax(0,1fr)}
+  .work2{grid-template-columns:minmax(0,1fr)}
+  .detail{position:fixed;top:0;right:0;bottom:0;width:min(440px,100vw);height:auto;z-index:2000;border-radius:0;transform:translateX(105%);transition:transform .2s ease;box-shadow:-12px 0 32px rgba(0,0,0,.35)}
+  .detail.open{transform:none}
+  .d-back{display:inline-flex}
+  .backdrop.open{display:block;position:fixed;inset:0;background:rgba(2,13,19,.5);z-index:1900}
+}
+/* ---------- phone ---------- */
+@media (max-width:759px){
+  :root{--hdr:56px}
+  .hdr{padding:0 12px;gap:8px}
+  .brand small{display:none}
+  .tabs{display:none}
+  .net .txt{display:none}
+  .net{padding:8px}
+  main{padding:12px 12px 90px}
+  .view-head .field{flex:1 1 140px}
+  .view-head h1{font-size:23px}
+  .view-head p{font-size:13px}
+  .filter-toggle{display:inline-flex}
+  .filters{display:none}
+  .filters.open{display:flex}
+  .filters .field{flex:1 1 140px}
+  .seg{display:flex;background:var(--po-inset);border:1px solid var(--line);border-radius:999px;padding:4px;gap:4px;margin-bottom:10px}
+  .seg button{flex:1;min-height:40px;border:0;border-radius:999px;background:transparent;font-weight:700;color:var(--muted)}
+  .seg button[aria-pressed="true"]{background:var(--ink);color:var(--po-bg)}
+  .work{grid-template-columns:minmax(0,1fr)}
+  .work[data-show="map"] .list-panel{display:none}
+  .work[data-show="list"] .map-panel{display:none}
+  .list-panel{height:auto;max-height:none}
+  .list{overflow:visible}
+  .map-panel{height:62vh}
+  .work2[data-show="list"] .map-panel{display:none}
+  .detail{width:100vw}
+  .legend{display:none}
+  .dlg-b{grid-template-columns:minmax(0,1fr)}
+  dialog{width:100vw;max-width:100vw;max-height:100dvh;height:100dvh;border-radius:0;margin:0}
+  .dlg{max-height:100dvh;height:100dvh}
+  .dlg-b{flex:1}
+  .bays{height:auto}
+  .wfc{grid-template-columns:minmax(0,1fr) !important}
+  .tbl thead{display:none}
+  .tbl,.tbl tbody,.tbl tr,.tbl td{display:block;width:100%}
+  .tbl tr{border-bottom:1px solid var(--line);padding:8px 0}
+  .tbl td{border:0;padding:4px 14px;display:flex;justify-content:space-between;gap:12px}
+  .tbl td::before{content:attr(data-label);color:var(--muted);font-size:12px;font-weight:700}
+}
+@media (max-width:999px){
+  .tabs{display:none}
+  .brand small{display:none}
+  .bottom-nav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:1500;background:var(--nav-bg);border-top:1px solid var(--border);padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+  .bottom-nav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--nav-text);text-decoration:none;font-size:11px;font-weight:700;padding:6px 2px;border-radius:12px;min-height:48px;justify-content:center;position:relative}
+  .bottom-nav a[aria-current="page"]{background:var(--po-accent-soft);color:var(--nav-text-active)}
+  .bottom-nav .badge{position:absolute;top:2px;right:calc(50% - 30px)}
+  main{padding-bottom:90px}
+  .toasts{bottom:84px}
+  footer{padding-bottom:96px}
+}
+@media (max-width:479px){ .nb-txt{display:none} #newBtn{padding:0 12px} .brand b{font-size:16px} }
+.wfc{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:12px;align-items:start}
+@media (max-width:1000px){ .wfc{grid-template-columns:minmax(0,1fr)} .wfc .map-panel{height:60vh} .bays{height:auto} }
+</style>
+</head>
+<body>
+<header class="hdr">
+  <a class="brand" href="#prijave" aria-label="ČistoMore – portal za nadležne službe">
+    <span class="brand-badge" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16c2 0 2-1.5 4-1.5S8 16 10 16s2-1.5 4-1.5 2 1.5 4 1.5 2-1.5 4-1.5"/><path d="M2 20c2 0 2-1.5 4-1.5S8 20 10 20s2-1.5 4-1.5 2 1.5 4 1.5 2-1.5 4-1.5"/><path d="M12 3v8M8 7l4-4 4 4"/></svg></span>
+    <span><b>ČistoMore</b><small>Portal za nadležne službe</small></span>
+  </a>
+  <nav class="tabs" aria-label="Moduli">
+    <a href="#prijave" data-view="prijave">Prijave i usmjeravanje <span class="badge" data-badge></span></a>
+    <a href="#ispustanja" data-view="ispustanja">Ispuštanja s plovila</a>
+    <a href="#prognoza" data-view="prognoza">Prognoza nanosa</a>
+  </nav>
+  <div class="hdr-right">
+    <div id="net" class="net on" role="status" aria-live="polite"></div>
+    <button class="btn btn-primary" id="newBtn" type="button" aria-label="Unesi prijavu">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span class="nb-txt">Unesi prijavu</span>
+    </button>
+    <button class="icon-btn" id="modeBtn" type="button"></button>
+    <button class="icon-btn" id="menuBtn" type="button" aria-label="Postavke" aria-expanded="false" aria-controls="menu">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+    </button>
+  </div>
+  <div class="menu" id="menu" role="dialog" aria-label="Postavke">
+    <p class="who" id="who">Prijavljeni službenik</p>
+    <label><input type="checkbox" id="simOffline"> Simuliraj rad bez signala</label>
+    <p>Prijave se spremaju na serveru. Promjene napravljene bez signala čuvaju se na uređaju i šalju kad se veza vrati.</p>
+    <button class="btn btn-plain btn-sm" id="resetBtn" type="button" style="width:100%">Vrati početne demo podatke</button>
+    <div class="sep"></div>
+    <button class="btn btn-plain btn-sm" id="logoutBtn" type="button" style="width:100%">Odjava iz portala</button>
+  </div>
+</header>
+
+<main>
+  <!-- ============ PRIJAVE ============ -->
+  <section class="view" id="v-prijave" aria-labelledby="h-prijave">
+    <div class="view-head">
+      <div class="grow">
+        <h1 id="h-prijave">Prijave i usmjeravanje</h1>
+        <p>Aplikacija iz lokacije i vrste problema predlaže nadležnu službu. Službenik potvrđuje, preusmjerava i vodi status.</p>
+      </div>
+      <label class="field" style="min-width:240px">Prikaz za službu
+        <select id="fService"></select>
+      </label>
+      <button class="btn btn-plain filter-toggle" type="button" id="fToggle" aria-expanded="false" aria-controls="filters1">Filteri</button>
+    </div>
+    <div class="filters" id="filters1">
+      <label class="field search">Pretraži<input type="search" id="fQ" placeholder="ID, lokacija, opis, registracija…" autocomplete="off"></label>
+      <label class="field">Lokacija (županija)<select id="fRegion"></select></label>
+      <label class="field">Datum<select id="fPeriod">
+        <option value="1">Zadnja 24 sata</option><option value="7">Zadnjih 7 dana</option><option value="30" selected>Zadnjih 30 dana</option><option value="all">Sve</option>
+      </select></label>
+      <label class="field">Vrsta plovila<select id="fVessel"></select></label>
+      <label class="field">Vrsta problema<select id="fType"></select></label>
+      <button class="btn btn-plain" type="button" id="fClear">Očisti filtere</button>
+    </div>
+    <div class="seg" role="group" aria-label="Prikaz">
+      <button type="button" data-seg="list" aria-pressed="true">Popis</button>
+      <button type="button" data-seg="map" aria-pressed="false">Karta</button>
+    </div>
+    <div class="work" id="work1" data-show="list">
+      <section class="panel list-panel" aria-label="Popis prijava">
+        <div class="list-head" id="statusChips"></div>
+        <ul class="list" id="list1"></ul>
+      </section>
+      <section class="panel map-panel" aria-label="Karta prijava i nadležnosti">
+        <div class="map-tools" id="layers1"><span class="lbl">Slojevi nadležnosti</span></div>
+        <div class="map" id="map1"></div>
+        <div class="legend" aria-hidden="true">
+          <span><i class="dot" style="background:var(--s-new)"></i>Zaprimljeno</span>
+          <span><i class="dot" style="background:var(--s-work)"></i>U obradi</span>
+          <span><i class="dot" style="background:var(--s-done)"></i>Riješeno</span>
+        </div>
+        <div class="map-note" data-tilenote></div>
+      </section>
+      <aside class="panel detail" id="detail1" aria-label="Detalji prijave" tabindex="-1"></aside>
+    </div>
+  </section>
+
+  <!-- ============ ISPUŠTANJA ============ -->
+  <section class="view" id="v-ispustanja" aria-labelledby="h-isp">
+    <div class="view-head">
+      <div class="grow">
+        <h1 id="h-isp">Ispuštanje fekalnih i otpadnih voda s plovila</h1>
+        <p>Prijave s fotografijom, vrstom plovila i smjerom kretanja te karta mjesta za ispumpavanje i prihvat otpada.</p>
+      </div>
+      <label class="field">Lokacija<select id="dRegion"></select></label>
+      <label class="field">Datum<select id="dPeriod">
+        <option value="1">Zadnja 24 sata</option><option value="7">Zadnjih 7 dana</option><option value="30" selected>Zadnjih 30 dana</option><option value="all">Sve</option>
+      </select></label>
+      <label class="field">Vrsta plovila<select id="dVessel"></select></label>
+    </div>
+    <div class="seg" role="group" aria-label="Prikaz">
+      <button type="button" data-seg2="map" aria-pressed="true">Karta</button>
+      <button type="button" data-seg2="list" aria-pressed="false">Popis</button>
+    </div>
+    <div class="work2" id="work2" data-show="map">
+      <section class="panel map-panel" aria-label="Karta ispuštanja i prihvatnih mjesta">
+        <div class="map-tools" id="layers2"><span class="lbl">Prikaži</span></div>
+        <div class="map" id="map2"></div>
+        <div class="legend" aria-hidden="true">
+          <span><i class="dot" style="background:var(--s-new)"></i>Prijava ispuštanja</span>
+          <span><i class="dot" style="background:#0B6E79;border-radius:4px"></i>Prihvatno mjesto za fekalne vode</span>
+          <span><i style="width:18px;border-top:3px dashed #C2560F"></i>Prijavljeni smjer kretanja</span>
+        </div>
+        <div class="map-note" data-tilenote></div>
+      </section>
+      <aside class="panel detail" id="detail2" aria-label="Detalji prijave ispuštanja" tabindex="-1"></aside>
+    </div>
+    <div class="panel tbl-wrap" id="tblWrap">
+      <table class="tbl">
+        <caption class="sr-only">Prijave ispuštanja s plovila</caption>
+        <thead><tr><th>ID</th><th>Vrijeme</th><th>Lokacija</th><th>Plovilo</th><th>Smjer</th><th>Status</th></tr></thead>
+        <tbody id="tbody2"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ PROGNOZA ============ -->
+  <section class="view" id="v-prognoza" aria-labelledby="h-prog">
+    <div class="view-head">
+      <div class="grow">
+        <h1 id="h-prog">Prognoza nanosa otpada</h1>
+        <p>Vjetar i morske struje uz prijave građana pokazuju gdje očekivati otpad u sljedeća 3 dana.</p>
+      </div>
+      <div class="src" id="fcSrc" role="status" aria-live="polite">Učitavanje prognoze…</div>
+      <button class="btn btn-plain" type="button" id="fcReload">Osvježi</button>
+    </div>
+    <div class="daytabs" role="tablist" aria-label="Dan prognoze" id="dayTabs"></div>
+    <div class="wfc">
+      <section class="panel map-panel" aria-label="Karta prognoze">
+        <div class="map-tools"><span class="lbl">Krug = razina rizika · strelica = smjer vjetra</span></div>
+        <div class="map" id="map3"></div>
+        <div class="legend" aria-hidden="true">
+          <span><i class="dot" style="background:#C2560F"></i>Visok rizik</span>
+          <span><i class="dot" style="background:#C99A06"></i>Srednji</span>
+          <span><i class="dot" style="background:#3E8E50"></i>Nizak</span>
+          <span><i class="dot" style="background:#5B4A86;border-radius:2px"></i>Prijava otpada (30 dana)</span>
+        </div>
+        <div class="map-note" data-tilenote></div>
+      </section>
+      <aside class="panel bays" id="bays" aria-label="Uvale s očekivanim nanosom"><div class="empty">Učitavanje prognoze…</div></aside>
+    </div>
+  </section>
+</main>
+<footer>Karta: lokalna baza karata (© OpenMapTiles, © suradnici OpenStreetMapa) ili OpenStreetMap preko interneta. Prognoza vjetra i struja: Open-Meteo. Prihvatna mjesta: popis s karte prihvatnih mjesta, rad uređaja treba potvrditi kod operatora. Granice luka i koncesija i pravila usmjeravanja su približni primjeri koje treba potvrditi s nadležnim institucijama.</footer>
+
+<div class="backdrop" id="backdrop"></div>
+<nav class="bottom-nav" aria-label="Moduli">
+  <a href="#prijave" data-view="prijave"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v12H5.2L4 17.2z"/><path d="M8 9h8M8 12h5"/></svg>Prijave<span class="badge" data-badge></span></a>
+  <a href="#ispustanja" data-view="ispustanja"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l2 3h14l2-3z"/><path d="M12 3v11M12 3l6 9H6z"/></svg>Ispuštanja</a>
+  <a href="#prognoza" data-view="prognoza"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h11a3 3 0 1 0-3-3"/><path d="M3 12h16a3 3 0 1 1-3 3"/><path d="M3 16h7"/></svg>Prognoza</a>
+</nav>
+
+<!-- Unos prijave (zaprimljene telefonom ili e-poštom) -->
+<dialog id="newDlg" aria-labelledby="newTitle">
+  <form class="dlg" id="newForm" novalidate>
+    <div class="dlg-h">
+      <h2 id="newTitle" style="font-size:21px">Unos prijave</h2>
+      <button class="icon-btn" type="button" data-close aria-label="Zatvori"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="dlg-b">
+      <p class="full hint" style="margin:0">Za prijave zaprimljene telefonom ili e-poštom. Građani i nautičari prijavljuju sami, kroz aplikaciju. Odaberite lokaciju klikom na kartu.</p>
+      <label class="field full">Vrsta problema<select id="nType" required></select></label>
+      <label class="field" id="nVesselWrap">Vrsta plovila<select id="nVessel"></select></label>
+      <label class="field" id="nHeadingWrap">Smjer kretanja plovila<select id="nHeading"></select></label>
+      <div class="full">
+        <div id="pickMap" aria-label="Karta za odabir lokacije"></div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin-top:8px">
+          <label class="field" style="flex:1 1 120px">Geogr. širina<input id="nLat" inputmode="decimal" placeholder="43.5081"></label>
+          <label class="field" style="flex:1 1 120px">Geogr. dužina<input id="nLng" inputmode="decimal" placeholder="16.4402"></label>
+          <button class="btn btn-ghost" type="button" id="nGeo">Moja lokacija</button>
+        </div>
+      </div>
+      <label class="field full">Opis (neobavezno)<textarea id="nDesc" maxlength="600" placeholder="Što je prijavljeno?"></textarea></label>
+      <label class="field full">Fotografija (neobavezno)<input type="file" id="nPhoto" accept="image/*" style="padding-top:8px"></label>
+      <div class="full preview-route" id="nPreview" aria-live="polite">Odaberite lokaciju da vidite kojoj će službi prijava otići.</div>
+      <p class="full err" id="nErr" role="alert" style="margin:0"></p>
+    </div>
+    <div class="dlg-f">
+      <button class="btn btn-plain" type="button" data-close>Odustani</button>
+      <button class="btn btn-primary" type="submit">Spremi prijavu</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Druga služba -->
+<dialog id="svcDlg" aria-labelledby="svcTitle">
+  <form class="dlg" id="svcForm">
+    <div class="dlg-h">
+      <h2 id="svcTitle" style="font-size:21px">Preusmjeri drugoj službi</h2>
+      <button class="icon-btn" type="button" data-close aria-label="Zatvori"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="dlg-b">
+      <label class="field full">Nadležna služba<select id="svcSel"></select></label>
+      <label class="field full">Razlog preusmjeravanja<textarea id="svcWhy" maxlength="400" placeholder="Npr. lokacija je unutar koncesije, a ne lučkog područja"></textarea></label>
+      <p class="full hint" style="margin:0">Razlog se upisuje u povijest prijave. Iz takvih ispravaka mogu se poboljšati pravila usmjeravanja.</p>
+    </div>
+    <div class="dlg-f">
+      <button class="btn btn-plain" type="button" data-close>Odustani</button>
+      <button class="btn btn-primary" type="submit">Preusmjeri</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Potvrda -->
+<dialog id="confirmDlg" aria-labelledby="cfTitle">
+  <div class="dlg">
+    <div class="dlg-h"><h2 id="cfTitle" style="font-size:21px">Vratiti početne demo podatke?</h2></div>
+    <div class="dlg-b"><p class="full" style="margin:0">Sve prijave na serveru (i one koje su poslali korisnici) bit će obrisane i zamijenjene demo podacima. Računi ostaju.</p></div>
+    <div class="dlg-f">
+      <button class="btn btn-plain" type="button" data-close>Odustani</button>
+      <button class="btn btn-dark" type="button" id="cfYes">Vrati podatke</button>
+    </div>
+  </div>
+</dialog>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="vendor/maplibre-gl/maplibre-gl.js"></script>
+<script src="vendor/leaflet-maplibre-gl.js"></script>
+<script src="data/stations.js"></script>
+<script src="data/kontakti.js"></script>
+<script src="data/regije.js"></script>
+<script src="routing.js"></script>
+<script src="basemap.js"></script>
+<script src="app.js"></script>
+<script>
+(function(){
+'use strict';
+
+/* ================= helpers ================= */
+const $ = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const RT = window.CM_ROUTING;
+const { STATUS, ORDER, TYPES, COUNTIES, LK, PORTS, CONCESSIONS, SERVICES, SERVICE_GROUPS, DIRS, RAD,
+  distNM, bearing, destPoint, angDiff, route, dirIdx } = RT;
+const VESSELS = RT.VESSELS.map(v => v[0]);
+const svcName = id => RT.svcName(id);
+const fmtNM = n => (n < 10 ? n.toFixed(1).replace('.', ',') : Math.round(n)) + ' NM';
+const WINDS = ['Tramontana','Bura','Levant','Jugo','Oštro','Lebić','Pulenat','Maestral'];
+const windName = from => WINDS[dirIdx(from)] + ' (' + DIRS[dirIdx(from)][0] + ')';
+const TZ = 'Europe/Zagreb';
+const fmtTime = d => new Intl.DateTimeFormat('hr-HR',{hour:'2-digit',minute:'2-digit',timeZone:TZ}).format(d);
+const fmtDate = d => new Intl.DateTimeFormat('hr-HR',{day:'numeric',month:'numeric',timeZone:TZ}).format(d);
+const dayKey = d => new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:TZ}).format(d);
+function fmtWhen(iso){
+  const d = new Date(iso), now = new Date(), m = Math.round((now - d)/60000);
+  if (m < 1) return 'upravo sada';
+  if (m < 60) return 'prije ' + m + ' min';
+  if (dayKey(d) === dayKey(now)) return 'danas ' + fmtTime(d);
+  const y = new Date(now.getTime() - 86400000);
+  if (dayKey(d) === dayKey(y)) return 'jučer ' + fmtTime(d);
+  return fmtDate(d) + ' ' + fmtTime(d);
+}
+function fmtStamp(iso){ const d = new Date(iso); return fmtDate(d) + ' ' + fmtTime(d); }
+const ICON_ARROW = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+const ICON_CHECK = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>';
+const ICON_BACK = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>';
+
+/* ================= reference data ================= */
+/* Pravila usmjeravanja, službe, luke i koncesije su u routing.js (izdvojeno iz ovog portala).
+   Prihvatna mjesta su s karte prihvatnih mjesta (data/stations.js, kontakti.js, regije.js). */
+const STATIONS = (function(){
+  const D = window.CM_STATIONS || {locations:[]}, C = window.CM_CONTACTS || {}, REG = (window.CM_REGIONS || {}).lokacije || {};
+  const byKey = {}, out = [];
+  (D.locations || []).forEach(rec => {
+    if (typeof rec.latitude !== 'number' || typeof rec.longitude !== 'number') return;
+    const key = rec.latitude.toFixed(5) + ',' + rec.longitude.toFixed(5);
+    if (byKey[key]) { byKey[key].name += ' / ' + rec.name; return; }   // Luka Gruž i Luka Dubrovnik: ista točka
+    const c = C[rec.id] || {};
+    const bits = [REG[rec.id] || 'Ostalo'];
+    if (c.telefon) bits.push('tel. ' + c.telefon);
+    if (c.vhf) bits.push('VHF ' + c.vhf);
+    const s = {id:rec.id, name:rec.name, lat:rec.latitude, lng:rec.longitude, what:bits.join(' · ')};
+    byKey[key] = s; out.push(s);
+  });
+  return out;
+})();
+const BAYS = [
+  {id:'sunj',name:'Uvala Šunj, Lopud',lat:42.6770,lng:17.9520,facing:135},
+  {id:'sudjuradj',name:'Suđurađ, Šipan',lat:42.7110,lng:17.9170,facing:150},
+  {id:'kolocep',name:'Gornje Čelo, Koločep',lat:42.6680,lng:18.0120,facing:140},
+  {id:'lapad',name:'Uvala Lapad, Dubrovnik',lat:42.6550,lng:18.0650,facing:240},
+  {id:'banje',name:'Plaža Banje, Dubrovnik',lat:42.6413,lng:18.1155,facing:160},
+  {id:'saplunara',name:'Saplunara, Mljet',lat:42.6970,lng:17.7370,facing:150},
+  {id:'prapratno',name:'Prapratno, Pelješac',lat:42.8150,lng:17.6800,facing:210}
+];
+BAYS.forEach(b => { b.owner = svcName(route(b.lat, b.lng, 'otpad_plaza').service); });
+
+/* ================= state (server + kopija na uređaju) ================= */
+const CACHE_KEY = 'cm-admin-cache';
+const QUEUE_KEY = 'cm-admin-queue';
+let S = loadCache();
+let Q = loadQueue();
+let netOverride = false;
+let firstLoad = true;
+const isOnline = () => navigator.onLine && !netOverride;
+
+function loadCache(){
+  try { const s = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); if (s && s.v === 2 && Array.isArray(s.reports)) return s; } catch(e){}
+  return {v:2, reports:[], warnings:{}, at:null};
+}
+function loadQueue(){ try { const q = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]'); return Array.isArray(q) ? q : []; } catch(e){ return []; } }
+function save(){
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(S)); return true; }
+  catch(e){
+    // premalo prostora: bez lokalnih fotografija riješenih prijava
+    try { S.reports.forEach(r => { if (r.status === 'rijeseno') r.localPhoto = null; }); localStorage.setItem(CACHE_KEY, JSON.stringify(S)); return true; } catch(e2){ return false; }
+  }
+}
+function saveQueue(){
+  try { localStorage.setItem(QUEUE_KEY, JSON.stringify(Q)); return true; }
+  catch(e){ Q.forEach(op => { if (op.body && op.body.photos) op.body.photos = []; }); try { localStorage.setItem(QUEUE_KEY, JSON.stringify(Q)); return true; } catch(e2){ return false; } }
+}
+const ID_ALIAS = {};               // privremeni ID prijave unesene u portalu → ID sa servera
+const realId = id => ID_ALIAS[id] || id;
+const byId = id => { id = realId(id); return S.reports.find(r => r.id === id); };
+
+function addHistory(r, text){
+  const h = {t:new Date().toISOString(), text};
+  r.history.push(h);
+  (r._newHist = r._newHist || []).push(h);
+}
+/* Promjena prijave: spremi lokalno, stavi u red za slanje i pošalji kad je veza dostupna. */
+function commit(msg, r){
+  if (r) {
+    const op = {op:'patch', id:r.id, offline:!isOnline(), body:{status:r.status, service:r.service, confirmed:r.confirmed, history:r._newHist || []}};
+    if (r._statusAt) op.body.statusAt = r._statusAt;
+    r._newHist = []; r._statusAt = null; r.pending = true;
+    Q.push(op); saveQueue();
+  }
+  save(); renderAll();
+  if (msg) toast(msg + (isOnline() ? '' : ' Spremljeno na uređaju, šalje se kad se veza vrati.'));
+  flush();
+}
+
+/* ================= toast ================= */
+function toast(text){
+  const el = document.createElement('div'); el.className = 'toast'; el.textContent = text;
+  $('#toasts').appendChild(el); setTimeout(() => el.remove(), 4200);
+}
+
+/* ================= server ================= */
+function toLogin(){ try { localStorage.removeItem('cm-admin'); } catch(e){} location.replace('admin-login.html'); }
+
+async function fetchAll(){
+  if (!isOnline()) return false;
+  let r;
+  try { r = await CM.api('GET', '/api/admin/reports'); } catch(e){ renderNet(); return false; }
+  if (r.status === 401) { toLogin(); return false; }
+  if (!r.ok) return false;
+  const before = new Set(S.reports.map(x => x.id));
+  const local = Q.length ? S.reports.filter(x => x.pending) : [];
+  const fresh = r.data.reports.filter(x => !local.some(l => l.id === x.id));
+  S.reports = local.concat(fresh);
+  S.warnings = Object.assign({}, r.data.warnings || {}, ...Q.filter(o => o.op === 'warn').map(o => ({[o.key]: o.at})));
+  S.at = new Date().toISOString();
+  save();
+  if (!firstLoad) {
+    const added = fresh.filter(x => !before.has(x.id));
+    added.forEach(x => toast('Nova prijava #' + x.id + ': ' + TYPES[x.type].label + '.'));
+  }
+  firstLoad = false;
+  renderAll();
+  return true;
+}
+
+let flushing = false;
+async function flush(){
+  if (flushing || !isOnline() || !Q.length) { renderNet(); return; }
+  flushing = true;
+  let sent = 0, offlineSent = 0, stopped = false;
+  while (Q.length) {
+    const op = Q[0];
+    let res;
+    try {
+      if (op.op === 'patch') {
+        const body = Object.assign({}, op.body);
+        if (op.offline) body.history = (body.history || []).concat([{t:new Date().toISOString(), text:'Promjena napravljena bez signala poslana nakon povratka veze'}]);
+        res = await CM.api('PATCH', '/api/admin/reports/' + encodeURIComponent(op.id), body);
+      } else if (op.op === 'create') {
+        res = await CM.api('POST', '/api/admin/reports', op.body, {timeout:30000});
+        if (res.ok && res.data.report) {
+          const newId = res.data.report.id;   // privremeni ID zamjenjuje se pravim i u ostatku reda
+          ID_ALIAS[op.tempId] = newId;
+          Q.slice(1).forEach(o => { if (o.id === op.tempId) o.id = newId; });
+          const local = byId(op.tempId);
+          const later = Q.slice(1).some(o => o.id === newId);
+          S.reports = S.reports.filter(x => x.id !== op.tempId && x.id !== newId);
+          // ako je službenik prijavu već mijenjao bez signala, zadrži lokalno stanje dok se i te promjene ne pošalju
+          S.reports.push(later && local ? Object.assign(local, {id:newId, photos:res.data.report.photos}) : res.data.report);
+          if (sel1 === op.tempId) sel1 = newId;
+          if (sel2 === op.tempId) sel2 = newId;
+          save();
+        }
+      } else if (op.op === 'warn') {
+        res = await CM.api('POST', '/api/admin/warnings', {key:op.key, at:op.at});
+      } else { Q.shift(); continue; }
+    } catch(e){ stopped = true; break; }          // nema veze: ostatak kasnije
+    if (res.status === 401) { saveQueue(); flushing = false; toLogin(); return; }
+    if (res.status >= 500) { stopped = true; break; }
+    if (!res.ok) toast('Promjena nije prihvaćena (' + ((res.data && res.data.error) || res.status) + ').');
+    Q.shift(); saveQueue(); sent++;
+    if (op.offline) offlineSent++;
+  }
+  flushing = false;
+  if (!stopped) await fetchAll();
+  renderNet();
+  if (offlineSent) toast('Veza je vraćena. Poslano promjena: ' + offlineSent + '.');
+}
+
+/* ================= network ================= */
+function pendingCount(){ return Q.length; }
+function renderNet(){
+  const n = $('#net'), p = pendingCount();
+  if (isOnline()){
+    n.className = 'net on';
+    n.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12.6a10 10 0 0 1 14 0M8.5 16.1a5 5 0 0 1 7 0"/><circle cx="12" cy="20" r="1"/></svg><span class="txt">Na mreži' + (p ? ' · šaljem ' + p : '') + '</span>';
+    n.setAttribute('aria-label','Na mreži');
+  } else {
+    n.className = 'net off';
+    n.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 2l20 20M8.5 16.5a5 5 0 0 1 7 0M5 12.9a10 10 0 0 1 5.2-2.8"/><circle cx="12" cy="20" r="1"/></svg><span class="txt">Bez signala' + (p ? ' · ' + p + ' čeka slanje' : '') + '</span>';
+    n.setAttribute('aria-label','Bez signala' + (p ? ', ' + p + ' promjena čeka slanje' : ''));
+  }
+}
+function trySync(){ renderNet(); if (isOnline()) { if (Q.length) flush(); else fetchAll(); } }
+window.addEventListener('online', trySync);
+window.addEventListener('offline', renderNet);
+
+/* ================= filters ================= */
+const F = { q:'', region:'', period:'30', vessel:'', type:'', service:'', statuses:new Set(ORDER) };
+const D = { region:'', period:'30', vessel:'' };
+function fillSelect(sel, items, allLabel){
+  sel.innerHTML = (allLabel ? '<option value="">' + esc(allLabel) + '</option>' : '') + items.map(i => '<option value="' + esc(i[0]) + '">' + esc(i[1]) + '</option>').join('');
+}
+function fillServiceSelect(sel, allLabel){
+  let h = allLabel ? '<option value="">' + esc(allLabel) + '</option>' : '';
+  SERVICE_GROUPS.forEach(g => {
+    h += '<optgroup label="' + esc(g) + '">' + Object.values(SERVICES).filter(s => s.group === g).map(s => '<option value="' + s.id + '">' + esc(s.name) + '</option>').join('') + '</optgroup>';
+  });
+  sel.innerHTML = h;
+}
+function inPeriod(r, period){
+  if (period === 'all') return true;
+  return (Date.now() - new Date(r.createdAt).getTime()) <= Number(period) * 86400000;
+}
+function filtered(){
+  const q = F.q.trim().toLowerCase();
+  return S.reports.filter(r => {
+    if (!F.statuses.has(r.status)) return false;
+    if (F.region && r.county !== F.region) return false;
+    if (F.vessel && r.vessel !== F.vessel) return false;
+    if (F.type && r.type !== F.type) return false;
+    if (F.service && r.service !== F.service) return false;
+    if (!inPeriod(r, F.period)) return false;
+    if (q){
+      const hay = [r.id, r.place, r.desc, TYPES[r.type].label, svcName(r.service), r.vessel || '', r.registration || '', r.reporter ? r.reporter.name : ''].join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  }).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+function filteredD(){
+  return S.reports.filter(r => r.type === 'fekalne' && (!D.region || r.county === D.region) && (!D.vessel || r.vessel === D.vessel) && inPeriod(r, D.period))
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+/* ================= maps ================= */
+const HR_BOUNDS = [[42.35, 13.45], [45.65, 18.6]];
+const maps = {};
+// Karta skrivena na mobitelu (prikaz „Popis“) ima veličinu 0: Leafletov flyTo/fitBounds tada baca
+// „Invalid LatLng (NaN, NaN)“ i detalji prijave se ne otvore (greška i u izvornom portalu grupe 3).
+const mapVisible = m => { if (!m) return false; const c = m.getContainer(); return c.offsetWidth > 0 && c.offsetHeight > 0; };
+function showMapNote(text){ $$('[data-tilenote]').forEach(n => { n.textContent = text; n.classList.toggle('show', !!text); }); }
+function checkMapServer(){
+  if (!/^https?:$/.test(location.protocol)) showMapNote('Aplikacija je otvorena kao datoteka. Pokrenite server (npm start) i otvorite http://localhost:8080');
+}
+function makeMap(elId){
+  const m = L.map(elId, {zoomControl:true, attributionControl:true, worldCopyJump:false, minZoom:6, maxZoom:19, maxBounds:[[40.5,11.5],[47.5,21]], maxBoundsViscosity:0.8});
+  m.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>');
+  CM_BASEMAP.add(m, { onNote: why => {
+    if (why === 'local-missing') showMapNote('Baza karata još nije pripremljena. Na računalu sa serverom pokrenite:  npm run setup');
+    else if (why === 'offline') showMapNote('Bez veze: podloga karte (OpenStreetMap) se ne može učitati. Za kartu bez signala na serveru pokrenite:  npm run setup');
+    else if (why === 'osm-error') showMapNote('Podloga karte (OpenStreetMap) se ne učitava. Provjerite internetsku vezu.');
+  }});
+  m.fitBounds(HR_BOUNDS);
+  return m;
+}
+function ensureMaps(view){
+  if (view === 'prijave' && !maps.m1){ maps.m1 = makeMap('map1'); initLayers1(); }
+  if (view === 'ispustanja' && !maps.m2){ maps.m2 = makeMap('map2'); initLayers2(); }
+  if (view === 'prognoza' && !maps.m3){ maps.m3 = makeMap('map3'); maps.m3.fitBounds([[42.55,17.55],[42.88,18.28]]); maps.g3 = L.layerGroup().addTo(maps.m3); }
+  Object.values(maps).forEach(m => { if (m && m.invalidateSize) setTimeout(() => m.invalidateSize(), 60); });
+}
+
+/* ---------- view 1 layers ---------- */
+const L1 = [
+  {key:'ports', label:'Lučka područja', color:'#2F74C0', on:true},
+  {key:'conc', label:'Koncesije plaža', color:'#D49A1E', on:true},
+  {key:'lk', label:'Sjedišta lučkih kapetanija', color:'#0E2A3A', on:false}
+];
+function initLayers1(){
+  const m = maps.m1;
+  maps.lay1 = {
+    ports: L.layerGroup(PORTS.map(p => L.polygon(p.poly, {color:'#2F74C0', weight:2, dashArray:'6 4', fillOpacity:.15}).bindTooltip(p.name + ' · ' + svcName(p.authority)))),
+    conc: L.layerGroup(CONCESSIONS.map(c => L.polygon(c.poly, {color:'#B07D0F', weight:2, fillColor:'#E0A526', fillOpacity:.3}).bindTooltip(c.name + ' · ' + svcName(c.service)))),
+    lk: L.layerGroup(LK.map(l => L.marker([l.lat, l.lng], {icon:L.divIcon({className:'', html:'<div style="width:22px;height:22px;border-radius:5px;background:#0E2A3A;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4)"></div>', iconSize:[22,22], iconAnchor:[11,11]})}).bindTooltip(l.name)))
+  };
+  maps.markers1 = L.layerGroup().addTo(m);
+  L1.forEach(l => { if (l.on) maps.lay1[l.key].addTo(m); });
+  const box = $('#layers1');
+  L1.forEach(l => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip'; b.setAttribute('aria-pressed', String(l.on));
+    b.innerHTML = '<span class="sw" style="background:' + l.color + '"></span>' + esc(l.label);
+    b.addEventListener('click', () => {
+      l.on = !l.on; b.setAttribute('aria-pressed', String(l.on));
+      if (l.on) maps.lay1[l.key].addTo(m); else m.removeLayer(maps.lay1[l.key]);
+    });
+    box.appendChild(b);
+  });
+  renderMap1(true);
+}
+
+/* ================= view 1 render ================= */
+let sel1 = null;
+function statusChips(){
+  const box = $('#statusChips'); const counts = {zaprimljeno:0, obrada:0, rijeseno:0};
+  const base = S.reports.filter(r => (!F.service || r.service === F.service));
+  base.forEach(r => counts[r.status]++);
+  box.innerHTML = ORDER.map(k => '<button type="button" class="chip" data-st="' + k + '" aria-pressed="' + F.statuses.has(k) + '"><span class="sw" style="background:' + STATUS[k].color + ';border-radius:50%"></span>' + STATUS[k].label + ' ' + counts[k] + '</button>').join('') + '<span class="count" id="count1"></span>';
+  $$('[data-st]', box).forEach(b => b.addEventListener('click', () => {
+    const k = b.dataset.st; if (F.statuses.has(k)) F.statuses.delete(k); else F.statuses.add(k); renderView1();
+  }));
+}
+function renderList1(list){
+  const ul = $('#list1');
+  $('#count1').textContent = list.length + ' / ' + S.reports.length;
+  if (!list.length){ ul.innerHTML = '<li class="empty">' + (S.reports.length ? 'Nema prijava za odabrane filtere.' : (isOnline() ? 'Učitavanje prijava…' : 'Nema spremljenih prijava na ovom uređaju.')) + '</li>'; return; }
+  ul.innerHTML = list.map(r => '<li><button type="button" class="row" data-id="' + esc(r.id) + '" aria-current="' + (r.id === sel1) + '">' +
+    '<span class="meta"><span>#' + esc(r.id) + ' · ' + esc(fmtWhen(r.createdAt)) + '</span><span>' + (r.pending ? '<span class="pill pending">Čeka slanje</span> ' : '') + '<span class="pill ' + r.status + '">' + STATUS[r.status].label + '</span></span></span>' +
+    '<span class="t">' + esc(TYPES[r.type].label) + '</span>' +
+    '<span class="p">' + esc(r.place) + '</span>' +
+    '<span class="s">' + ICON_ARROW + esc(svcName(r.service)) + (r.confirmed ? '' : ' (prijedlog)') + '</span></button></li>').join('');
+  $$('.row', ul).forEach(b => b.addEventListener('click', () => select1(b.dataset.id, true)));
+}
+function markerStyle(r, selected){
+  return {radius: selected ? 12 : 8, color: selected ? '#04141C' : '#fff', weight: selected ? 4 : 2, fillColor: STATUS[r.status].color, fillOpacity: 1};
+}
+function renderMap1(fit){
+  if (!maps.m1) return;
+  const list = filtered();
+  maps.markers1.clearLayers();
+  list.forEach(r => {
+    const mk = L.circleMarker([r.lat, r.lng], markerStyle(r, r.id === sel1)).bindTooltip('#' + r.id + ' · ' + TYPES[r.type].label);
+    mk.on('click', () => select1(r.id, false));
+    maps.markers1.addLayer(mk);
+    if (r.id === sel1) mk.bringToFront();
+  });
+  if (fit && list.length && mapVisible(maps.m1)) maps.m1.fitBounds(L.latLngBounds(list.map(r => [r.lat, r.lng])).pad(0.15), {maxZoom:12});
+}
+function select1(id, fly){
+  id = realId(id);
+  sel1 = id; renderList1(filtered()); renderMap1(false); renderDetail1();
+  const r = byId(id);
+  if (r && fly && mapVisible(maps.m1)) maps.m1.flyTo([r.lat, r.lng], Math.max(maps.m1.getZoom(), 12), {duration:.6});
+  const row = $('#list1 [data-id="' + id + '"]'); if (row) row.scrollIntoView({block:'nearest'});
+  openDrawer('#detail1');
+}
+function stepsHtml(r){
+  const idx = ORDER.indexOf(r.status);
+  return '<ol class="steps">' + ORDER.map((k, i) => '<li class="' + (i <= idx ? 'on' : '') + (i === idx ? ' cur' : '') + '"><i style="background:' + (i <= idx ? STATUS[r.status].color : '') + '"></i>' + STATUS[k].label + '</li>').join('') + '</ol>';
+}
+/* Fotografije: s poslužitelja (ID-evi) ili, za prijavu unesenu bez signala, lokalna kopija */
+function photoSrcs(r){
+  if (r.photos && r.photos.length) return r.photos.map(id => '/api/photos/' + encodeURIComponent(id));
+  return r.localPhoto ? [r.localPhoto] : [];
+}
+function photoHtml(r){
+  const srcs = photoSrcs(r);
+  if (!srcs.length) return '<div class="photo">Prijava je poslana bez fotografije</div>';
+  const main = '<div class="photo" data-photo><img src="' + esc(srcs[0]) + '" alt="Fotografija 1 uz prijavu #' + esc(r.id) + '" onerror="this.outerHTML=\'<span class=&quot;ph-missing&quot;>Fotografija nije dostupna bez veze sa serverom</span>\'"></div>';
+  if (srcs.length < 2) return main;
+  return main + '<div class="thumbs" role="group" aria-label="Fotografije">' + srcs.map((s, i) =>
+    '<button type="button" data-thumb="' + i + '" aria-pressed="' + (i === 0) + '" aria-label="Fotografija ' + (i + 1) + '"><img src="' + esc(s) + '" alt=""></button>').join('') + '</div>';
+}
+function bindThumbs(el, r){
+  const srcs = photoSrcs(r);
+  $$('[data-thumb]', el).forEach(b => b.addEventListener('click', () => {
+    const i = Number(b.dataset.thumb), box = $('[data-photo]', el);
+    if (box) box.innerHTML = '<img src="' + esc(srcs[i]) + '" alt="Fotografija ' + (i + 1) + ' uz prijavu #' + esc(r.id) + '">';
+    $$('[data-thumb]', el).forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  }));
+}
+function reporterText(r){
+  if (r.source === 'sluzba') return 'Unijela služba';
+  if (r.reporter) return r.reporter.name + ' (@' + r.reporter.username + ')';
+  if (r.source === 'demo') return 'Građanin (demo podaci)';
+  return 'Građanin';
+}
+const kv = (k, v) => '<div><dt>' + esc(k) + '</dt><dd>' + v + '</dd></div>';
+function vesselKv(r){
+  let h = '';
+  if (r.vessel) h += kv('Vrsta plovila', esc(r.vessel));
+  if (r.vesselSize) h += kv('Veličina plovila', esc(r.vesselSize));
+  if (r.vesselColor) h += kv('Boja plovila', '<span class="swatch" style="background:' + esc(r.vesselColor) + '"></span>' + esc(r.vesselColor.toUpperCase()));
+  if (r.registration) h += kv('Registracija', esc(r.registration));
+  return h;
+}
+function statusButtons(r){
+  const idx = ORDER.indexOf(r.status);
+  let h = '<div class="btns" style="margin-top:12px">';
+  if (idx === 0) h += '<button class="btn btn-dark" type="button" data-act="next">Preuzmi u obradu</button>';
+  if (idx === 1) h += '<button class="btn btn-dark" type="button" data-act="next">Označi kao riješeno</button>';
+  if (idx > 0) h += '<button class="btn btn-plain" type="button" data-act="prev">Vrati status</button>';
+  return h + '</div>';
+}
+function renderDetail1(){
+  const el = $('#detail1'); const r = sel1 && byId(sel1);
+  if (!r){ el.innerHTML = '<div class="empty" style="margin:auto">Odaberite prijavu s popisa ili karte.</div>'; return; }
+  const t = TYPES[r.type];
+  const ev = r.eventAt && Math.abs(new Date(r.eventAt) - new Date(r.createdAt)) > 60000;
+  el.innerHTML =
+    '<div class="d-top"><button class="btn btn-plain btn-sm d-back" type="button" data-act="close">' + ICON_BACK + 'Natrag</button><span class="id">Prijava #' + esc(r.id) + '</span><span>' + (r.pending ? '<span class="pill pending">Čeka slanje</span> ' : '') + '<span class="pill ' + r.status + '">' + STATUS[r.status].label + '</span></span></div>' +
+    '<h2 style="font-size:21px">' + esc(t.label) + '</h2>' + photoHtml(r) +
+    (r.desc ? '<p class="desc">' + esc(r.desc) + '</p>' : '') +
+    '<dl class="kv">' + kv('Lokacija', esc(r.place)) + kv('Prijavljeno', esc(fmtWhen(r.createdAt))) +
+    (ev ? kv('Vrijeme događaja', esc(fmtStamp(r.eventAt))) : '') +
+    (r.type === 'fekalne' && r.wasteType && RT.WASTE[r.wasteType] ? kv('Vrsta otpada', esc(RT.WASTE[r.wasteType].label)) : '') +
+    vesselKv(r) +
+    (t.vessel ? kv('Smjer kretanja', r.heading == null ? 'Nepoznat / na sidru' : esc(DIRS[dirIdx(r.heading)][1]) + ' (' + r.heading + '°)') : '') +
+    (r.observer && (r.observer.onLand || r.observer.bearing != null) ? kv('Promatrač', (r.observer.onLand ? 's kopna' : 's mora') + (r.observer.bearing != null ? ', smjer prema brodu ' + r.observer.bearing + '°' : '')) : '') +
+    kv('Koordinate', r.lat.toFixed(4) + ', ' + r.lng.toFixed(4)) + kv('Županija', esc(r.county)) + kv('Prijavitelj', esc(reporterText(r))) + '</dl>' +
+    '<div class="card route"><span class="eyebrow">' + (r.confirmed ? 'Nadležna služba' : 'Predložena nadležna služba') + '</span><span class="svc">' + esc(svcName(r.service)) + '</span>' +
+    '<ul class="reasons">' + (r.reasons || []).map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>' +
+    '<div class="btns">' + (r.confirmed ? '' : '<button class="btn btn-primary" type="button" data-act="confirm">Potvrdi i proslijedi</button>') + '<button class="btn btn-ghost" type="button" data-act="reassign">Druga služba…</button></div></div>' +
+    '<div><div class="eyebrow" style="margin-bottom:10px">Status</div>' + stepsHtml(r) + statusButtons(r) + '</div>' +
+    '<div class="public"><div class="eyebrow" style="margin-bottom:6px">Što vidi prijavitelj</div>Prijava #' + esc(r.id) + ': <b>' + STATUS[r.status].label + '</b>. ' + (r.confirmed ? 'Zadužena' : 'Predložena') + ' služba: ' + esc(svcName(r.service)) + '. Zadnja promjena: ' + esc(fmtWhen(r.history[r.history.length - 1].t)) + '.</div>' +
+    '<div><div class="eyebrow" style="margin-bottom:8px">Povijest (interno)</div><ul class="history">' + r.history.slice().reverse().map(h => '<li><time>' + esc(fmtStamp(h.t)) + '</time><span>' + esc(h.text) + '</span></li>').join('') + '</ul></div>';
+  bindDetailActions(el, r);
+  bindThumbs(el, r);
+}
+function setStatus(r, st){ r.status = st; r._statusAt = new Date().toISOString(); }
+function bindDetailActions(el, r){
+  $$('[data-act]', el).forEach(b => b.addEventListener('click', () => {
+    const a = b.dataset.act;
+    if (a === 'close') return closeDrawers();
+    if (a === 'confirm'){ r.confirmed = true; addHistory(r, 'Potvrđeno i proslijeđeno: ' + svcName(r.service)); commit('Prijava #' + r.id + ' proslijeđena: ' + svcName(r.service) + '.', r); }
+    if (a === 'reassign') openReassign(r);
+    if (a === 'next'){ const i = ORDER.indexOf(r.status); if (i < 2){ setStatus(r, ORDER[i + 1]); if (!r.confirmed){ r.confirmed = true; addHistory(r, 'Potvrđeno i proslijeđeno: ' + svcName(r.service)); } addHistory(r, 'Status: ' + STATUS[r.status].label); commit('Status prijave #' + r.id + ': ' + STATUS[r.status].label + '.', r); } }
+    if (a === 'prev'){ const i = ORDER.indexOf(r.status); if (i > 0){ setStatus(r, ORDER[i - 1]); addHistory(r, 'Status vraćen na: ' + STATUS[r.status].label); commit('Status prijave #' + r.id + ' vraćen na ' + STATUS[r.status].label + '.', r); } }
+    if (a === 'notify') notifyStations(r);
+    if (a === 'open1'){ sel1 = r.id; closeDrawers(); location.hash = '#prijave'; setTimeout(() => select1(r.id, true), 150); }
+  }));
+}
+function renderView1(fit){
+  statusChips();
+  const list = filtered();
+  renderList1(list); renderMap1(fit); renderDetail1();
+  const n = S.reports.filter(r => r.status === 'zaprimljeno').length;
+  $$('[data-badge]').forEach(b => { b.textContent = n; b.style.display = n ? '' : 'none'; });
+}
+
+/* ================= reassign dialog ================= */
+let reassignTarget = null;
+function openReassign(r){
+  reassignTarget = r;
+  fillServiceSelect($('#svcSel'));
+  $('#svcSel').value = r.service; $('#svcWhy').value = '';
+  $('#svcDlg').showModal();
+}
+$('#svcForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const r = reassignTarget; if (!r) return;
+  const to = $('#svcSel').value, why = $('#svcWhy').value.trim();
+  if (to === r.service && r.confirmed){ $('#svcDlg').close(); return; }
+  const from = r.service;
+  r.service = to; r.confirmed = true;
+  addHistory(r, (from === to ? 'Potvrđeno: ' : 'Preusmjereno s „' + svcName(from) + '” na: ') + svcName(to) + (why ? '. Razlog: ' + why : ''));
+  $('#svcDlg').close();
+  commit('Prijava #' + r.id + ' preusmjerena: ' + svcName(to) + '.', r);
+});
+
+/* ================= view 2: discharges ================= */
+let sel2 = null;
+const L2 = [ {key:'reports', label:'Prijave ispuštanja', on:true}, {key:'stations', label:'Prihvatna mjesta', on:true}, {key:'track', label:'Smjer kretanja', on:true} ];
+function arrowIcon(deg, color, size){
+  return L.divIcon({className:'arrow-ico', iconSize:[size,size], iconAnchor:[size/2,size/2],
+    html:'<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" style="transform:rotate(' + deg + 'deg)" fill="none" stroke="' + color + '" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20V4M6 10l6-6 6 6"/></svg>'});
+}
+function initLayers2(){
+  const m = maps.m2;
+  m.createPane('stations'); m.getPane('stations').style.zIndex = 350;
+  maps.lay2 = { reports:L.layerGroup().addTo(m), stations:L.layerGroup().addTo(m), track:L.layerGroup().addTo(m) };
+  STATIONS.forEach(s => {
+    L.marker([s.lat, s.lng], {pane:'stations', icon:L.divIcon({className:'', iconSize:[26,26], iconAnchor:[13,13], html:'<div style="width:26px;height:26px;border-radius:6px;background:#0B6E79;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/></svg></div>'})})
+      .bindTooltip(s.name + ' – ' + s.what)
+      .bindPopup('<b>' + esc(s.name) + '</b><br>' + esc(s.what) + '<br><a href="map.html?station=' + encodeURIComponent(s.id) + '" target="_blank" rel="noopener">Detalji na karti prihvatnih mjesta</a>')
+      .addTo(maps.lay2.stations);
+  });
+  const box = $('#layers2');
+  L2.forEach(l => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip'; b.setAttribute('aria-pressed', String(l.on)); b.textContent = l.label;
+    b.addEventListener('click', () => { l.on = !l.on; b.setAttribute('aria-pressed', String(l.on)); if (l.on) maps.lay2[l.key].addTo(m); else m.removeLayer(maps.lay2[l.key]); });
+    box.appendChild(b);
+  });
+  renderMap2(true);
+}
+function renderMap2(fit){
+  if (!maps.m2) return;
+  const list = filteredD();
+  maps.lay2.reports.clearLayers(); maps.lay2.track.clearLayers();
+  list.forEach(r => {
+    const selected = r.id === sel2;
+    const mk = L.circleMarker([r.lat, r.lng], markerStyle(r, selected)).bindTooltip('#' + r.id + ' · ' + (r.vessel || 'plovilo'));
+    mk.on('click', () => select2(r.id, false));
+    maps.lay2.reports.addLayer(mk);
+    if (r.heading != null){
+      const end = destPoint(r, r.heading, 6);
+      L.polyline([[r.lat, r.lng], [end.lat, end.lng]], {color:'#C2560F', weight: selected ? 4 : 3, dashArray:'8 7', opacity: selected ? 1 : .75}).addTo(maps.lay2.track);
+      L.marker([end.lat, end.lng], {icon:arrowIcon(r.heading, '#C2560F', 22), interactive:false}).addTo(maps.lay2.track);
+    }
+  });
+  if (fit && list.length && mapVisible(maps.m2)) maps.m2.fitBounds(L.latLngBounds(list.map(r => [r.lat, r.lng])).pad(0.2), {maxZoom:11});
+}
+function stationsAhead(r){
+  const all = STATIONS.map(s => ({s, d:distNM(r, s), b:bearing(r, s)}));
+  let res;
+  if (r.heading == null) res = all.sort((a, b) => a.d - b.d).slice(0, 3);
+  else res = all.filter(x => angDiff(x.b, r.heading) <= 60 && x.d <= 45).sort((a, b) => a.d - b.d).slice(0, 3);
+  if (!res.length) res = all.sort((a, b) => a.d - b.d).slice(0, 2);
+  return res;
+}
+function renderTable2(list){
+  const tb = $('#tbody2');
+  if (!list.length){ tb.innerHTML = '<tr><td colspan="6" class="empty">Nema prijava ispuštanja za odabrane filtere.</td></tr>'; return; }
+  tb.innerHTML = list.map(r => '<tr data-id="' + esc(r.id) + '" aria-current="' + (r.id === sel2) + '">' +
+    '<td data-label="ID"><button type="button" class="link" data-id="' + esc(r.id) + '">#' + esc(r.id) + '</button></td>' +
+    '<td data-label="Vrijeme">' + esc(fmtWhen(r.createdAt)) + '</td><td data-label="Lokacija">' + esc(r.place) + '</td>' +
+    '<td data-label="Plovilo">' + esc(r.vessel || 'Nepoznato') + '</td>' +
+    '<td data-label="Smjer">' + (r.heading == null ? 'Na sidru / nepoznat' : esc(DIRS[dirIdx(r.heading)][1])) + '</td>' +
+    '<td data-label="Status"><span class="pill ' + r.status + '">' + STATUS[r.status].label + '</span></td></tr>').join('');
+  $$('tr[data-id]', tb).forEach(tr => tr.addEventListener('click', () => select2(tr.dataset.id, true)));
+}
+function select2(id, fly){
+  id = realId(id);
+  sel2 = id; renderView2(false);
+  const r = byId(id);
+  if (r && fly && mapVisible(maps.m2)) maps.m2.flyTo([r.lat, r.lng], Math.max(maps.m2.getZoom(), 10), {duration:.6});
+  openDrawer('#detail2');
+}
+function renderDetail2(){
+  const el = $('#detail2'); const r = sel2 && byId(sel2);
+  if (!r || r.type !== 'fekalne'){ el.innerHTML = '<div class="empty" style="margin:auto">Odaberite prijavu ispuštanja na karti ili u tablici.</div>'; return; }
+  const ah = stationsAhead(r);
+  const deg = r.heading == null ? null : r.heading;
+  el.innerHTML =
+    '<div class="d-top"><button class="btn btn-plain btn-sm d-back" type="button" data-act="close">' + ICON_BACK + 'Natrag</button><span class="id">#' + esc(r.id) + ' · ' + esc(fmtWhen(r.createdAt)) + '</span><span class="pill ' + r.status + '">' + STATUS[r.status].label + '</span></div>' +
+    photoHtml(r) + (r.desc ? '<p class="desc">' + esc(r.desc) + '</p>' : '') +
+    '<div style="display:flex;gap:14px;align-items:center">' +
+      '<div class="compass" role="img" aria-label="' + (deg == null ? 'Smjer nepoznat' : 'Smjer kretanja ' + DIRS[dirIdx(deg)][1]) + '"><span class="n">S</span>' +
+        (deg == null ? '<span style="font-size:11px;color:var(--muted);text-align:center">sidro /<br>nepoznat</span>' : '<svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#C2560F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(' + deg + 'deg)" aria-hidden="true"><path d="M12 20V4M6 10l6-6 6 6"/></svg>') +
+      '</div>' +
+      '<dl class="kv" style="flex:1"><div><dt>Vrsta plovila</dt><dd>' + esc(r.vessel || 'Nepoznato') + '</dd></div><div><dt>Smjer</dt><dd>' + (deg == null ? 'Nepoznat' : esc(DIRS[dirIdx(deg)][1])) + '</dd></div>' +
+      '<div><dt>Lokacija</dt><dd>' + esc(r.place) + '</dd></div><div><dt>Nadležno</dt><dd>' + esc(svcName(r.service)) + '</dd></div>' +
+      (r.vesselSize ? kv('Veličina', esc(r.vesselSize)) : '') +
+      (r.vesselColor ? kv('Boja', '<span class="swatch" style="background:' + esc(r.vesselColor) + '"></span>' + esc(r.vesselColor.toUpperCase())) : '') +
+      (r.registration ? kv('Registracija', esc(r.registration)) : '') + '</dl></div>' +
+    '<div class="card"><span class="eyebrow">' + (deg == null ? 'Najbliža prihvatna mjesta' : 'Prihvatna mjesta na smjeru plovidbe') + '</span>' +
+      ah.map(x => '<div class="ahead"><span><b>' + esc(x.s.name) + '</b><small>' + esc(x.s.what) + '</small></span><span class="d">' + fmtNM(x.d) + '</span></div>').join('') + '</div>' +
+    '<div class="btns"><button class="btn btn-primary" type="button" data-act="notify" style="flex:1 1 100%">Obavijesti marine na smjeru plovidbe</button>' +
+      (ORDER.indexOf(r.status) < 2 ? '<button class="btn btn-dark" type="button" data-act="next" style="flex:1">' + (r.status === 'zaprimljeno' ? 'Preuzmi u obradu' : 'Označi kao riješeno') + '</button>' : '') +
+      '<button class="btn btn-ghost" type="button" data-act="open1" style="flex:1">Otvori u Prijavama</button></div>' +
+    '<div><div class="eyebrow" style="margin-bottom:8px">Povijest</div><ul class="history">' + r.history.slice().reverse().slice(0, 6).map(h => '<li><time>' + esc(fmtStamp(h.t)) + '</time><span>' + esc(h.text) + '</span></li>').join('') + '</ul></div>';
+  bindDetailActions(el, r);
+  bindThumbs(el, r);
+}
+function notifyStations(r){
+  const names = stationsAhead(r).map(x => x.s.name).join(', ');
+  addHistory(r, 'Obavijest za prihvatna mjesta / marine: ' + names);
+  commit('Obavijest zabilježena za: ' + names + '.', r);
+}
+function renderView2(fit){
+  const list = filteredD();
+  renderTable2(list); renderMap2(fit); renderDetail2();
+}
+
+/* ================= view 3: forecast ================= */
+const FC = { state:'idle', days:[], perBay:{}, updated:null, src:'', day:0, selBay:null };
+function onshore(speed, from, facing){ return speed * Math.cos(angDiff(from, facing) * RAD); }
+function reportsNearBay(b){
+  return S.reports.filter(r => (r.type === 'otpad_plaza' || r.type === 'otpad_more') && inPeriod(r, '30') && distNM(r, b) <= 3).length;
+}
+function analyseDay(b, hours){
+  // hours: [{h, ws, wd, cv, cd}] ws in kn, cv in kn (toward cd)
+  let best = null, onList = [];
+  hours.forEach(x => {
+    if (x.ws == null || x.wd == null) return;
+    const on = onshore(x.ws, x.wd, b.facing);
+    onList.push({h:x.h, on});
+    if (!best || on > best.on) best = {on, ws:x.ws, wd:x.wd, h:x.h};
+  });
+  if (!best) return null;
+  const top = onList.map(x => x.on).sort((a, c) => c - a).slice(0, 3);
+  const windOn = Math.max(0, top.reduce((a, c) => a + c, 0) / top.length);
+  let curOn = 0;
+  hours.forEach(x => { if (x.cv != null && x.cd != null){ const c = x.cv * Math.cos(angDiff(x.cd, (b.facing + 180) % 360) * RAD); if (c > curOn) curOn = c; } });
+  const thr = Math.max(5, best.on * 0.6);
+  const win = onList.filter(x => x.on >= thr).map(x => x.h);
+  const rep = reportsNearBay(b);
+  const score = windOn + curOn * 12 + Math.min(rep, 4) * 1.5;
+  const level = score >= 18 ? 'visok' : score >= 9 ? 'srednji' : 'nizak';
+  let maxWs = null;
+  hours.forEach(x => { if (x.ws != null && (!maxWs || x.ws > maxWs.ws)) maxWs = {ws:x.ws, wd:x.wd}; });
+  return {level, score, windOn, curOn, rep, window: win.length ? [Math.min(...win), Math.max(...win)] : null, dom: maxWs || {ws:best.ws, wd:best.wd}};
+}
+function groupHours(times, get){
+  const days = {};
+  times.forEach((t, i) => { const d = t.slice(0, 10), h = Number(t.slice(11, 13)); (days[d] = days[d] || []).push(Object.assign({h}, get(i))); });
+  return days;
+}
+async function fetchJSON(url, ms){
+  const ctrl = new AbortController(); const tm = setTimeout(() => ctrl.abort(), ms);
+  try { const r = await fetch(url, {signal:ctrl.signal}); if (!r.ok) throw new Error('HTTP ' + r.status); return await r.json(); }
+  finally { clearTimeout(tm); }
+}
+async function loadForecast(){
+  FC.state = 'loading'; renderSrc();
+  const lat = BAYS.map(b => b.lat).join(','), lng = BAYS.map(b => b.lng).join(',');
+  try {
+    if (!navigator.onLine) throw new Error('offline');
+    const w = await fetchJSON('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lng + '&hourly=wind_speed_10m,wind_direction_10m&wind_speed_unit=kn&timezone=Europe%2FZagreb&forecast_days=3', 12000);
+    const W = Array.isArray(w) ? w : [w];
+    if (W.length !== BAYS.length || !W[0].hourly) throw new Error('neočekivan odgovor');
+    let M = null;
+    try {
+      const m = await fetchJSON('https://marine-api.open-meteo.com/v1/marine?latitude=' + lat + '&longitude=' + lng + '&hourly=ocean_current_velocity,ocean_current_direction&timezone=Europe%2FZagreb&forecast_days=3', 12000);
+      M = Array.isArray(m) ? m : [m];
+      if (M.length !== BAYS.length) M = null;
+    } catch(e){ M = null; }
+    const perBay = {}; let dayList = null;
+    BAYS.forEach((b, i) => {
+      const hw = W[i].hourly, hm = M && M[i] && M[i].hourly;
+      const mIdx = {}; if (hm && hm.time) hm.time.forEach((t, j) => mIdx[t] = j);
+      const g = groupHours(hw.time, j => {
+        const t = hw.time[j], mj = mIdx[t];
+        return {ws:hw.wind_speed_10m[j], wd:hw.wind_direction_10m[j],
+          cv: (hm && mj != null && hm.ocean_current_velocity && hm.ocean_current_velocity[mj] != null) ? hm.ocean_current_velocity[mj] / 1.852 : null,
+          cd: (hm && mj != null && hm.ocean_current_direction) ? hm.ocean_current_direction[mj] : null};
+      });
+      const keys = Object.keys(g).sort().slice(0, 3);
+      if (!dayList) dayList = keys;
+      perBay[b.id] = keys.map(k => analyseDay(b, g[k]));
+    });
+    FC.days = dayList; FC.perBay = perBay; FC.state = 'ok'; FC.currents = !!M; FC.updated = new Date();
+  } catch(e){
+    fallbackForecast(); FC.state = 'fallback'; FC.err = e && e.message;
+  }
+  if (FC.day >= FC.days.length) FC.day = 0;
+  renderView3();
+}
+function fallbackForecast(){
+  const now = new Date(); const keys = [0,1,2].map(i => dayKey(new Date(now.getTime() + i*86400000)));
+  const scen = [{wd:135, base:18, peak:26}, {wd:140, base:24, peak:33}, {wd:45, base:12, peak:20}];
+  const perBay = {};
+  BAYS.forEach(b => {
+    perBay[b.id] = scen.map(s => {
+      const hours = []; for (let h = 0; h < 24; h++){ const f = Math.sin(Math.PI * h / 24); hours.push({h, ws: s.base + (s.peak - s.base) * f, wd: s.wd + (h % 5) - 2, cv:null, cd:null}); }
+      return analyseDay(b, hours);
+    });
+  });
+  FC.days = keys; FC.perBay = perBay; FC.currents = false; FC.updated = null;
+}
+function dayLabel(k, i){
+  const d = new Date(k + 'T12:00:00');
+  const wd = new Intl.DateTimeFormat('hr-HR', {weekday:'short'}).format(d);
+  return (i === 0 ? 'Danas' : i === 1 ? 'Sutra' : wd.charAt(0).toUpperCase() + wd.slice(1)) + ', ' + d.getDate() + '.' + (d.getMonth() + 1) + '.';
+}
+function renderSrc(){
+  const el = $('#fcSrc');
+  if (FC.state === 'loading'){ el.className = 'src'; el.textContent = 'Učitavanje prognoze…'; return; }
+  if (FC.state === 'ok'){ el.className = 'src'; el.textContent = 'Open-Meteo: vjetar' + (FC.currents ? ' i morske struje' : '') + ' · dohvaćeno u ' + fmtTime(FC.updated); return; }
+  if (FC.state === 'fallback'){ el.className = 'src warn'; el.textContent = 'Prognozu nije moguće dohvatiti' + (navigator.onLine ? '' : ' (nema veze)') + '. Prikazan je PRIMJER scenarija juga.'; }
+}
+const RISKC = {visok:'#C2560F', srednji:'#C99A06', nizak:'#3E8E50'};
+const RISKL = {visok:'Visok rizik', srednji:'Srednji rizik', nizak:'Nizak rizik'};
+const RANK = {visok:0, srednji:1, nizak:2};
+function renderView3(){
+  renderSrc();
+  const tabs = $('#dayTabs');
+  tabs.innerHTML = FC.days.map((k, i) => {
+    let dom = null; BAYS.forEach(b => { const a = FC.perBay[b.id][i]; if (a && (!dom || a.dom.ws > dom.ws)) dom = a.dom; });
+    return '<button class="daytab" role="tab" type="button" data-day="' + i + '" aria-selected="' + (i === FC.day) + '"><b>' + esc(dayLabel(k, i)) + '</b><span>' + (dom ? esc(windName(dom.wd)) + ' do ' + Math.round(dom.ws) + ' čv' : '—') + '</span></button>';
+  }).join('');
+  $$('[data-day]', tabs).forEach(b => b.addEventListener('click', () => { FC.day = Number(b.dataset.day); renderView3(); }));
+  const key = FC.days[FC.day];
+  const rows = BAYS.map(b => ({b, a: FC.perBay[b.id] && FC.perBay[b.id][FC.day]})).filter(x => x.a).sort((x, y) => RANK[x.a.level] - RANK[y.a.level] || y.a.score - x.a.score);
+  const box = $('#bays');
+  box.innerHTML = '<div><h2 style="font-size:20px">Očekivani nanos · ' + esc(key ? dayLabel(key, FC.day) : '') + '</h2><p class="hint" style="margin:4px 0 0;font-size:13px">Rizik = vjetar prema obali + struja prema obali + prijave otpada u blizini (30 dana).</p></div>' +
+    rows.map(({b, a}) => {
+      const wk = key + ':' + b.id, sent = S.warnings[wk];
+      const win = a.window ? (a.window[0] + '–' + (a.window[1] + 1) + ' h') : 'nije očekivan';
+      return '<div class="bay" data-bay="' + b.id + '" aria-current="' + (FC.selBay === b.id) + '">' +
+        '<div class="h"><button type="button" class="link" data-focus="' + b.id + '" style="border:0;background:none;padding:0;font-weight:700;font-size:15px;text-align:left;min-height:32px">' + esc(b.name) + '</button><span class="pill ' + a.level + '">' + RISKL[a.level] + '</span></div>' +
+        '<div class="m">Vjetar prema obali: ' + Math.round(a.windOn) + ' čv · razdoblje: ' + esc(win) + (FC.currents ? ' · struja prema obali: ' + a.curOn.toFixed(1).replace('.', ',') + ' čv' : '') + '</div>' +
+        '<div class="m">Prijave u blizini: ' + a.rep + ' · Odgovorni: ' + esc(b.owner) + '</div>' +
+        (a.level === 'nizak' ? '' : sent ? '<span class="sent">' + ICON_CHECK + 'Upozorenje zabilježeno u ' + esc(fmtTime(new Date(sent))) + '</span>' : '<button class="btn btn-primary btn-sm" type="button" data-warn="' + b.id + '" style="align-self:flex-start">Pošalji upozorenje upravitelju</button>') +
+        '</div>';
+    }).join('');
+  $$('[data-warn]', box).forEach(btn => btn.addEventListener('click', () => {
+    const b = BAYS.find(x => x.id === btn.dataset.warn);
+    const k = key + ':' + b.id, at = new Date().toISOString();
+    S.warnings[k] = at; save();
+    Q.push({op:'warn', key:k, at, offline:!isOnline()}); saveQueue();
+    renderView3();
+    toast('Upozorenje za ' + b.name + ' zabilježeno (' + b.owner + ').' + (isOnline() ? '' : ' Šalje se kad se veza vrati.'));
+    flush();
+  }));
+  $$('[data-focus]', box).forEach(btn => btn.addEventListener('click', () => {
+    const b = BAYS.find(x => x.id === btn.dataset.focus); FC.selBay = b.id;
+    if (mapVisible(maps.m3)) maps.m3.flyTo([b.lat, b.lng], 13, {duration:.6});
+    renderView3();
+    if (window.matchMedia('(max-width:1000px)').matches) $('#map3').scrollIntoView({behavior:'smooth', block:'center'});
+  }));
+  renderMap3();
+}
+function renderMap3(){
+  if (!maps.m3) return;
+  const g = maps.g3; g.clearLayers();
+  S.reports.filter(r => (r.type === 'otpad_plaza' || r.type === 'otpad_more') && inPeriod(r, '30')).forEach(r => {
+    L.marker([r.lat, r.lng], {icon:L.divIcon({className:'', iconSize:[12,12], iconAnchor:[6,6], html:'<div style="width:12px;height:12px;background:#5B4A86;border:1px solid #fff;transform:rotate(45deg)"></div>'})}).bindTooltip('#' + r.id + ' · ' + TYPES[r.type].label).addTo(g);
+  });
+  BAYS.forEach(b => {
+    const a = FC.perBay[b.id] && FC.perBay[b.id][FC.day]; if (!a) return;
+    const size = a.level === 'visok' ? 46 : a.level === 'srednji' ? 38 : 30, c = RISKC[a.level], sel = FC.selBay === b.id;
+    const to = (a.dom.wd + 180) % 360;
+    const html = '<div class="bay-ring" style="width:' + size + 'px;height:' + size + 'px;border-color:' + (sel ? '#04141C' : c) + ';background:' + c + '33">' +
+      '<svg width="' + (size - 14) + '" height="' + (size - 14) + '" viewBox="0 0 24 24" fill="none" stroke="#0E2A3A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(' + to + 'deg)" aria-hidden="true"><path d="M12 20V4M6 10l6-6 6 6"/></svg></div>';
+    const mk = L.marker([b.lat, b.lng], {icon:L.divIcon({className:'', html, iconSize:[size,size], iconAnchor:[size/2,size/2]}), keyboard:true, title:b.name})
+      .bindTooltip(b.name + ' · ' + RISKL[a.level] + ' · ' + windName(a.dom.wd) + ' ' + Math.round(a.dom.ws) + ' čv');
+    mk.on('click', () => { FC.selBay = b.id; renderView3(); const el = $('#bays [data-bay="' + b.id + '"]'); if (el) el.scrollIntoView({block:'nearest', behavior:'smooth'}); });
+    g.addLayer(mk);
+  });
+}
+$('#fcReload').addEventListener('click', loadForecast);
+
+/* ================= drawers (tablet / phone) ================= */
+function openDrawer(sel){
+  if (!window.matchMedia('(max-width:1179px)').matches) return;
+  $(sel).classList.add('open'); $('#backdrop').classList.add('open');
+  setTimeout(() => $(sel).focus(), 50);
+}
+function closeDrawers(){ $$('.detail.open').forEach(d => d.classList.remove('open')); $('#backdrop').classList.remove('open'); }
+$('#backdrop').addEventListener('click', closeDrawers);
+document.addEventListener('keydown', e => { if (e.key === 'Escape'){ closeDrawers(); $('#menu').classList.remove('open'); $('#menuBtn').setAttribute('aria-expanded','false'); } });
+
+/* ================= unos prijave (službenik) ================= */
+let pick = null, pickMap = null, pickMarker = null, photoData = null;
+function fillNewForm(){
+  fillSelect($('#nType'), RT.TYPE_ORDER.map(k => [k, TYPES[k].label]));
+  fillSelect($('#nVessel'), VESSELS.map(v => [v, v]), 'Odaberite');
+  $('#nHeading').innerHTML = '<option value="">Nepoznat / na sidru</option>' + DIRS.map((d, i) => '<option value="' + (i * 45) + '">' + d[1].charAt(0).toUpperCase() + d[1].slice(1) + '</option>').join('');
+}
+function syncTypeFields(){
+  const t = TYPES[$('#nType').value];
+  $('#nVesselWrap').style.display = t && t.vessel ? '' : 'none';
+  $('#nHeadingWrap').style.display = $('#nType').value === 'fekalne' ? '' : 'none';
+  updatePreview();
+}
+function setPick(lat, lng, pan){
+  if (!isFinite(lat) || !isFinite(lng)) return;
+  pick = {lat, lng};
+  $('#nLat').value = lat.toFixed(5); $('#nLng').value = lng.toFixed(5);
+  if (pickMap){
+    if (!pickMarker) pickMarker = L.circleMarker([lat, lng], {radius:10, color:'#04141C', weight:3, fillColor:'#E07A2E', fillOpacity:1}).addTo(pickMap);
+    else pickMarker.setLatLng([lat, lng]);
+    if (pan) pickMap.setView([lat, lng], Math.max(pickMap.getZoom(), 11));
+  }
+  updatePreview();
+}
+const inCroatiaBox = RT.inCroatiaBox;
+function updatePreview(){
+  const el = $('#nPreview');
+  if (!pick){ el.textContent = 'Odaberite lokaciju da vidite kojoj će službi prijava otići.'; return; }
+  if (!inCroatiaBox(pick.lat, pick.lng)){ el.textContent = 'Lokacija je izvan područja Hrvatske.'; return; }
+  const rt = route(pick.lat, pick.lng, $('#nType').value);
+  el.innerHTML = '<b>Prijava će ići:</b> ' + esc(svcName(rt.service)) + '<br><span class="hint">' + esc(rt.reasons[0]) + '</span>';
+}
+$('#newBtn').addEventListener('click', () => {
+  fillNewForm(); $('#newForm').reset(); $('#nErr').textContent = ''; pick = null; photoData = null;
+  if (pickMarker && pickMap){ pickMap.removeLayer(pickMarker); pickMarker = null; }
+  syncTypeFields();
+  $('#newDlg').showModal();
+  setTimeout(() => {
+    if (!pickMap){
+      pickMap = makeMap('pickMap'); pickMap.setView([43.51, 16.44], 9);
+      pickMap.on('click', e => setPick(e.latlng.lat, e.latlng.lng, false));
+    }
+    pickMap.invalidateSize();
+  }, 80);
+});
+$('#nType').addEventListener('change', syncTypeFields);
+['#nLat','#nLng'].forEach(s => $(s).addEventListener('change', () => {
+  const lat = parseFloat($('#nLat').value.replace(',', '.')), lng = parseFloat($('#nLng').value.replace(',', '.'));
+  if (isFinite(lat) && isFinite(lng)) setPick(lat, lng, true);
+}));
+$('#nGeo').addEventListener('click', () => {
+  $('#nErr').textContent = '';
+  if (!navigator.geolocation){ $('#nErr').textContent = 'Preglednik ne podržava lokaciju. Kliknite na kartu.'; return; }
+  navigator.geolocation.getCurrentPosition(p => setPick(p.coords.latitude, p.coords.longitude, true),
+    () => { $('#nErr').textContent = 'Lokacija nije dostupna (nema dopuštenja ili signala). Kliknite na kartu.'; }, {enableHighAccuracy:true, timeout:10000});
+});
+$('#nPhoto').addEventListener('change', e => {
+  photoData = null; const f = e.target.files && e.target.files[0]; if (!f) return;
+  if (!/^image\//.test(f.type)){ $('#nErr').textContent = 'Odaberite sliku.'; return; }
+  const img = new Image(), url = URL.createObjectURL(f);
+  img.onload = () => {
+    const max = 900, sc = Math.min(1, max / Math.max(img.width, img.height));
+    const c = document.createElement('canvas'); c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    photoData = c.toDataURL('image/jpeg', 0.72); URL.revokeObjectURL(url);
+  };
+  img.onerror = () => { $('#nErr').textContent = 'Sliku nije moguće učitati.'; URL.revokeObjectURL(url); };
+  img.src = url;
+});
+$('#newForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const type = $('#nType').value, err = $('#nErr');
+  if (!pick){ err.textContent = 'Odaberite lokaciju na karti ili upišite koordinate.'; return; }
+  if (!inCroatiaBox(pick.lat, pick.lng)){ err.textContent = 'Lokacija mora biti na području Hrvatske.'; return; }
+  if (TYPES[type].vessel && !$('#nVessel').value){ err.textContent = 'Odaberite vrstu plovila (ili „Nepoznato”).'; return; }
+  const rt = route(pick.lat, pick.lng, type);
+  const clientId = CM.uuid();
+  const tempId = 'novo-' + clientId.slice(0, 6);
+  const now = new Date().toISOString();
+  const hv = $('#nHeading').value;
+  const body = {clientId, type, lat:pick.lat, lng:pick.lng, desc:$('#nDesc').value.trim(),
+    vessel: TYPES[type].vessel ? $('#nVessel').value : null, heading: (type === 'fekalne' && hv !== '') ? Number(hv) : null,
+    photos: photoData ? [photoData] : []};
+  const r = {id:tempId, type, lat:pick.lat, lng:pick.lng, place:RT.placeFor(pick.lat, pick.lng), desc:body.desc, createdAt:now, eventAt:now, status:'zaprimljeno',
+    vessel:body.vessel, heading:body.heading, service:rt.service, reasons:rt.reasons, county:rt.county, confirmed:false, localPhoto:photoData, photos:[], pending:true,
+    source:'sluzba', reporter:null, history:[{t:now, text:'Prijava zaprimljena. Automatski prijedlog: ' + svcName(rt.service)}]};
+  S.reports.push(r);
+  Q.push({op:'create', tempId, offline:!isOnline(), body}); saveQueue();
+  if (!save()){ r.localPhoto = null; save(); toast('Fotografija nije spremljena (premalo prostora na uređaju).'); }
+  $('#newDlg').close();
+  F.statuses.add('zaprimljeno');
+  if (type === 'fekalne' && currentView() === 'ispustanja'){ renderAll(); select2(tempId, true); }
+  else { if (currentView() !== 'prijave') location.hash = '#prijave'; setTimeout(() => { renderView1(false); select1(r.id, true); }, 90); }
+  toast('Prijava je spremljena i usmjerena: ' + svcName(rt.service) + '.' + (isOnline() ? '' : ' Bez signala: šalje se kasnije.'));
+  flush();
+});
+$$('dialog [data-close]').forEach(b => b.addEventListener('click', () => b.closest('dialog').close()));
+
+/* ================= menu / reset / odjava / način ================= */
+$('#menuBtn').addEventListener('click', e => { e.stopPropagation(); const m = $('#menu'); const o = m.classList.toggle('open'); $('#menuBtn').setAttribute('aria-expanded', String(o)); });
+document.addEventListener('click', e => { if (!e.target.closest('#menu') && !e.target.closest('#menuBtn')){ $('#menu').classList.remove('open'); $('#menuBtn').setAttribute('aria-expanded','false'); } });
+$('#simOffline').addEventListener('change', e => { netOverride = e.target.checked; if (netOverride) renderNet(); else trySync(); });
+$('#resetBtn').addEventListener('click', () => { $('#menu').classList.remove('open'); $('#confirmDlg').showModal(); });
+$('#cfYes').addEventListener('click', async () => {
+  if (!isOnline()){ $('#confirmDlg').close(); toast('Za vraćanje demo podataka potrebna je veza sa serverom.'); return; }
+  let r;
+  try { r = await CM.api('POST', '/api/admin/reset', {}); } catch(e){ $('#confirmDlg').close(); toast('Server nije dostupan. Pokušajte ponovno.'); return; }
+  if (r.status === 401) return toLogin();
+  $('#confirmDlg').close();
+  if (!r.ok){ toast('Vraćanje podataka nije uspjelo.'); return; }
+  Q = []; saveQueue(); sel1 = null; sel2 = null; firstLoad = true;
+  await fetchAll(); renderAll(true); toast('Vraćeni su početni demo podaci.');
+});
+$('#logoutBtn').addEventListener('click', async () => {
+  try { await CM.api('POST', '/api/admin/logout', {}); } catch(e){ /* bez veze: odjava na uređaju */ }
+  try { localStorage.removeItem('cm-admin'); localStorage.removeItem(CACHE_KEY); } catch(e){}
+  location.replace('admin-login.html');
+});
+function syncModeBtn(){
+  const light = CM.getMode() === 'light', b = $('#modeBtn');
+  b.innerHTML = CM.icon(light ? 'moon' : 'sun', 18);
+  b.setAttribute('aria-label', light ? 'Uključi tamni način' : 'Uključi svijetli način'); b.title = b.getAttribute('aria-label');
+}
+$('#modeBtn').addEventListener('click', () => CM.setMode(CM.getMode() === 'light' ? 'dark' : 'light', true));
+window.addEventListener('cm:mode', syncModeBtn);
+syncModeBtn();
+(function(){ try { const a = JSON.parse(localStorage.getItem('cm-admin') || 'null'); if (a) $('#who').textContent = 'Prijavljeni: ' + (a.name || a.username) + ' (' + a.username + ')'; } catch(e){} })();
+
+/* ================= filters wiring ================= */
+function initFilters(){
+  fillServiceSelect($('#fService'), 'Sve službe');
+  fillSelect($('#fRegion'), COUNTIES.map(c => [c, c]), 'Sve županije');
+  fillSelect($('#dRegion'), COUNTIES.map(c => [c, c]), 'Sve županije');
+  fillSelect($('#fVessel'), VESSELS.map(v => [v, v]), 'Sva plovila');
+  fillSelect($('#dVessel'), VESSELS.map(v => [v, v]), 'Sva plovila');
+  fillSelect($('#fType'), RT.TYPE_ORDER.map(k => [k, TYPES[k].label]), 'Sve vrste');
+  let qT;
+  $('#fQ').addEventListener('input', e => { clearTimeout(qT); qT = setTimeout(() => { F.q = e.target.value; renderView1(false); }, 150); });
+  [['#fRegion','region'],['#fPeriod','period'],['#fVessel','vessel'],['#fType','type'],['#fService','service']].forEach(([s, k]) =>
+    $(s).addEventListener('change', e => { F[k] = e.target.value; renderView1(true); updateFilterCount(); }));
+  [['#dRegion','region'],['#dPeriod','period'],['#dVessel','vessel']].forEach(([s, k]) =>
+    $(s).addEventListener('change', e => { D[k] = e.target.value; renderView2(true); }));
+  $('#fClear').addEventListener('click', () => {
+    Object.assign(F, {q:'', region:'', period:'30', vessel:'', type:''}); F.statuses = new Set(ORDER);
+    $('#fQ').value = ''; $('#fRegion').value = ''; $('#fPeriod').value = '30'; $('#fVessel').value = ''; $('#fType').value = '';
+    renderView1(true); updateFilterCount();
+  });
+  $('#fToggle').addEventListener('click', () => { const o = $('#filters1').classList.toggle('open'); $('#fToggle').setAttribute('aria-expanded', String(o)); });
+  $$('[data-seg]').forEach(b => b.addEventListener('click', () => {
+    $('#work1').dataset.show = b.dataset.seg; $$('[data-seg]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    if (b.dataset.seg === 'map' && maps.m1) setTimeout(() => {
+      maps.m1.invalidateSize();
+      const r = sel1 && byId(sel1);
+      if (r) maps.m1.setView([r.lat, r.lng], Math.max(maps.m1.getZoom(), 12)); else renderMap1(true);
+    }, 50);
+  }));
+  $$('[data-seg2]').forEach(b => b.addEventListener('click', () => {
+    const v = b.dataset.seg2; $('#work2').dataset.show = v; $$('[data-seg2]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    $('#tblWrap').style.display = v === 'list' || !window.matchMedia('(max-width:759px)').matches ? '' : 'none';
+    if (v === 'map' && maps.m2) setTimeout(() => {
+      maps.m2.invalidateSize();
+      const r = sel2 && byId(sel2);
+      if (r) maps.m2.setView([r.lat, r.lng], Math.max(maps.m2.getZoom(), 10)); else renderMap2(true);
+    }, 50);
+  }));
+}
+function updateFilterCount(){
+  const n = ['region','vessel','type'].filter(k => F[k]).length + (F.period !== '30' ? 1 : 0) + (F.q ? 1 : 0);
+  $('#fToggle').textContent = n ? 'Filteri (' + n + ')' : 'Filteri';
+}
+function applyPhoneTableVisibility(){
+  if (window.matchMedia('(max-width:759px)').matches) $('#tblWrap').style.display = $('#work2').dataset.show === 'list' ? '' : 'none';
+  else $('#tblWrap').style.display = '';
+}
+
+/* ================= routing between views ================= */
+const VIEWS = ['prijave','ispustanja','prognoza'];
+function currentView(){ const h = location.hash.replace('#', ''); return VIEWS.includes(h) ? h : 'prijave'; }
+function showView(){
+  const v = currentView();
+  VIEWS.forEach(x => $('#v-' + x).classList.toggle('active', x === v));
+  $$('[data-view]').forEach(a => { if (a.dataset.view === v) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+  closeDrawers();
+  ensureMaps(v);
+  if (v === 'prognoza' && FC.state === 'idle') loadForecast();
+  if (v === 'prognoza') renderMap3();
+  window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', showView);
+let rT; window.addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(() => { Object.values(maps).forEach(m => m && m.invalidateSize && m.invalidateSize()); if (!window.matchMedia('(max-width:1179px)').matches) closeDrawers(); applyPhoneTableVisibility(); }, 150); });
+
+function renderAll(fit){ renderNet(); renderView1(!!fit); renderView2(!!fit); if (FC.state !== 'idle') renderView3(); }
+
+/* ================= boot ================= */
+initFilters();
+checkMapServer();
+renderAll(false);
+showView();
+applyPhoneTableVisibility();
+// Provjera prijave službenika; bez veze radi se s kopijom na uređaju
+CM.api('GET', '/api/admin/me').then(r => {
+  if (r.status === 401 || (r.ok && !r.data.user)) return toLogin();
+  if (Q.length) flush(); else fetchAll().then(ok => { if (ok) renderAll(true); });
+}, () => { renderNet(); });
+setInterval(() => { if (currentView() === 'prijave') renderList1(filtered()); }, 60000);
+setInterval(() => { if (document.visibilityState === 'visible' && isOnline() && !flushing) { if (Q.length) flush(); else fetchAll(); } }, 20000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') trySync(); });
+window.cistoMore = { maps };
+})();
+</script>
+</body>
+</html>

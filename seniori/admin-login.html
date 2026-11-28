@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="hr" data-app="admin">
+<head><script src="preview.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#04141C">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<title>ČistoMore – prijava za nadležne službe</title>
+<script>
+  (function(){var d=document.documentElement,m=null;try{m=localStorage.getItem("cm-mode")||localStorage.getItem("po-mode");}catch(e){}
+  if(m!=="light"&&m!=="dark")m=window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";d.setAttribute("data-mode",m);d.classList.add("js");})();
+</script>
+<link rel="stylesheet" href="vendor/fonts/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .al-main{ min-height:100vh; display:grid; place-items:center; padding:calc(var(--po-header-h) + 24px) 16px 40px; }
+  .al-box{ width:100%; max-width:460px; display:grid; gap:16px; }
+  .al-box h1{ font-weight:800; font-size:clamp(1.8rem, 5vw, 2.4rem); line-height:1.05; letter-spacing:-.03em; }
+</style>
+</head>
+<body>
+<header class="po-top is-solid">
+  <a class="po-brand" href="index.html">
+    <span class="po-brand-badge" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16c2 0 2-1.5 4-1.5S8 16 10 16s2-1.5 4-1.5 2 1.5 4 1.5 2-1.5 4-1.5"/><path d="M2 20c2 0 2-1.5 4-1.5S8 20 10 20s2-1.5 4-1.5 2 1.5 4 1.5 2-1.5 4-1.5"/><path d="M12 3v8M8 7l4-4 4 4"/></svg></span>
+    <span class="po-brand-text"><span class="po-brand-name">ČistoMore</span><span class="po-brand-sub">Portal za nadležne službe</span></span>
+  </a>
+  <div class="po-top-actions"><button type="button" class="po-mode" id="po-mode"></button></div>
+</header>
+
+<main class="al-main" id="main">
+  <div class="al-box">
+    <div>
+      <p class="cm-eyebrow">Praćenje i obrada prijava</p>
+      <h1>Prijava za nadležne službe</h1>
+      <p class="cm-lead" style="margin-top:10px">Pregled zaprimljenih prijava, usmjeravanje i statusi. Pristup samo za službenike.</p>
+    </div>
+    <form class="cm-card" id="form" novalidate>
+      <div class="cm-field">
+        <label for="aUser">Korisničko ime</label>
+        <input id="aUser" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+      </div>
+      <div class="cm-field">
+        <label for="aPass">Lozinka</label>
+        <input id="aPass" type="password" autocomplete="current-password" required>
+      </div>
+      <p class="cm-error" id="err" role="alert"></p>
+      <button type="submit" class="po-btn po-btn-primary po-btn-block" id="submitBtn">Prijavi se u portal</button>
+    </form>
+    <div class="cm-notice is-warn" id="demoHint" hidden>
+      <span class="cm-notice-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 21h20L12 3Z"/><path d="M12 10v4M12 17h.01"/></svg></span>
+      <p>Privremeni pristup za demo: <code class="cm-code">admin</code> / <code class="cm-code">admin</code>. Prije stvarne upotrebe promijenite lozinku (vidi README).</p>
+    </div>
+    <p class="cm-note">Građani i nautičari: <a class="cm-link" href="login.html">korisnička prijava</a> · <a class="cm-link" href="index.html">početna</a></p>
+  </div>
+</main>
+
+<script src="app.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  function syncMode() {
+    var light = CM.getMode() === 'light', b = $('po-mode');
+    b.innerHTML = CM.icon(light ? 'moon' : 'sun', 18);
+    b.setAttribute('aria-label', light ? 'Uključi tamni način' : 'Uključi svijetli način');
+    b.title = b.getAttribute('aria-label');
+  }
+  $('po-mode').addEventListener('click', function () { CM.setMode(CM.getMode() === 'light' ? 'dark' : 'light', true); });
+  window.addEventListener('cm:mode', syncMode);
+  syncMode();
+
+  // Već prijavljen službenik ide ravno u portal. Demo podaci se prikazuju samo dok vrijedi početna lozinka.
+  CM.api('GET', '/api/admin/me').then(function (r) {
+    if (r.ok && r.data.user) return location.replace('obrada.html');
+    $('demoHint').hidden = !(r.ok && r.data.demo);
+  }, function () { /* bez veze */ });
+
+  var busy = false;
+  $('form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var u = $('aUser').value.trim(), p = $('aPass').value, err = $('err');
+    if (!u || !p) { err.textContent = 'Upišite korisničko ime i lozinku.'; (!u ? $('aUser') : $('aPass')).focus(); return; }
+    if (busy) return;
+    busy = true; $('submitBtn').textContent = 'Provjeravam…'; err.textContent = '';
+    CM.api('POST', '/api/admin/login', { username: u, password: p }).then(function (r) {
+      busy = false; $('submitBtn').textContent = 'Prijavi se u portal';
+      if (r.ok && r.data.user) {
+        CM.setJSON('cm-admin', { username: r.data.user.username, name: r.data.user.name });
+        location.replace('obrada.html');
+        return;
+      }
+      err.textContent = r.status === 401 ? 'Pogrešno korisničko ime ili lozinka.' : 'Prijava trenutačno nije uspjela. Pokušajte ponovno.';
+      $('aPass').value = ''; $('aPass').focus();
+    }, function () {
+      busy = false; $('submitBtn').textContent = 'Prijavi se u portal';
+      err.textContent = 'Nema veze sa serverom. Za prijavu je potrebna mreža.';
+    });
+  });
+})();
+</script>
+</body>
+</html>
