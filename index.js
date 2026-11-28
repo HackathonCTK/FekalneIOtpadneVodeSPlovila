@@ -120,7 +120,7 @@
     renderRecent(reports);
   }
 
-  $("bellBtn").addEventListener("click", function () { showToast(t("home.noNotif")); });
+  // Zvono (obavijesti) vodi zajednički app.js
 
   render();
   document.addEventListener("cm:lang", render);

@@ -478,3 +478,24 @@ body{ font-family:var(--font-body); -webkit-font-smoothing:antialiased; }
   .content > *, .stat, .qa-btn, .wave path{ animation:none !important; }
   .card, .stat, .qa-btn, .btn, .nav-item, .nav-fab{ transition:none; }
 }
+/* Zvono za obavijesti (app.js) */
+.cm-bell-btn{ position:relative; }
+.cm-bell-btn.has-unread::after{
+  content:""; position:absolute; top:7px; right:8px; width:9px; height:9px; border-radius:50%;
+  background:var(--danger); box-shadow:0 0 0 2px var(--topbar-2, #0F4452);
+}
+.cm-notif{
+  position:fixed; z-index:80; width:min(340px, calc(100vw - 24px)); max-height:min(420px, 70vh); overflow:auto;
+  background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:16px;
+  box-shadow:0 18px 40px rgba(0,0,0,.35); font-family:var(--font-body);
+}
+.cm-notif-head{ padding:14px 16px 10px; border-bottom:1px solid var(--border); font-family:var(--font-display); font-size:16px; }
+.cm-notif ul{ list-style:none; margin:0; padding:6px; }
+.cm-notif li a{ display:grid; gap:2px; padding:10px 12px; border-radius:10px; color:var(--text); font-size:14px; }
+.cm-notif li a:hover{ background:var(--surface-2); }
+.cm-notif li.is-unread a span{ font-weight:700; }
+.cm-notif li.is-unread a::before{ content:""; }
+.cm-notif small{ color:var(--text-muted); font-size:12px; font-family:var(--font-mono); }
+.cm-notif-empty{ margin:0; padding:14px 16px 16px; color:var(--text-muted); font-size:14px; line-height:1.5; }
+/* Uski mobiteli: strelica „natrag“ se skriva da stanu zvono i prekidači (Početna je u donjoj navigaciji) */
+@media (max-width:419px){ .topbar-row > a.icon-btn{ display:none; } }

@@ -136,7 +136,13 @@
           plovi: "Plovi odgovorno", ploviShort: "Plovi", obrada: "Obrada prijava", profile: "Profil"
         },
         lang: "Jezik", toLight: "Uključi svijetli način", toDark: "Uključi tamni način",
-        brand: "ČistoMore", soon: "Uskoro"
+        brand: "ČistoMore", soon: "Uskoro",
+        notif: {
+          title: "Obavijesti",
+          empty: "Nema novih obavijesti. Ovdje ćeš vidjeti kad nadležna služba promijeni status tvoje prijave.",
+          item: "Prijava #{id}: {status}",
+          st: { "new": "zaprimljena", progress: "u obradi", done: "riješena" }
+        }
       }
     },
     en: {
@@ -146,7 +152,13 @@
           plovi: "Sail responsibly", ploviShort: "Sail", obrada: "Report handling", profile: "Profile"
         },
         lang: "Language", toLight: "Switch to light mode", toDark: "Switch to dark mode",
-        brand: "ČistoMore", soon: "Coming soon"
+        brand: "ČistoMore", soon: "Coming soon",
+        notif: {
+          title: "Notifications",
+          empty: "No new notifications. You'll see here when the authorities change the status of your report.",
+          item: "Report #{id}: {status}",
+          st: { "new": "received", progress: "in progress", done: "resolved" }
+        }
       }
     }
   });
@@ -288,6 +300,106 @@
     }
   };
 
+  /* ---------------- Zvono: obavijesti o promjenama tvojih prijava ----------------
+     Izvor: prijave iz report.html u spremištu cistomore.v1; obavijest = promjena statusa/službe
+     koju je napravila obrada (unosi u history nakon prvog). Pročitano do: localStorage "cm-notif-seen". */
+  var BELL = '<path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>';
+  var STATUS_KEY = { zaprimljeno: "cm.notif.st.new", obrada: "cm.notif.st.progress", rijeseno: "cm.notif.st.done" };
+  function notifItems() {
+    var out = [];
+    window.CM_reports.all().forEach(function (r) {
+      if (!r || r.source !== "report.html" || !Array.isArray(r.history) || r.history.length < 2) return;
+      var last = r.history[r.history.length - 1];
+      out.push({ id: r.id, status: r.status, t: last && last.t ? last.t : r.createdAt });
+    });
+    return out.sort(function (a, b) { return String(b.t).localeCompare(String(a.t)); }).slice(0, 12);
+  }
+  function unreadCount(items) {
+    var seen = safeGet("cm-notif-seen") || "";
+    return items.filter(function (n) { return String(n.t) > seen; }).length;
+  }
+  function relTime(iso) {
+    var d0 = new Date(iso);
+    if (isNaN(d0)) return "";
+    try { return d0.toLocaleString(lang === "en" ? "en-GB" : "hr-HR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); }
+    catch (e) { return d0.toISOString().slice(0, 16).replace("T", " "); }
+  }
+  function bellButtons() { return d.querySelectorAll("[data-cm-bell]"); }
+  function syncBell() {
+    var n = unreadCount(notifItems());
+    Array.prototype.forEach.call(bellButtons(), function (b) {
+      b.classList.toggle("has-unread", n > 0);
+      var label = window.CM_i18n.t("cm.notif.title") + (n ? " (" + n + ")" : "");
+      b.setAttribute("aria-label", label);
+      b.setAttribute("title", label);
+    });
+  }
+  var panel = null;
+  function closePanel() {
+    if (!panel) return;
+    panel.remove(); panel = null;
+    Array.prototype.forEach.call(bellButtons(), function (b) { b.setAttribute("aria-expanded", "false"); });
+  }
+  function openPanel(btn) {
+    var items = notifItems();
+    var seen = safeGet("cm-notif-seen") || "";
+    panel = d.createElement("div");
+    panel.className = "cm-notif";
+    panel.id = "cm-notif";
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-label", window.CM_i18n.t("cm.notif.title"));
+    var html = '<div class="cm-notif-head"><b>' + window.CM_i18n.t("cm.notif.title") + "</b></div>";
+    if (!items.length) {
+      html += '<p class="cm-notif-empty">' + window.CM_i18n.t("cm.notif.empty") + "</p>";
+    } else {
+      html += "<ul>" + items.map(function (n) {
+        var unread = String(n.t) > seen;
+        return '<li' + (unread ? ' class="is-unread"' : "") + '><a href="obrada.html#prijave">' +
+          "<span>" + window.CM_i18n.t("cm.notif.item", { id: n.id, status: window.CM_i18n.t(STATUS_KEY[n.status] || "cm.notif.st.new") }) + "</span>" +
+          "<small>" + relTime(n.t) + "</small></a></li>";
+      }).join("") + "</ul>";
+    }
+    panel.innerHTML = html;
+    d.body.appendChild(panel);
+    var r = btn.getBoundingClientRect();
+    panel.style.top = Math.round(r.bottom + 8) + "px";
+    panel.style.right = Math.max(12, Math.round(window.innerWidth - r.right)) + "px";
+    btn.setAttribute("aria-expanded", "true");
+    if (items.length) safeSet("cm-notif-seen", String(items[0].t));
+    syncBell();
+  }
+  function mountBell() {
+    var btn = d.getElementById("bellBtn");               // postojeće zvono na početnoj (grupa 1)
+    if (!btn) {
+      var host = d.querySelector(".po-top-actions") || d.querySelector(".topbar-row");
+      if (!host) return;
+      btn = d.createElement("button");
+      btn.type = "button";
+      btn.className = host.classList.contains("po-top-actions") ? "po-mode cm-bell-btn" : "icon-btn cm-bell-btn";
+      btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + BELL + "</svg>";
+      var ctrls = host.querySelector(".cm-controls");
+      if (host.classList.contains("po-top-actions")) host.insertBefore(btn, host.firstChild);
+      else if (ctrls && ctrls.nextSibling) host.insertBefore(btn, ctrls.nextSibling);
+      else host.appendChild(btn);
+    }
+    btn.classList.add("cm-bell-btn");
+    btn.setAttribute("data-cm-bell", "");
+    btn.setAttribute("aria-haspopup", "dialog");
+    btn.setAttribute("aria-expanded", "false");
+    btn.removeAttribute("data-i18n-attr");
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      if (panel) closePanel(); else openPanel(btn);
+    });
+    d.addEventListener("click", function (e) { if (panel && !panel.contains(e.target)) closePanel(); });
+    d.addEventListener("keydown", function (e) { if (e.key === "Escape" && panel) { closePanel(); btn.focus(); } });
+    window.addEventListener("resize", closePanel);
+    window.addEventListener("storage", function (e) { if (!e.key || e.key === REPORTS_KEY) syncBell(); });
+    d.addEventListener("cm:reports", syncBell);
+    d.addEventListener("cm:lang", function () { closePanel(); syncBell(); });
+    syncBell();
+  }
+
   /* ---------------- Toast (grupa 1) ---------------- */
   var toastTimer;
   window.showToast = function (msg) {
@@ -303,6 +415,7 @@
   function init() {
     Array.prototype.forEach.call(d.querySelectorAll("nav[data-cm-nav]"), renderNav);
     mountControls();
+    mountBell();
     window.CM_i18n.apply();
     syncControls();
     ready = true;
