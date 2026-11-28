@@ -62,7 +62,13 @@
       'sync.sent': 'Veza je vraćena. Poslano prijava: {n}.',
       'sync.needLogin': 'Prijave čekaju slanje. Prijavite se ponovno da ih pošaljemo.',
       'time.now': 'upravo sada', 'time.min': 'prije {n} min', 'time.today': 'danas u {t}', 'time.yesterday': 'jučer u {t}',
-      'footer': 'ČistoMore · Hackathon 2026 · spojena aplikacija grupa 1–4'
+      'footer': 'ČistoMore · Hackathon 2026 · spojena aplikacija grupa 1–4',
+      'notif.title': 'Obavijesti',
+      'notif.empty': 'Nema novih obavijesti. Ovdje ćeš vidjeti kad nadležna služba promijeni status tvoje prijave.',
+      'notif.login': 'Prijavi se da dobivaš obavijesti o svojim prijavama.',
+      'notif.item': 'Prijava #{id}: {status}',
+      'notif.all': 'Sve moje prijave',
+      'notif.st.zaprimljeno': 'zaprimljena', 'notif.st.obrada': 'u obradi', 'notif.st.rijeseno': 'riješena'
     },
     en: {
       'brand.name': 'ČistoMore',
@@ -77,7 +83,13 @@
       'sync.sent': 'Back online. Reports sent: {n}.',
       'sync.needLogin': 'Reports are waiting to be sent. Log in again so we can send them.',
       'time.now': 'just now', 'time.min': '{n} min ago', 'time.today': 'today at {t}', 'time.yesterday': 'yesterday at {t}',
-      'footer': 'ČistoMore · Hackathon 2026 · combined app of groups 1–4'
+      'footer': 'ČistoMore · Hackathon 2026 · combined app of groups 1–4',
+      'notif.title': 'Notifications',
+      'notif.empty': 'No new notifications. You\'ll see here when the authorities change the status of your report.',
+      'notif.login': 'Log in to get notifications about your reports.',
+      'notif.item': 'Report #{id}: {status}',
+      'notif.all': 'All my reports',
+      'notif.st.zaprimljeno': 'received', 'notif.st.obrada': 'in progress', 'notif.st.rijeseno': 'resolved'
     }
   });
 
@@ -386,6 +398,7 @@
     book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/>',
     sail: '<path d="M12 3v14"/><path d="M12 4l7 11h-7"/><path d="M10 7l-5 8h5"/><path d="M3 18h18l-2 3H5z"/>',
     profile: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 6-6 8-6s6.5 2 8 6"/>',
+    bell: '<path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>',
     sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
     moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/>',
     login: '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/>',
@@ -436,6 +449,7 @@
         '<span class="po-brand-sub" data-t="' + esc(sub) + '">' + esc(CM.t(sub)) + '</span></span>' +
       '</a>' +
       '<div class="po-top-actions">' +
+        '<button type="button" class="po-mode cm-bell-btn" id="cm-bell" aria-haspopup="dialog" aria-expanded="false"></button>' +
         '<button type="button" class="po-mode" id="po-mode"></button>' +
         '<div class="po-lang" role="group" data-t-aria="ui.lang" aria-label="' + esc(CM.t('ui.lang')) + '">' +
           '<button type="button" data-lang="hr" lang="hr" aria-label="Hrvatski" aria-pressed="' + (CM.lang === 'hr') + '">HR</button>' +
@@ -449,6 +463,94 @@
     });
     syncModeButton();
     syncAccountButton();
+    mountBell(host.querySelector('#cm-bell'));
+  }
+
+  /* ---------- Zvono: obavijesti o promjenama statusa tvojih prijava ----------
+     Izvor: /api/my/reports (statusHistory). Obavijest = svaka promjena statusa nakon prve
+     („zaprimljeno“). Pročitano do: localStorage "cm-notif-seen" (ISO vrijeme). */
+  var NOTIF_SEEN = 'cm-notif-seen';
+  var notifPanel = null;
+  function notifItems() {
+    if (!CM.user) return [];
+    var out = [];
+    CM.cachedReports().forEach(function (r) {
+      (r.statusHistory || []).slice(1).forEach(function (h) {
+        if (h && h.t && h.status) out.push({ id: r.id, status: h.status, t: h.t });
+      });
+    });
+    return out.sort(function (a, b) { return String(b.t).localeCompare(String(a.t)); }).slice(0, 12);
+  }
+  function syncBell() {
+    var btn = doc.getElementById('cm-bell');
+    if (!btn) return;
+    var seen = sget(NOTIF_SEEN) || '';
+    var n = notifItems().filter(function (x) { return String(x.t) > seen; }).length;
+    btn.classList.toggle('has-unread', n > 0);
+    var label = CM.t('notif.title') + (n ? ' (' + n + ')' : '');
+    btn.setAttribute('aria-label', label);
+    btn.setAttribute('title', label);
+  }
+  CM.syncBell = syncBell;
+  function closeNotif() {
+    if (!notifPanel) return;
+    notifPanel.remove(); notifPanel = null;
+    var btn = doc.getElementById('cm-bell');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  }
+  function openNotif(btn) {
+    var items = notifItems();
+    var seen = sget(NOTIF_SEEN) || '';
+    notifPanel = doc.createElement('div');
+    notifPanel.className = 'cm-notif';
+    notifPanel.setAttribute('role', 'dialog');
+    notifPanel.setAttribute('aria-label', CM.t('notif.title'));
+    var html = '<div class="cm-notif-head"><b>' + esc(CM.t('notif.title')) + '</b></div>';
+    if (!CM.user) {
+      html += '<p class="cm-notif-empty"><a href="' + esc(CM.loginUrl()) + '">' + esc(CM.t('notif.login')) + '</a></p>';
+    } else if (!items.length) {
+      html += '<p class="cm-notif-empty">' + esc(CM.t('notif.empty')) + '</p>';
+    } else {
+      html += '<ul>' + items.map(function (x) {
+        return '<li' + (String(x.t) > seen ? ' class="is-unread"' : '') + '><a href="book.html">' +
+          '<span>' + esc(CM.t('notif.item', { id: x.id, status: CM.t('notif.st.' + x.status) })) + '</span>' +
+          '<small>' + esc(CM.fmtWhen(x.t)) + '</small></a></li>';
+      }).join('') + '</ul><a class="cm-notif-all" href="book.html">' + esc(CM.t('notif.all')) + ' →</a>';
+    }
+    notifPanel.innerHTML = html;
+    doc.body.appendChild(notifPanel);
+    var r = btn.getBoundingClientRect();
+    notifPanel.style.top = Math.round(r.bottom + 8) + 'px';
+    notifPanel.style.right = Math.max(12, Math.round(window.innerWidth - r.right)) + 'px';
+    btn.setAttribute('aria-expanded', 'true');
+    if (items.length) sset(NOTIF_SEEN, String(items[0].t));
+    syncBell();
+  }
+  var bellWired = false;
+  function mountBell(btn) {
+    if (!btn) return;
+    btn.innerHTML = svg('bell', 18);
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (notifPanel) closeNotif(); else openNotif(btn);
+    });
+    syncBell();
+    if (bellWired) return;
+    bellWired = true;
+    doc.addEventListener('click', function (e) { if (notifPanel && !notifPanel.contains(e.target)) closeNotif(); });
+    doc.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && notifPanel) { closeNotif(); var b = doc.getElementById('cm-bell'); if (b) b.focus(); }
+    });
+    window.addEventListener('resize', closeNotif);
+    window.addEventListener('cm:lang', function () { closeNotif(); syncBell(); });
+    window.addEventListener('cm:user', syncBell);
+    window.addEventListener('cm:sync', syncBell);
+    window.addEventListener('storage', function (e) { if (!e.key || e.key === MYREP_KEY || e.key === NOTIF_SEEN) syncBell(); });
+    // Statusi sa servera: odmah i svake minute dok je stranica otvorena
+    var poll = function () { if (CM.user && doc.visibilityState === 'visible') CM.fetchMyReports().then(syncBell, syncBell); };
+    setTimeout(poll, 600);
+    setInterval(poll, 60000);
+    doc.addEventListener('visibilitychange', poll);
   }
 
   function syncModeButton() {

@@ -39,6 +39,7 @@ window.PO_CONTENT = {
       impact: "Utjecaj",
       guide: "Vodič",
       pumpout: "Prihvat",
+      know: "Činjenice",
       quiz: "Kviz"
     },
     intro: {
@@ -200,10 +201,28 @@ window.PO_CONTENT = {
         onMap: "Prikaži na karti"
       }
     },
+    know: {
+      eyebrow: "Jesi li znao?",
+      title: "Brojke i pravila koja se isplati znati",
+      lead: "Kratke činjenice iz propisa, mjerenja kakvoće mora i nautičke prakse. Uz svaku je izvor.",
+      src: "Izvor",
+      items: [
+        { n: "1 %", t: "Prihvat otpada već si platio", d: "Brod s ugovorom o vezu u marini plaća neizravnu naknadu za otpad od 1 % cijene veza, bez obzira predaje li otpad. Zato iskoristi prihvatnu stanicu.", s: "NN 72/2021, čl. 77", u: "https://narodne-novine.nn.hr/clanci/sluzbeni/full/2021_06_72_1358.html" },
+        { n: "2 god.", t: "Čuvaj potvrdu o predaji otpada", d: "Nakon predaje otpada dobivaš „Potvrdu o isporuci otpada”. Čuva se na brodu najmanje dvije godine.", s: "NN 72/2021, čl. 66", u: "https://narodne-novine.nn.hr/clanci/sluzbeni/full/2021_06_72_1358.html" },
+        { n: "100 / 250", t: "Granice za izvrsno more", d: "More za kupanje je izvrsno ako ima najviše 100 crijevnih enterokoka i 250 E. coli na 100 ml. Upravo te bakterije donose fekalne vode.", s: "Direktiva 2006/7/EZ, Prilog I", u: "https://www.legislation.gov.uk/eudr/2006/7/annexes/adopted" },
+        { n: "15 dana", t: "More se redovito ispituje", d: "Od sredine svibnja do početka listopada zavodi za javno zdravstvo uzorkuju more na plažama, a rezultati se objavljuju svakih 15 dana. Plava oznaka znači izvrsno, crvena nezadovoljavajuće.", s: "gov.hr: Kakvoća mora", u: "https://www.gov.hr/hr/kakvoca-mora/1580" },
+        { n: "Prijavi", t: "Prijava onečišćenja je obveza", d: "Zapovjednik koji onečisti more ili primijeti onečišćenje mora to bez odgađanja prijaviti. U aplikaciji to radiš na stranici Nova prijava.", s: "Pomorski zakonik, čl. 49.f", u: "https://www.zakon.hr/z/310/Pomorski-zakonik" },
+        { n: "90 bova", t: "Kornati čuvaju posidoniju", d: "NP Kornati od 2024. postavlja eko-bove umjesto sidrenja: prvo 90 bova u 8 uvala, a planira ih više od 200. Sidro trga livade posidonije.", s: "Yacht.de, 2025.", u: "https://www.yacht.de/en/travel-and-charter/croatia/croatia-kornati-national-park-murings-for-marine-conservation/" },
+        { n: "Bez formaldehida", t: "Biraj sredstvo za spremnik", d: "Formaldehid iz nekih sredstava za spremnik sumnja se da je kancerogen. Enzimska ili nitratna sredstva i dobro prozračivanje spremnika uklanjaju miris bez njega.", s: "Practical Sailor", u: "https://www.practical-sailor.com/systems-propulsion/solutions-for-a-stinky-holding-tank/" },
+        { n: "Crijevo", t: "Smrdi, a spremnik je u redu?", d: "Plinovi poput sumporovodika prolaze kroz stijenke mekih crijeva. Prozirna meka PVC crijeva ne smiju se koristiti za fekalne vode.", s: "Practical Sailor", u: "https://www.practical-sailor.com/systems-propulsion/marine-sanitation-hose-test" },
+        { n: "12 NM", t: "Neke zemlje su strože", d: "Švedska od 2015. zabranjuje ispuštanje fekalnih voda sa svih rekreativnih brodova unutar 12 NM, a Nizozemska od 2009. Međunarodna obveza spremnika za male brodove još ne postoji.", s: "RYA: Holding tanks", u: "https://www.rya.org.uk/boating-abroad/holding-tanks/" }
+      ]
+    },
     quiz: {
       eyebrow: "Kviz",
       title: "Koliko znaš o odgovornoj plovidbi?",
-      lead: "Osam pitanja, nakon svakog kratko objašnjenje. Uz barem 6 točnih dobivaš certifikat.",
+      lead: "Deset nasumičnih pitanja iz baze od sedamnaest, nakon svakog kratko objašnjenje. Uz barem 8 točnih dobivaš certifikat.",
+      size: 10,
       progress: "Pitanje {i} od {n}",
       next: "Sljedeće pitanje",
       finish: "Pogledaj rezultat",
@@ -215,12 +234,12 @@ window.PO_CONTENT = {
       srYours: "tvoj odgovor",
       result: "{s} od {n} točnih",
       tiers: [
-        { min: 8, t: "Kapetan za primjer! Znaš sve što treba." },
-        { min: 5, t: "Dobar rezultat. Pročitaj vodič još jednom i znat ćeš sve." },
+        { min: 10, t: "Kapetan za primjer! Znaš sve što treba." },
+        { min: 7, t: "Dobar rezultat. Pročitaj vodič još jednom i znat ćeš sve." },
         { min: 0, t: "More ti daje još jednu priliku. Prođi vodič i pokušaj ponovno." }
       ],
       cert: {
-        min: 6,
+        min: 8,
         earned: "Certifikat „Odgovorni nautičar” je tvoj.",
         needMore: "Za certifikat trebaš barem {m} od {n} točnih.",
         nameLabel: "Ime na certifikatu",
@@ -250,7 +269,16 @@ window.PO_CONTENT = {
         { q: "Na palubi su tri čepa. Na koji se spaja crijevo prihvatne stanice?", a: ["WATER", "WASTE", "FUEL"], c: 1, e: "WASTE je priključak spremnika fekalnih voda. Zamjena s WATER ili FUEL česta je i skupa pogreška." },
         { q: "Zašto su uzgajališta školjaka posebno osjetljiva na fekalne vode?", a: ["Školjke filtriraju more i nakupljaju bakterije i viruse", "Školjke ne podnose slatku vodu", "Fekalne vode otapaju ljušture"], c: 0, e: "Dagnje i kamenice filtriraju velike količine mora. Ako je more onečišćeno, postaju opasne za jelo." },
         { q: "Što hranjive tvari iz fekalnih voda uzrokuju u zatvorenim uvalama?", a: ["Bistrije more", "Cvjetanje algi i manjak kisika", "Više ribe"], c: 1, e: "Dušik i fosfor „gnoje” more. Alge se namnože, a njihova razgradnja troši kisik potreban ribama i drugim organizmima." },
-        { q: "Vidiš brod koji ispušta fekalne vode u uvali. Što je najkorisnije?", a: ["Viknem na posadu i odem", "Fotografiram ga, zabilježim lokaciju i vrijeme te ga prijavim", "Ništa, to nije moj problem"], c: 1, e: "Prijava s fotografijom, lokacijom i vremenom pomaže nadležnim službama da reagiraju. U aplikaciji je to stranica Nova prijava." }
+        { q: "Vidiš brod koji ispušta fekalne vode u uvali. Što je najkorisnije?", a: ["Viknem na posadu i odem", "Fotografiram ga, zabilježim lokaciju i vrijeme te ga prijavim", "Ništa, to nije moj problem"], c: 1, e: "Prijava s fotografijom, lokacijom i vremenom pomaže nadležnim službama da reagiraju. U aplikaciji je to stranica Nova prijava." },
+        { q: "Koja je EU granica za crijevne enterokoke da bi obalno more za kupanje bilo „izvrsno”?", a: ["100 na 100 ml", "500 na 100 ml", "1000 na 100 ml"], c: 0, e: "Direktiva 2006/7/EZ za izvrsno obalno more traži najviše 100 crijevnih enterokoka na 100 ml. Fekalne vode s brodova povećavaju upravo taj pokazatelj." },
+        { q: "Na hrvatskoj karti kakvoće mora za kupanje, što znači plava oznaka?", a: ["Izvrsna kakvoća", "Kupanje zabranjeno", "Još nije ispitano"], c: 0, e: "Plava je izvrsno, zelena dobro, žuta zadovoljavajuće, a crvena nezadovoljavajuće." },
+        { q: "Kada se u Hrvatskoj ispituje kakvoća mora za kupanje?", a: ["Cijele godine", "Samo u srpnju i kolovozu", "Od sredine svibnja do početka listopada"], c: 2, e: "Zavodi za javno zdravstvo uzorkuju more tijekom sezone kupanja, a novi rezultati objavljuju se svakih 15 dana." },
+        { q: "Imaš ugovor o vezu u hrvatskoj marini. Koliko plaćaš prihvat otpada?", a: ["Ništa ako ne predaš otpad", "1 % cijene veza, predao otpad ili ne", "Po litri ispražnjenog spremnika"], c: 1, e: "Pravilnik NN 72/2021 (čl. 77) propisuje neizravnu naknadu od 1 % bez obzira na stvarnu predaju. Već si platio, zato koristi prihvatnu stanicu." },
+        { q: "Koliko dugo na brodu treba čuvati potvrdu o isporuci otpada?", a: ["24 sata", "Do kraja sezone", "Najmanje dvije godine"], c: 2, e: "Pravilnik NN 72/2021 (čl. 66) traži da se potvrda čuva na brodu najmanje dvije godine." },
+        { q: "Zašto izbjegavati sredstva za spremnik s formaldehidom?", a: ["Spremnik se brže puni", "Sumnja se da je kancerogen i ubija korisne bakterije", "Zabranjena su samo na jedrilicama"], c: 1, e: "Formaldehid je na popisu mogućih kancerogena. Enzimska ili nitratna sredstva i dobro prozračivanje spremnika rješavaju miris bez njega." },
+        { q: "WC smrdi iako je spremnik ispražnjen. Što je čest uzrok?", a: ["Plinovi prolaze kroz stijenke crijeva", "Previše slatke vode u spremniku", "Pun spremnik goriva"], c: 0, e: "Sumporovodik i drugi plinovi prolaze kroz stijenke crijeva, brže kroz meke materijale. Prozirno meko PVC crijevo nije za fekalne vode." },
+        { q: "Zašto NP Kornati postavlja eko-bove u uvale za sidrenje?", a: ["Da naplati veće naknade", "Da zaštiti livade posidonije od sidara", "Da označi ribolovne zone"], c: 1, e: "Bove za brodove do 16 m trebaju zamijeniti sidrenje u 19 uvala i sačuvati livade posidonije." },
+        { q: "U kojem moru MARPOL putničkim brodovima zabranjuje ispuštanje neobrađenih fekalnih voda kao posebnom području?", a: ["Jadransko more", "Baltičko more", "Crno more"], c: 1, e: "Baltik je posebno područje, a zabrana je potpuno stupila na snagu između 2019. i 2023. Sredozemlje i Jadran zasad nisu takvo područje za fekalne vode." }
       ]
     },
     final: {
@@ -266,7 +294,13 @@ window.PO_CONTENT = {
       items: [
         { t: "IMO: Prevention of Pollution by Sewage from Ships (MARPOL, Prilog IV)", u: "https://www.imo.org/en/OurWork/Environment/Pages/Sewage-Default.aspx" },
         { t: "Narodne novine 72/2021: Pravilnik o uvjetima i načinu održavanja reda u lukama i na ostalim dijelovima unutarnjih morskih voda i teritorijalnog mora RH", u: "https://narodne-novine.nn.hr/clanci/sluzbeni/2021_06_72_1358.html" },
-        { t: "MMPI: Prevencija onečišćenja fekalijama s jahti u lukama nautičkog turizma, pravni okvir", u: "https://mmpi.gov.hr/UserDocsImages/arhiva/PREVENCIJA%20ONE%C4%8CI%C5%A0%C4%86ENJA%20FEKALIJAMA%20S%20JAHTI%20U%20LUKAMA%20NAUTI%C4%8CKOG%20TURIZMA%20%E2%80%93%20PRAVNI%20OKVIR.pdf" }
+        { t: "MMPI: Prevencija onečišćenja fekalijama s jahti u lukama nautičkog turizma, pravni okvir", u: "https://mmpi.gov.hr/UserDocsImages/arhiva/PREVENCIJA%20ONE%C4%8CI%C5%A0%C4%86ENJA%20FEKALIJAMA%20S%20JAHTI%20U%20LUKAMA%20NAUTI%C4%8CKOG%20TURIZMA%20%E2%80%93%20PRAVNI%20OKVIR.pdf" },
+        { t: "Pomorski zakonik (pročišćeni tekst), čl. 49.a–49.f", u: "https://www.zakon.hr/z/310/Pomorski-zakonik" },
+        { t: "Direktiva 2006/7/EZ o upravljanju kakvoćom vode za kupanje, prilozi", u: "https://www.legislation.gov.uk/eudr/2006/7/annexes/adopted" },
+        { t: "gov.hr: Kakvoća mora za kupanje", u: "https://www.gov.hr/hr/kakvoca-mora/1580" },
+        { t: "RYA: Holding tanks (pravila u drugim zemljama)", u: "https://www.rya.org.uk/boating-abroad/holding-tanks/" },
+        { t: "Practical Sailor: sredstva za spremnik i test crijeva", u: "https://www.practical-sailor.com/systems-propulsion/solutions-for-a-stinky-holding-tank/" },
+        { t: "Yacht.de: eko-bove u NP Kornati (2025.)", u: "https://www.yacht.de/en/travel-and-charter/croatia/croatia-kornati-national-park-murings-for-marine-conservation/" }
       ]
     },
     footer: "ČistoMore · Hackathon 2026 · Grupa 4: Plovi odgovorno"
@@ -296,6 +330,7 @@ window.PO_CONTENT = {
       impact: "Impact",
       guide: "Guide",
       pumpout: "Pump-out",
+      know: "Facts",
       quiz: "Quiz"
     },
     intro: {
@@ -457,10 +492,28 @@ window.PO_CONTENT = {
         onMap: "Show on map"
       }
     },
+    know: {
+      eyebrow: "Did you know?",
+      title: "Numbers and rules worth knowing",
+      lead: "Short facts from regulations, bathing water monitoring and boating practice, each with its source.",
+      src: "Source",
+      items: [
+        { n: "1%", t: "You've already paid for waste reception", d: "A boat with a marina berth contract pays an indirect waste fee of 1% of the berth price, whether or not it hands over any waste. So use the pump-out station.", s: "Official Gazette 72/2021, Art. 77 (HR)" },
+        { n: "2 yrs", t: "Keep the waste delivery receipt", d: "After handing over waste you get a waste delivery receipt. Keep it on board for at least two years.", s: "Official Gazette 72/2021, Art. 66 (HR)" },
+        { n: "100 / 250", t: "Limits for excellent water", d: "Bathing water is excellent with at most 100 intestinal enterococci and 250 E. coli per 100 ml. Those are exactly the bacteria that sewage brings.", s: "Directive 2006/7/EC, Annex I" },
+        { n: "15 days", t: "The sea is tested regularly", d: "From mid-May to early October, public health institutes sample beaches and publish results every 15 days. Blue means excellent, red means poor.", s: "gov.hr: Bathing water quality (HR)" },
+        { n: "Report", t: "Reporting pollution is a duty", d: "A skipper who pollutes the sea or sees pollution must report it without delay. In the app, use the New report page.", s: "Croatian Maritime Code, Art. 49.f (HR)" },
+        { n: "90 buoys", t: "Kornati protects Posidonia", d: "Since 2024 Kornati National Park has been installing eco-moorings instead of anchoring: first 90 buoys in 8 bays, with more than 200 planned. Anchors tear up Posidonia meadows.", s: "Yacht.de, 2025" },
+        { n: "No formaldehyde", t: "Choose your tank treatment", d: "Formaldehyde, found in some tank treatments, is a suspected carcinogen. Enzyme or nitrate products and good tank ventilation control odour without it.", s: "Practical Sailor" },
+        { n: "Hose", t: "Smells, but the tank is fine?", d: "Gases like hydrogen sulfide seep through the walls of soft hoses. Clear soft vinyl tubing should never be used for sewage.", s: "Practical Sailor" },
+        { n: "12 NM", t: "Some countries are stricter", d: "Sweden has banned sewage discharge from all pleasure boats within 12 NM since 2015, and the Netherlands since 2009. There is still no international holding-tank rule for small craft.", s: "RYA: Holding tanks" }
+      ]
+    },
     quiz: {
       eyebrow: "Quiz",
       title: "How much do you know about sailing responsibly?",
-      lead: "Eight questions, with a short explanation after each one. Get at least 6 right to earn a certificate.",
+      lead: "Ten random questions from a pool of seventeen, with a short explanation after each one. Get at least 8 right to earn a certificate.",
+      size: 10,
       progress: "Question {i} of {n}",
       next: "Next question",
       finish: "See your result",
@@ -472,12 +525,12 @@ window.PO_CONTENT = {
       srYours: "your answer",
       result: "{s} of {n} correct",
       tiers: [
-        { min: 8, t: "A model skipper! You know everything that matters." },
-        { min: 5, t: "Good score. Read the guide once more and you'll know it all." },
+        { min: 10, t: "A model skipper! You know everything that matters." },
+        { min: 7, t: "Good score. Read the guide once more and you'll know it all." },
         { min: 0, t: "The sea gives you another chance. Go through the guide and try again." }
       ],
       cert: {
-        min: 6,
+        min: 8,
         earned: "The “Responsible skipper” certificate is yours.",
         needMore: "You need at least {m} of {n} correct for the certificate.",
         nameLabel: "Name on the certificate",
@@ -507,7 +560,16 @@ window.PO_CONTENT = {
         { q: "There are three caps on deck. Which one does the pump-out hose connect to?", a: ["WATER", "WASTE", "FUEL"], c: 1, e: "WASTE is the holding tank connection. Mixing it up with WATER or FUEL is a common and costly mistake." },
         { q: "Why are shellfish farms especially sensitive to sewage?", a: ["Shellfish filter seawater and accumulate bacteria and viruses", "Shellfish can't tolerate fresh water", "Sewage dissolves their shells"], c: 0, e: "Mussels and oysters filter large volumes of seawater. If the water is polluted, they become unsafe to eat." },
         { q: "What do nutrients from sewage cause in enclosed bays?", a: ["Clearer water", "Algal blooms and low oxygen", "More fish"], c: 1, e: "Nitrogen and phosphorus fertilise the sea. Algae multiply, and their decay uses up oxygen that fish and other organisms need." },
-        { q: "You see a boat discharging sewage in a bay. What helps most?", a: ["Shout at the crew and leave", "Photograph it, note the location and time, and report it", "Nothing, it's not my problem"], c: 1, e: "A report with a photo, location and time helps the authorities act. In the app, that's the New report page." }
+        { q: "You see a boat discharging sewage in a bay. What helps most?", a: ["Shout at the crew and leave", "Photograph it, note the location and time, and report it", "Nothing, it's not my problem"], c: 1, e: "A report with a photo, location and time helps the authorities act. In the app, that's the New report page." },
+        { q: "What is the EU limit for intestinal enterococci for coastal bathing water to count as “excellent”?", a: ["100 per 100 ml", "500 per 100 ml", "1,000 per 100 ml"], c: 0, e: "Directive 2006/7/EC sets at most 100 intestinal enterococci per 100 ml for excellent coastal water. Sewage from boats raises exactly this indicator." },
+        { q: "On the Croatian bathing water quality map, what does a blue marker mean?", a: ["Excellent quality", "Bathing forbidden", "Not yet tested"], c: 0, e: "Blue is excellent, green good, yellow satisfactory and red poor." },
+        { q: "When is bathing water tested in Croatia?", a: ["All year round", "Only in July and August", "From mid-May to early October"], c: 2, e: "Public health institutes sample the sea throughout the bathing season, and new results are published every 15 days." },
+        { q: "You have a berth contract in a Croatian marina. What do you pay for waste reception?", a: ["Nothing unless you hand over waste", "1% of the berth price, whether or not you hand over waste", "A fee per litre pumped out"], c: 1, e: "The Croatian ordinance (Official Gazette 72/2021, Art. 77) sets an indirect fee of 1% regardless of actual delivery. You've already paid, so use the pump-out station." },
+        { q: "How long must the waste delivery receipt be kept on board?", a: ["24 hours", "Until the end of the season", "At least two years"], c: 2, e: "The Croatian ordinance (Art. 66) requires the receipt to be kept on board for at least two years." },
+        { q: "Why avoid holding-tank treatments with formaldehyde?", a: ["They make the tank fill faster", "It's a suspected carcinogen and kills useful bacteria", "They're banned on sailboats only"], c: 1, e: "Formaldehyde is listed as a suspected carcinogen. Enzyme or nitrate products and good tank ventilation control odour without it." },
+        { q: "The head smells even though the tank was just pumped out. What's a common cause?", a: ["Gases seeping through the hose walls", "Too much fresh water in the tank", "A full fuel tank"], c: 0, e: "Hydrogen sulfide and other gases seep through hose walls, faster through soft materials. Clear soft vinyl tubing is not for sewage." },
+        { q: "Why is Kornati National Park installing eco-mooring buoys in its anchoring bays?", a: ["To charge higher fees", "To protect Posidonia meadows from anchors", "To mark fishing zones"], c: 1, e: "The buoys, for boats up to 16 m, are meant to replace anchoring in 19 bays and protect the Posidonia meadows." },
+        { q: "In which sea does MARPOL ban passenger ships from discharging untreated sewage as a special area?", a: ["Adriatic Sea", "Baltic Sea", "Black Sea"], c: 1, e: "The Baltic is a special area, and the ban came fully into force between 2019 and 2023. The Mediterranean and Adriatic are not such an area for sewage so far." }
       ]
     },
     final: {
@@ -523,7 +585,13 @@ window.PO_CONTENT = {
       items: [
         { t: "IMO: Prevention of Pollution by Sewage from Ships (MARPOL Annex IV)", u: "https://www.imo.org/en/OurWork/Environment/Pages/Sewage-Default.aspx" },
         { t: "Official Gazette 72/2021: Ordinance on maintaining order in ports and other parts of Croatian internal waters and territorial sea (HR)", u: "https://narodne-novine.nn.hr/clanci/sluzbeni/2021_06_72_1358.html" },
-        { t: "Croatian Ministry of the Sea: preventing sewage pollution from yachts in nautical ports, legal framework (HR)", u: "https://mmpi.gov.hr/UserDocsImages/arhiva/PREVENCIJA%20ONE%C4%8CI%C5%A0%C4%86ENJA%20FEKALIJAMA%20S%20JAHTI%20U%20LUKAMA%20NAUTI%C4%8CKOG%20TURIZMA%20%E2%80%93%20PRAVNI%20OKVIR.pdf" }
+        { t: "Croatian Ministry of the Sea: preventing sewage pollution from yachts in nautical ports, legal framework (HR)", u: "https://mmpi.gov.hr/UserDocsImages/arhiva/PREVENCIJA%20ONE%C4%8CI%C5%A0%C4%86ENJA%20FEKALIJAMA%20S%20JAHTI%20U%20LUKAMA%20NAUTI%C4%8CKOG%20TURIZMA%20%E2%80%93%20PRAVNI%20OKVIR.pdf" },
+        { t: "Croatian Maritime Code (consolidated), Art. 49.a–49.f (HR)", u: "https://www.zakon.hr/z/310/Pomorski-zakonik" },
+        { t: "Directive 2006/7/EC on bathing water quality, annexes", u: "https://www.legislation.gov.uk/eudr/2006/7/annexes/adopted" },
+        { t: "gov.hr: Bathing water quality (HR)", u: "https://www.gov.hr/hr/kakvoca-mora/1580" },
+        { t: "RYA: Holding tanks (rules in other countries)", u: "https://www.rya.org.uk/boating-abroad/holding-tanks/" },
+        { t: "Practical Sailor: tank treatments and hose test", u: "https://www.practical-sailor.com/systems-propulsion/solutions-for-a-stinky-holding-tank/" },
+        { t: "Yacht.de: eco-moorings in Kornati National Park (2025)", u: "https://www.yacht.de/en/travel-and-charter/croatia/croatia-kornati-national-park-murings-for-marine-conservation/" }
       ]
     },
     footer: "ČistoMore · Hackathon 2026 · Group 4: Sail responsibly"

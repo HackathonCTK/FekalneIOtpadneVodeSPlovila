@@ -17,7 +17,7 @@
   var doc = document;
   var root = doc.documentElement;
   var LANG_KEY = "cm-lang";       // zajednički ključ: ostale grupe ga mogu čitati
-  var BEST_KEY = "po-quiz-best";
+  var BEST_KEY = "po-quiz-best10";  // novi ključ: stari rezultat bio je od 8 pitanja
   var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   function $(sel, ctx) { return (ctx || doc).querySelector(sel); }
@@ -128,6 +128,13 @@
     // Link prema karti grupe 2: map.html?station=<id> (dogovor u INTEGRACIJA.md, točka D)
     $("#po-stations").innerHTML = base.pump.stations.items.filter(function (s) { return !!stationRecord(s.id); }).map(function (s) {
       return '<li class="po-station" data-station="' + s.id + '"><span class="po-station-pin">' + icon("pin", 18) + '</span><h4 data-st="name"></h4><p data-st="place"></p><p class="po-hours" data-st="contact"></p><a href="map.html?station=' + encodeURIComponent(s.id) + '"><span data-i18n="pump.stations.onMap"></span> →</a></li>';
+    }).join("");
+
+    // Jesi li znao? — kratke činjenice, svaka sa svojim izvorom
+    $("#po-know").innerHTML = base.know.items.map(function (it, i) {
+      var k = "know.items." + i;
+      return '<article class="po-know"><p class="po-know-big" data-i18n="' + k + '.n"></p><h3 data-i18n="' + k + '.t"></h3><p data-i18n="' + k + '.d"></p>' +
+        '<a class="po-know-src" href="' + it.u + '" target="_blank" rel="noopener"><span data-i18n="know.src"></span>: <span data-i18n="' + k + '.s"></span></a></article>';
     }).join("");
 
     $("#po-sources").innerHTML = base.sources.items.map(function (s, i) {
@@ -322,8 +329,17 @@
     for (var j = n - 1; j > 0; j--) { var k = Math.floor(Math.random() * (j + 1)); var tmp = a[j]; a[j] = a[k]; a[k] = tmp; }
     return a;
   }
+  // Svaki kviz uzima quiz.size nasumičnih pitanja iz baze (quiz.questions).
+  // set[i] je izvorni indeks pitanja u bazi, pa promjena jezika ne mijenja stanje kviza.
   function newQuiz() {
-    return { i: 0, picks: [], done: false, order: base.quiz.questions.map(function (q) { return shuffledIdx(q.a.length); }) };
+    var all = base.quiz.questions;
+    var size = Math.min(base.quiz.size || all.length, all.length);
+    var set = shuffledIdx(all.length).slice(0, size);
+    return { i: 0, picks: [], done: false, set: set, order: set.map(function (qi) { return shuffledIdx(all[qi].a.length); }) };
+  }
+  function quizQs() {
+    var all = t("quiz.questions");
+    return quiz.set.map(function (qi) { return all[qi]; });
   }
   var quiz = newQuiz();
 
@@ -338,7 +354,7 @@
   }
   function quizBest() { var b = parseInt(sget(BEST_KEY), 10); return isNaN(b) ? null : b; }
   function quizScore() {
-    var qs = t("quiz.questions");
+    var qs = quizQs();
     return quiz.picks.reduce(function (s, p, i) { return s + (p === qs[i].c ? 1 : 0); }, 0);
   }
   function certDateText() {
@@ -354,7 +370,7 @@
   function renderQuiz() {
     var box = $("#po-quiz");
     var Q = t("quiz");
-    var qs = Q.questions, n = qs.length;
+    var qs = quizQs(), n = qs.length;
 
     if (quiz.done) { renderResult(box, Q, n); return; }
 
@@ -390,7 +406,7 @@
         quiz.picks[quiz.i] = orig;
         quizFocus = "next";
         renderQuiz();
-        var qq = t("quiz.questions")[quiz.i];
+        var qq = quizQs()[quiz.i];
         announce((orig === qq.c ? t("quiz.correct") : t("quiz.wrong")) + " " + qq.e);
       });
     });
@@ -686,7 +702,7 @@
     renderQuiz();
     // Već izrađeni certifikat crta se ponovno na novom jeziku
     if ((cert.url || cert.busy) && quiz.done && cert.name && quizScore() >= t("quiz.cert.min")) {
-      makeCert(quizScore(), t("quiz.questions").length, false);
+      makeCert(quizScore(), quiz.set.length, false);
     }
   }
   function initLang() {
@@ -752,7 +768,7 @@
           });
         });
       }, { rootMargin: "-45% 0px -50% 0px" });
-      ["utjecaj", "vodic", "prihvat", "kviz"].forEach(function (id) { var s = doc.getElementById(id); if (s) io.observe(s); });
+      ["utjecaj", "vodic", "prihvat", "znao", "kviz"].forEach(function (id) { var s = doc.getElementById(id); if (s) io.observe(s); });
     }
   }
 
