@@ -32,7 +32,7 @@ CM_i18n.add({
         title: "Još nema prijava",
         text: "Kad prijavite ispuštanje otpadnih voda, ovdje ćete vidjeti njegov status.",
         report: "Napravi prvu prijavu",
-        demo: "Otvori obradu (demo podaci)"
+        demo: "Otvori obradu prijava"
       },
       status: { zaprimljeno: "Zaprimljeno", obrada: "U obradi", rijeseno: "Riješeno" },
       type: {
@@ -80,7 +80,7 @@ CM_i18n.add({
         title: "No reports yet",
         text: "Once you report a wastewater discharge, you will see its status here.",
         report: "Make your first report",
-        demo: "Open report handling (demo data)"
+        demo: "Open report handling"
       },
       status: { zaprimljeno: "Received", obrada: "In progress", rijeseno: "Resolved" },
       type: {

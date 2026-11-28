@@ -29,16 +29,6 @@
           <div class="brand-sub" data-i18n="obrada.brandSub">Portal za nadležne službe</div>
         </div>
       </a>
-      <button class="icon-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="menu"
-              aria-label="Postavke" title="Postavke" data-i18n-attr="aria-label:obrada.menu.label; title:obrada.menu.label">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
-      </button>
-      <div class="ob-menu" id="menu" role="dialog" aria-label="Postavke" data-i18n-attr="aria-label:obrada.menu.label">
-        <label><input type="checkbox" id="simOffline"> <span data-i18n="obrada.menu.offline">Simuliraj rad bez signala</span></label>
-        <p data-i18n="obrada.menu.offlineHint">Promjene napravljene bez signala čuvaju se na uređaju i šalju kad se veza vrati.</p>
-        <button class="ob-btn ob-btn-plain ob-btn-sm" id="resetBtn" type="button" style="width:100%" data-i18n="obrada.menu.reset">Vrati početne demo podatke</button>
-        <p data-i18n="obrada.menu.storeHint">Podaci se spremaju samo u ovom pregledniku (zajedno s prijavama s obrasca „Nova prijava”).</p>
-      </div>
     </div>
     <h1 class="page-title" data-i18n="obrada.pageTitle">Obrada prijava</h1>
     <div class="page-sub" data-i18n="obrada.pageSub">Praćenje, usmjeravanje i rješavanje prijava onečišćenja mora</div>
@@ -58,7 +48,6 @@
         <a href="#prognoza" data-view="prognoza"><span class="t-long" data-i18n="obrada.tabs.prognoza">Prognoza nanosa</span><span class="t-short" data-i18n="obrada.tabs.prognozaShort">Prognoza</span></a>
       </nav>
       <div class="ob-bar-right">
-        <div id="net" class="ob-net on" role="status" aria-live="polite"></div>
         <button class="ob-btn ob-btn-primary" id="newBtn" type="button">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span data-i18n="obrada.newBtn">Unesi prijavu</span>
         </button>
@@ -133,7 +122,7 @@
           <div class="ob-map" id="map2"></div>
           <div class="ob-legend" aria-hidden="true">
             <span><i class="ob-dot" style="background:var(--ob-zaprimljeno)"></i><span data-i18n="obrada.legend2.report">Prijava ispuštanja</span></span>
-            <span><i class="ob-dot" style="background:var(--ob-station);border-radius:4px"></i><span data-i18n="obrada.legend2.station">Crpna stanica / prihvat otpada (primjer)</span></span>
+            <span><i class="ob-dot" style="background:var(--ob-station);border-radius:4px"></i><span data-i18n="obrada.legend2.station">Prihvatno mjesto za fekalne vode</span></span>
             <span><i style="width:18px;border-top:3px dashed var(--ob-track)"></i><span data-i18n="obrada.legend2.track">Prijavljeni smjer kretanja</span></span>
           </div>
           <div class="ob-map-note" data-tilenote></div>
@@ -179,7 +168,7 @@
       </div>
     </section>
 
-    <p class="ob-foot" data-i18n="obrada.foot">Karta: © suradnici OpenStreetMapa. Prognoza vjetra i struja: Open-Meteo. Granice luka i koncesija, crpne stanice i pravila usmjeravanja su približni primjeri koje treba potvrditi s nadležnim institucijama.</p>
+    <p class="ob-foot" data-i18n="obrada.foot">Karta: © suradnici OpenStreetMapa. Prognoza vjetra i struja: Open-Meteo. Prihvatna mjesta: popis dokumentiranih instalacija (rad potvrdite s operaterom). Prijedlog službe temelji se na najbližoj lučkoj kapetaniji i službenik ga uvijek može promijeniti. Podaci se spremaju samo u ovom pregledniku.</p>
   </main>
 
   <nav class="bottomnav" data-cm-nav="obrada"></nav>
@@ -196,7 +185,7 @@
       <button class="ob-x" type="button" data-close aria-label="Zatvori" data-i18n-attr="aria-label:obrada.dlg.close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <div class="ob-dlg-b">
-      <p class="full ob-hint" style="margin:0" data-i18n="obrada.new.intro">Ovako izgleda prijava koju šalje građanin ili nautičar. Odaberite lokaciju klikom na kartu.</p>
+      <p class="full ob-hint" style="margin:0" data-i18n="obrada.new.intro">Unesite prijavu zaprimljenu telefonom, e-poštom ili na terenu. Odaberite lokaciju klikom na kartu.</p>
       <label class="ob-field full"><span data-i18n="obrada.new.type">Vrsta problema</span><select id="nType" required></select></label>
       <label class="ob-field" id="nVesselWrap"><span data-i18n="obrada.new.vessel">Vrsta plovila</span><select id="nVessel"></select></label>
       <label class="ob-field" id="nHeadingWrap"><span data-i18n="obrada.new.heading">Smjer kretanja plovila</span><select id="nHeading"></select></label>
@@ -229,7 +218,7 @@
     </div>
     <div class="ob-dlg-b">
       <label class="ob-field full"><span data-i18n="obrada.svcDlg.select">Nadležna služba</span><select id="svcSel"></select></label>
-      <label class="ob-field full"><span data-i18n="obrada.svcDlg.why">Razlog preusmjeravanja</span><textarea id="svcWhy" maxlength="400" placeholder="Npr. lokacija je unutar koncesije, a ne lučkog područja" data-i18n-attr="placeholder:obrada.svcDlg.whyPh"></textarea></label>
+      <label class="ob-field full"><span data-i18n="obrada.svcDlg.why">Razlog preusmjeravanja</span><textarea id="svcWhy" maxlength="400" placeholder="Npr. izvor onečišćenja je na kopnu, nadležan je komunalni redar" data-i18n-attr="placeholder:obrada.svcDlg.whyPh"></textarea></label>
       <p class="full ob-hint" style="margin:0" data-i18n="obrada.svcDlg.hint">Razlog se upisuje u povijest prijave. Iz takvih ispravaka mogu se poboljšati pravila usmjeravanja.</p>
     </div>
     <div class="ob-dlg-f">
@@ -239,21 +228,12 @@
   </form>
 </dialog>
 
-<!-- Potvrda vraćanja demo podataka -->
-<dialog class="ob-dialog ob-dialog-sm" id="confirmDlg" aria-labelledby="cfTitle">
-  <div class="ob-dlg">
-    <div class="ob-dlg-h"><h2 id="cfTitle" data-i18n="obrada.cf.title">Vratiti početne podatke?</h2></div>
-    <div class="ob-dlg-b"><p class="full" style="margin:0" data-i18n="obrada.cf.body">Sve promjene i nove prijave u ovom pregledniku bit će obrisane.</p></div>
-    <div class="ob-dlg-f">
-      <button class="ob-btn ob-btn-plain" type="button" data-close data-i18n="obrada.new.cancel">Odustani</button>
-      <button class="ob-btn ob-btn-dark" type="button" id="cfYes" data-i18n="obrada.cf.yes">Vrati podatke</button>
-    </div>
-  </div>
-</dialog>
-
 <script src="app.js"></script>
 <script src="obrada-i18n.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="data/stations.js"></script>
+<script src="data/kontakti.js"></script>
+<script src="data/regije.js"></script>
 <script src="obrada.js"></script>
 </body>
 </html>

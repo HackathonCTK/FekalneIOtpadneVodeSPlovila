@@ -10,13 +10,6 @@ var hr = {
   brandSub: 'Portal za nadležne službe',
   pageTitle: 'Obrada prijava',
   pageSub: 'Praćenje, usmjeravanje i rješavanje prijava onečišćenja mora',
-  menu: {
-    label: 'Postavke',
-    offline: 'Simuliraj rad bez signala',
-    offlineHint: 'Promjene napravljene bez signala čuvaju se na uređaju i šalju kad se veza vrati.',
-    reset: 'Vrati početne demo podatke',
-    storeHint: 'Podaci se spremaju samo u ovom pregledniku (zajedno s prijavama s obrasca „Nova prijava”). Spajanje na poslužitelj i stvarno slanje službama dolazi u sljedećoj fazi.'
-  },
   tabs: {
     label: 'Moduli obrade prijava',
     prijave: 'Prijave i usmjeravanje', prijaveShort: 'Prijave',
@@ -24,7 +17,6 @@ var hr = {
     prognoza: 'Prognoza nanosa', prognozaShort: 'Prognoza',
     badge: '{n} novih prijava'
   },
-  net: { on: 'Na mreži', off: 'Bez signala', pending: '{n} čeka slanje' },
   newBtn: 'Unesi prijavu',
   v1: {
     h: 'Prijave i usmjeravanje',
@@ -39,9 +31,9 @@ var hr = {
   },
   period: { '1': 'Zadnja 24 sata', '7': 'Zadnjih 7 dana', '30': 'Zadnjih 30 dana', all: 'Sve' },
   seg: { label: 'Prikaz', list: 'Popis', map: 'Karta' },
-  layers1: { label: 'Slojevi nadležnosti', ports: 'Lučka područja', conc: 'Koncesije plaža', lk: 'Sjedišta lučkih kapetanija' },
+  layers1: { label: 'Slojevi nadležnosti', lk: 'Sjedišta lučkih kapetanija' },
   layers2: { label: 'Prikaži', reports: 'Prijave ispuštanja', stations: 'Crpne stanice i prihvat otpada', track: 'Smjer kretanja' },
-  legend2: { report: 'Prijava ispuštanja', station: 'Crpna stanica / prihvat otpada (primjer)', track: 'Prijavljeni smjer kretanja' },
+  legend2: { report: 'Prijava ispuštanja', station: 'Prihvatno mjesto za fekalne vode', track: 'Prijavljeni smjer kretanja' },
   legend3: { waste: 'Prijava otpada (30 dana)' },
   mapNote: {
     tiles: 'Karta se ne može učitati (nema veze s poslužiteljem OpenStreetMapa). Prijave, filteri i obrada i dalje rade.',
@@ -68,43 +60,19 @@ var hr = {
     c4: 'Šibensko-kninska', c5: 'Splitsko-dalmatinska', c6: 'Dubrovačko-neretvanska'
   },
   svc: {
-    lk: 'Lučka kapetanija {x}', lu: 'Lučka uprava {x}', zlu: 'Županijska lučka uprava {x}',
-    k: 'Koncesionar plaže {x}', kr: 'Komunalni redar, {x}',
+    lk: 'Lučka kapetanija {x}', kr: 'Komunalni redar, {x}',
     none: 'Služba nije određena', unknown: 'Nepoznata služba ({id})'
   },
-  svcGroup: { lk: 'Lučke kapetanije', lu: 'Lučke uprave', k: 'Koncesionari plaža', kr: 'Komunalni redari' },
-  stWhat: {
-    pump_waste: 'Ispumpavanje fekalnih voda, prihvat otpada',
-    pump: 'Ispumpavanje fekalnih voda',
-    waste_bilge: 'Prihvat otpada i kaljužnih voda',
-    waste: 'Prihvat otpada'
-  },
-  st: { example: 'Primjer: {name} – {what}' },
+  svcGroup: { lk: 'Lučke kapetanije', kr: 'Komunalni redari' },
+  st: { open: 'Otvori na karti' },
   dir: { n: 'sjever', ne: 'sjeveroistok', e: 'istok', se: 'jugoistok', s: 'jug', sw: 'jugozapad', w: 'zapad', nw: 'sjeverozapad' },
   dirS: { n: 'S', ne: 'SI', e: 'I', se: 'JI', s: 'J', sw: 'JZ', w: 'Z', nw: 'SZ' },
   when: { now: 'upravo sada', min: 'prije {n} min', today: 'danas {time}', yesterday: 'jučer {time}' },
   r: {
-    inPort: 'Točka je unutar lučkog područja: {name}',
-    atSea: 'Točka je na moru, izvan lučkih područja',
-    fekLK: 'Ispuštanje s plovila: nadzor plovidbe vodi lučka kapetanija',
-    portPollution: 'Onečišćenje mora u luci: lučka uprava',
-    inConc: 'Točka je unutar koncesije: {name}',
-    concSea: 'Otpad u moru uz koncesijsku plažu: koncesionar',
-    seaOutside: 'Točka je na moru, izvan luka i koncesija',
-    seaLK: 'Onečišćenje mora izvan luke: lučka kapetanija',
-    inConcBeach: 'Točka je unutar koncesije na pomorskom dobru: {name}',
-    beachConc: 'Otpad na plaži: održava koncesionar',
-    portWaste: 'Otpad unutar luke: lučka uprava',
-    beachNoConc: 'Plaža bez upisane koncesije (pomorsko dobro)',
-    beachKR: 'Održavanje: jedinica lokalne samouprave, komunalni redar',
-    septicLand: 'Izvor onečišćenja je na kopnu (objekt), a ne na plovilu',
-    septicKR: 'Septičke jame i izljevi: komunalni redar',
-    vesselInPort: 'Plovilo je unutar lučkog područja: {name}',
-    vesselPortAuth: 'Napušteno plovilo u luci: lučka uprava',
-    vesselOutside: 'Plovilo je izvan luke',
-    vesselLK: 'Napuštena i potonula plovila: lučka kapetanija',
-    landWaste: 'Otpad na kopnu uz obalu',
-    landKR: 'Komunalni redar, a lokaciju treba upisati i u ELOO',
+    nearestLK: 'Najbliža lučka kapetanija: {city} ({km} km)',
+    nearestTown: 'Najbliži grad / općina: {town} ({km} km)',
+    seaLK: 'Onečišćenje mora i ispuštanja s plovila: nadzor vodi lučka kapetanija',
+    landKR: 'Izvor je na kopnu ili na plaži: komunalni redar grada / općine',
     where: 'Najbliže naselje: {town} ({county} županija)'
   },
   h: {
@@ -121,12 +89,11 @@ var hr = {
     confirmedToWhy: 'Potvrđeno: {svc}. Razlog: {why}',
     assigned: 'Dodijeljeno službi: {to}',
     assignedWhy: 'Dodijeljeno službi: {to}. Razlog: {why}',
-    synced: 'Sinkronizirano nakon povratka veze',
     notify: 'Obavijest za crpne stanice / marine: {names}'
   },
   nearPlace: 'Blizu: {town}',
   noLoc: 'Bez lokacije',
-  list: { empty: 'Nema prijava za odabrane filtere.', suggested: '(prijedlog)', pending: 'Čeka slanje' },
+  list: { empty: 'Nema prijava za odabrane filtere.', suggested: '(prijedlog)' },
   d: {
     empty: 'Odaberite prijavu s popisa ili karte.', back: 'Natrag', report: 'Prijava #{id}',
     photoAlt: 'Fotografija uz prijavu #{id}', noPhoto: 'Prijava je poslana bez fotografije',
@@ -136,7 +103,7 @@ var hr = {
     place: 'Lokacija', reported: 'Prijavljeno', vessel: 'Vrsta plovila', heading: 'Smjer kretanja', coords: 'Koordinate',
     county: 'Županija', wasteType: 'Vrsta otpada', shipSize: 'Veličina plovila', shipColor: 'Boja plovila',
     registration: 'Registracija / ime plovila', observedFromLand: 'Opaženo s kopna', observedAt: 'Vrijeme opažanja',
-    source: 'Izvor', sourceForm: 'Obrazac „Nova prijava”', competent: 'Nadležno'
+    source: 'Izvor', sourceForm: 'Obrazac „Nova prijava”', sourceObrada: 'Uneseno u obradi prijava', competent: 'Nadležno'
   },
   yes: 'Da', no: 'Ne',
   heading: { unknownAnchor: 'Nepoznat / na sidru', unknown: 'Nepoznat' },
@@ -174,7 +141,9 @@ var hr = {
     mapLabel: 'Krug = razina rizika · strelica = smjer vjetra',
     loading: 'Učitavanje prognoze…',
     ok: 'Open-Meteo: {what} · dohvaćeno u {time}', wind: 'vjetar', windCur: 'vjetar i morske struje',
-    fallback: 'Prognozu nije moguće dohvatiti{why}. Prikazan je PRIMJER scenarija juga.', noNet: ' (nema veze)',
+    errShort: 'Prognoza nije dohvaćena', errTitle: 'Prognozu nije moguće dohvatiti',
+    errBody: 'Open-Meteo trenutačno ne odgovara. Pokušajte ponovno za nekoliko trenutaka.',
+    errOffline: 'Nema internetske veze. Spojite se i pokušajte ponovno.', retry: 'Pokušaj ponovno',
     upTo: 'do {v}', expected: 'Očekivani nanos · {day}',
     riskHint: 'Rizik = vjetar prema obali + struja prema obali + prijave otpada u blizini (30 dana).',
     windOn: 'Vjetar prema obali: {v} · razdoblje: {win}', noWindow: 'nije očekivan',
@@ -184,10 +153,10 @@ var hr = {
   unit: { kn: 'čv' },
   day: { today: 'Danas', tomorrow: 'Sutra' },
   risk: { visok: 'Visok rizik', srednji: 'Srednji rizik', nizak: 'Nizak rizik' },
-  foot: 'Karta: © suradnici OpenStreetMapa. Prognoza vjetra i struja: Open-Meteo. Granice luka i koncesija, crpne stanice i pravila usmjeravanja su približni primjeri koje treba potvrditi s nadležnim institucijama.',
+  foot: 'Karta: © suradnici OpenStreetMapa. Prognoza vjetra i struja: Open-Meteo. Prihvatna mjesta: popis dokumentiranih instalacija (rad potvrdite s operaterom). Prijedlog službe temelji se na najbližoj lučkoj kapetaniji i službenik ga uvijek može promijeniti. Podaci se spremaju samo u ovom pregledniku.',
   dlg: { close: 'Zatvori' },
   new: {
-    title: 'Unos prijave', intro: 'Ovako izgleda prijava koju šalje građanin ili nautičar. Odaberite lokaciju klikom na kartu.',
+    title: 'Unos prijave', intro: 'Unesite prijavu zaprimljenu telefonom, e-poštom ili na terenu. Odaberite lokaciju klikom na kartu.',
     type: 'Vrsta problema', vessel: 'Vrsta plovila', heading: 'Smjer kretanja plovila', pickAria: 'Karta za odabir lokacije',
     lat: 'Geogr. širina', lng: 'Geogr. dužina', geo: 'Moja lokacija', desc: 'Opis (neobavezno)', descPh: 'Što ste vidjeli?',
     photo: 'Fotografija (neobavezno)', cancel: 'Odustani', submit: 'Pošalji prijavu', choose: 'Odaberite',
@@ -202,25 +171,20 @@ var hr = {
   },
   svcDlg: {
     title: 'Preusmjeri drugoj službi', titleAssign: 'Dodijeli nadležnu službu', select: 'Nadležna služba',
-    why: 'Razlog preusmjeravanja', whyPh: 'Npr. lokacija je unutar koncesije, a ne lučkog područja',
+    why: 'Razlog preusmjeravanja', whyPh: 'Npr. izvor onečišćenja je na kopnu, nadležan je komunalni redar',
     hint: 'Razlog se upisuje u povijest prijave. Iz takvih ispravaka mogu se poboljšati pravila usmjeravanja.',
     submit: 'Spremi'
   },
-  cf: { title: 'Vratiti početne podatke?', body: 'Sve promjene i nove prijave u ovom pregledniku bit će obrisane.', yes: 'Vrati podatke' },
+  emptyStore: { title: 'Još nema prijava', p: 'Prijave građana i nautičara pojavit će se ovdje čim budu poslane.', link: 'Pošalji prijavu' },
   toast: {
-    savedLocal: 'Spremljeno na uređaju, šalje se kad se veza vrati.',
-    synced: 'Veza je vraćena. Poslano promjena: {n}.',
     forwarded: 'Prijava #{id} proslijeđena: {svc}.',
     status: 'Status prijave #{id}: {status}.',
     statusBack: 'Status prijave #{id} vraćen na: {status}.',
     redirected: 'Prijava #{id} usmjerena: {svc}.',
     notified: 'Obavijest zabilježena za: {names}.',
     warn: 'Upozorenje za {bay} zabilježeno ({owner}).',
-    warnOffline: 'Šalje se kad se veza vrati.',
     created: 'Prijava #{id} zaprimljena i usmjerena: {svc}.',
-    createdOffline: 'Bez signala: šalje se kasnije.',
     photoNotSaved: 'Fotografija nije spremljena (premalo prostora na uređaju).',
-    reset: 'Vraćeni su početni demo podaci.',
     incoming: 'Stigla je nova prijava #{id}.',
     incomingN: 'Stiglo je novih prijava: {n}.'
   }
@@ -231,13 +195,6 @@ var en = {
   brandSub: 'Portal for authorities',
   pageTitle: 'Report handling',
   pageSub: 'Track, route and resolve marine pollution reports',
-  menu: {
-    label: 'Settings',
-    offline: 'Simulate working without signal',
-    offlineHint: 'Changes made without signal are kept on this device and sent when the connection returns.',
-    reset: 'Restore demo data',
-    storeHint: 'Data is stored only in this browser (together with reports from the “New report” form). Server sync and real delivery to authorities come in the next phase.'
-  },
   tabs: {
     label: 'Report handling modules',
     prijave: 'Reports & routing', prijaveShort: 'Reports',
@@ -245,7 +202,6 @@ var en = {
     prognoza: 'Debris forecast', prognozaShort: 'Forecast',
     badge: '{n} new reports'
   },
-  net: { on: 'Online', off: 'No signal', pending: '{n} waiting to send' },
   newBtn: 'Log a report',
   v1: {
     h: 'Reports & routing',
@@ -260,9 +216,9 @@ var en = {
   },
   period: { '1': 'Last 24 hours', '7': 'Last 7 days', '30': 'Last 30 days', all: 'All' },
   seg: { label: 'View', list: 'List', map: 'Map' },
-  layers1: { label: 'Jurisdiction layers', ports: 'Port areas', conc: 'Beach concessions', lk: 'Harbour master offices' },
+  layers1: { label: 'Jurisdiction layers', lk: 'Harbour master offices' },
   layers2: { label: 'Show', reports: 'Discharge reports', stations: 'Pump-out & waste reception', track: 'Heading' },
-  legend2: { report: 'Discharge report', station: 'Pump-out / waste reception (example)', track: 'Reported heading' },
+  legend2: { report: 'Discharge report', station: 'Sewage pump-out point', track: 'Reported heading' },
   legend3: { waste: 'Waste report (30 days)' },
   mapNote: {
     tiles: 'The map cannot load (no connection to the OpenStreetMap server). Reports, filters and handling still work.',
@@ -289,43 +245,19 @@ var en = {
     c4: 'Šibenik-Knin', c5: 'Split-Dalmatia', c6: 'Dubrovnik-Neretva'
   },
   svc: {
-    lk: 'Harbour Master’s Office {x}', lu: 'Port Authority {x}', zlu: 'County Port Authority {x}',
-    k: 'Beach concessionaire {x}', kr: 'Municipal warden, {x}',
+    lk: 'Harbour Master’s Office {x}', kr: 'Municipal warden, {x}',
     none: 'No authority assigned', unknown: 'Unknown authority ({id})'
   },
-  svcGroup: { lk: 'Harbour master offices', lu: 'Port authorities', k: 'Beach concessionaires', kr: 'Municipal wardens' },
-  stWhat: {
-    pump_waste: 'Sewage pump-out, waste reception',
-    pump: 'Sewage pump-out',
-    waste_bilge: 'Waste and bilge water reception',
-    waste: 'Waste reception'
-  },
-  st: { example: 'Example: {name} – {what}' },
+  svcGroup: { lk: 'Harbour master offices', kr: 'Municipal wardens' },
+  st: { open: 'Open on the map' },
   dir: { n: 'north', ne: 'northeast', e: 'east', se: 'southeast', s: 'south', sw: 'southwest', w: 'west', nw: 'northwest' },
   dirS: { n: 'N', ne: 'NE', e: 'E', se: 'SE', s: 'S', sw: 'SW', w: 'W', nw: 'NW' },
   when: { now: 'just now', min: '{n} min ago', today: 'today {time}', yesterday: 'yesterday {time}' },
   r: {
-    inPort: 'The point is inside a port area: {name}',
-    atSea: 'The point is at sea, outside port areas',
-    fekLK: 'Discharge from a vessel: navigation is supervised by the harbour master',
-    portPollution: 'Sea pollution in a port: port authority',
-    inConc: 'The point is inside a concession: {name}',
-    concSea: 'Waste in the sea by a concession beach: concessionaire',
-    seaOutside: 'The point is at sea, outside ports and concessions',
-    seaLK: 'Sea pollution outside a port: harbour master',
-    inConcBeach: 'The point is inside a concession on maritime domain: {name}',
-    beachConc: 'Waste on the beach: maintained by the concessionaire',
-    portWaste: 'Waste inside a port: port authority',
-    beachNoConc: 'Beach without a registered concession (maritime domain)',
-    beachKR: 'Maintenance: local government, municipal warden',
-    septicLand: 'The pollution source is on land (a building), not a vessel',
-    septicKR: 'Septic tanks and outflows: municipal warden',
-    vesselInPort: 'The vessel is inside a port area: {name}',
-    vesselPortAuth: 'Abandoned vessel in a port: port authority',
-    vesselOutside: 'The vessel is outside a port',
-    vesselLK: 'Abandoned and sunken vessels: harbour master',
-    landWaste: 'Waste on land along the coast',
-    landKR: 'Municipal warden; the site should also be entered in ELOO',
+    nearestLK: 'Nearest harbour master office: {city} ({km} km)',
+    nearestTown: 'Nearest town / municipality: {town} ({km} km)',
+    seaLK: 'Sea pollution and vessel discharges: supervised by the harbour master',
+    landKR: 'The source is on land or on the beach: municipal warden',
     where: 'Nearest settlement: {town} ({county} County)'
   },
   h: {
@@ -342,12 +274,11 @@ var en = {
     confirmedToWhy: 'Confirmed: {svc}. Reason: {why}',
     assigned: 'Assigned to: {to}',
     assignedWhy: 'Assigned to: {to}. Reason: {why}',
-    synced: 'Synced after the connection returned',
     notify: 'Notice to pump-out stations / marinas: {names}'
   },
   nearPlace: 'Near: {town}',
   noLoc: 'No location',
-  list: { empty: 'No reports match the selected filters.', suggested: '(suggested)', pending: 'Waiting to send' },
+  list: { empty: 'No reports match the selected filters.', suggested: '(suggested)' },
   d: {
     empty: 'Select a report from the list or the map.', back: 'Back', report: 'Report #{id}',
     photoAlt: 'Photo attached to report #{id}', noPhoto: 'The report was sent without a photo',
@@ -357,7 +288,7 @@ var en = {
     place: 'Location', reported: 'Reported', vessel: 'Vessel type', heading: 'Heading', coords: 'Coordinates',
     county: 'County', wasteType: 'Waste type', shipSize: 'Vessel size', shipColor: 'Vessel colour',
     registration: 'Registration / vessel name', observedFromLand: 'Observed from land', observedAt: 'Observed at',
-    source: 'Source', sourceForm: '“New report” form', competent: 'Competent'
+    source: 'Source', sourceForm: '“New report” form', sourceObrada: 'Logged in report handling', competent: 'Competent'
   },
   yes: 'Yes', no: 'No',
   heading: { unknownAnchor: 'Unknown / at anchor', unknown: 'Unknown' },
@@ -395,7 +326,9 @@ var en = {
     mapLabel: 'Circle = risk level · arrow = wind direction',
     loading: 'Loading forecast…',
     ok: 'Open-Meteo: {what} · fetched at {time}', wind: 'wind', windCur: 'wind and sea currents',
-    fallback: 'The forecast could not be loaded{why}. Showing an EXAMPLE jugo (sirocco) scenario.', noNet: ' (no connection)',
+    errShort: 'Forecast not loaded', errTitle: 'The forecast could not be loaded',
+    errBody: 'Open-Meteo is not responding right now. Please try again in a moment.',
+    errOffline: 'No internet connection. Connect and try again.', retry: 'Try again',
     upTo: 'up to {v}', expected: 'Expected debris · {day}',
     riskHint: 'Risk = onshore wind + onshore current + nearby waste reports (30 days).',
     windOn: 'Onshore wind: {v} · window: {win}', noWindow: 'not expected',
@@ -405,10 +338,10 @@ var en = {
   unit: { kn: 'kn' },
   day: { today: 'Today', tomorrow: 'Tomorrow' },
   risk: { visok: 'High risk', srednji: 'Medium risk', nizak: 'Low risk' },
-  foot: 'Map: © OpenStreetMap contributors. Wind and current forecast: Open-Meteo. Port and concession boundaries, pump-out stations and routing rules are approximate examples to be confirmed with the competent institutions.',
+  foot: 'Map: © OpenStreetMap contributors. Wind and current forecast: Open-Meteo. Pump-out points: list of documented installations (confirm operation with the operator). The suggested authority is based on the nearest harbour master office and can always be changed by an officer. Data is stored only in this browser.',
   dlg: { close: 'Close' },
   new: {
-    title: 'Log a report', intro: 'This is what a report from a citizen or boater looks like. Pick the location by clicking the map.',
+    title: 'Log a report', intro: 'Log a report received by phone, e-mail or in the field. Pick the location by clicking the map.',
     type: 'Problem type', vessel: 'Vessel type', heading: 'Vessel heading', pickAria: 'Map for picking the location',
     lat: 'Latitude', lng: 'Longitude', geo: 'My location', desc: 'Description (optional)', descPh: 'What did you see?',
     photo: 'Photo (optional)', cancel: 'Cancel', submit: 'Send report', choose: 'Choose',
@@ -423,25 +356,20 @@ var en = {
   },
   svcDlg: {
     title: 'Reroute to another authority', titleAssign: 'Assign competent authority', select: 'Competent authority',
-    why: 'Reason', whyPh: 'E.g. the location is inside a concession, not a port area',
+    why: 'Reason', whyPh: 'E.g. the source is on land, the municipal warden is responsible',
     hint: 'The reason is recorded in the report history. Such corrections can improve the routing rules.',
     submit: 'Save'
   },
-  cf: { title: 'Restore demo data?', body: 'All changes and new reports in this browser will be deleted.', yes: 'Restore data' },
+  emptyStore: { title: 'No reports yet', p: 'Reports from citizens and boaters will appear here as soon as they are sent.', link: 'Send a report' },
   toast: {
-    savedLocal: 'Saved on this device, will be sent when the connection returns.',
-    synced: 'Connection restored. Changes sent: {n}.',
     forwarded: 'Report #{id} forwarded: {svc}.',
     status: 'Report #{id} status: {status}.',
     statusBack: 'Report #{id} status reverted to: {status}.',
     redirected: 'Report #{id} routed to: {svc}.',
     notified: 'Notice logged for: {names}.',
     warn: 'Warning for {bay} logged ({owner}).',
-    warnOffline: 'Will be sent when the connection returns.',
     created: 'Report #{id} received and routed to: {svc}.',
-    createdOffline: 'No signal: will be sent later.',
     photoNotSaved: 'The photo was not saved (not enough storage on this device).',
-    reset: 'Demo data restored.',
     incoming: 'New report #{id} arrived.',
     incomingN: 'New reports arrived: {n}.'
   }

@@ -35,8 +35,6 @@ const distNM = (a, b) => { const dLat=(b.lat-a.lat)*RAD, dLng=(b.lng-a.lng)*RAD;
 const bearing = (a, b) => { const y=Math.sin((b.lng-a.lng)*RAD)*Math.cos(b.lat*RAD); const x=Math.cos(a.lat*RAD)*Math.sin(b.lat*RAD)-Math.sin(a.lat*RAD)*Math.cos(b.lat*RAD)*Math.cos((b.lng-a.lng)*RAD); return (Math.atan2(y,x)/RAD+360)%360; };
 const destPoint = (a, brg, nm) => { const d=nm/R_NM, b=brg*RAD, la=a.lat*RAD, lo=a.lng*RAD; const la2=Math.asin(Math.sin(la)*Math.cos(d)+Math.cos(la)*Math.sin(d)*Math.cos(b)); const lo2=lo+Math.atan2(Math.sin(b)*Math.sin(d)*Math.cos(la),Math.cos(d)-Math.sin(la)*Math.sin(la2)); return {lat:la2/RAD,lng:lo2/RAD}; };
 const angDiff = (a, b) => { const d = Math.abs(a - b) % 360; return d > 180 ? 360 - d : d; };
-const inPoly = (p, poly) => { let ins=false; for(let i=0,j=poly.length-1;i<poly.length;j=i++){ const yi=poly[i][0],xi=poly[i][1],yj=poly[j][0],xj=poly[j][1]; if(((yi>p.lat)!==(yj>p.lat)) && (p.lng<(xj-xi)*(p.lat-yi)/(yj-yi)+xi)) ins=!ins; } return ins; };
-const rect = (s, w, n, e) => [[s,w],[s,e],[n,e],[n,w]];
 const num1 = n => n.toLocaleString(LOC(), {minimumFractionDigits:1, maximumFractionDigits:1});
 const fmtNM = n => (n < 10 ? num1(n) : Math.round(n)) + ' NM';
 const DIRK = ['n','ne','e','se','s','sw','w','nw'];
@@ -78,7 +76,7 @@ const ICON_PIN_OFF = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none
 const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const stColor = k => cssVar('--ob-' + k) || '#888888';
 
-/* ================= referentni podaci (približni demo podaci) ================= */
+/* ================= referentni podaci ================= */
 const ORDER = ['zaprimljeno','obrada','rijeseno'];
 const STATUS_ALIAS = {nova:'zaprimljeno', novo:'zaprimljeno', 'novo/zaprimljeno':'zaprimljeno', u_obradi:'obrada', 'u obradi':'obrada', 'riješeno':'rijeseno', resolved:'rijeseno', done:'rijeseno'};
 const stLabel = k => t('status.' + k);
@@ -88,16 +86,18 @@ const VESSELS = ['Gumenjak / brodica do 6 m','Motorni brod 6–12 m','Jedrilica 
 const vesselLabel = v => { const i = VESSELS.indexOf(v); return i >= 0 ? t('vessel.v' + i) : (v ? String(v) : t('vessel.unknown')); };
 const COUNTIES = ['Istarska','Primorsko-goranska','Ličko-senjska','Zadarska','Šibensko-kninska','Splitsko-dalmatinska','Dubrovačko-neretvanska'];
 const countyLabel = (c, hr) => { const i = COUNTIES.indexOf(c); return i >= 0 ? (hr ? tHr : t)('county.c' + i) : (c || '—'); };
+/* Sjedišta osam lučkih kapetanija (Ministarstvo mora): približne koordinate zgrada kapetanija */
 const LK = [
-  {id:'lk-pula',city:'Pula',lat:44.8695,lng:13.8455,county:'Istarska'},
-  {id:'lk-rijeka',city:'Rijeka',lat:45.3265,lng:14.4405,county:'Primorsko-goranska'},
-  {id:'lk-senj',city:'Senj',lat:44.9895,lng:14.9035,county:'Ličko-senjska'},
-  {id:'lk-zadar',city:'Zadar',lat:44.1165,lng:15.2265,county:'Zadarska'},
-  {id:'lk-sibenik',city:'Šibenik',lat:43.7345,lng:15.8885,county:'Šibensko-kninska'},
-  {id:'lk-split',city:'Split',lat:43.5045,lng:16.4395,county:'Splitsko-dalmatinska'},
-  {id:'lk-ploce',city:'Ploče',lat:43.0545,lng:17.4325,county:null},
-  {id:'lk-dubrovnik',city:'Dubrovnik',lat:42.6595,lng:18.0855,county:'Dubrovačko-neretvanska'}
+  {id:'lk-pula',city:'Pula',lat:44.8703,lng:13.8424,county:'Istarska'},
+  {id:'lk-rijeka',city:'Rijeka',lat:45.3253,lng:14.4393,county:'Primorsko-goranska'},
+  {id:'lk-senj',city:'Senj',lat:44.9893,lng:14.9031,county:'Ličko-senjska'},
+  {id:'lk-zadar',city:'Zadar',lat:44.1167,lng:15.2252,county:'Zadarska'},
+  {id:'lk-sibenik',city:'Šibenik',lat:43.7340,lng:15.8895,county:'Šibensko-kninska'},
+  {id:'lk-split',city:'Split',lat:43.5060,lng:16.4410,county:'Splitsko-dalmatinska'},
+  {id:'lk-ploce',city:'Ploče',lat:43.0540,lng:17.4330,county:'Dubrovačko-neretvanska'},
+  {id:'lk-dubrovnik',city:'Dubrovnik',lat:42.6600,lng:18.0850,county:'Dubrovačko-neretvanska'}
 ];
+function nearestLK(p){ let best = LK[0], bd = Infinity; LK.forEach(l => { const d = distNM(p, l); if (d < bd){ bd = d; best = l; } }); return {lk:best, km:bd * 1.852}; }
 const TOWNS = [
   ['umag','Grad Umag',45.434,13.520,'Istarska'],['porec','Grad Poreč',45.227,13.594,'Istarska'],['rovinj','Grad Rovinj',45.081,13.638,'Istarska'],['pula','Grad Pula',44.866,13.850,'Istarska'],
   ['opatija','Grad Opatija',45.338,14.307,'Primorsko-goranska'],['rijeka','Grad Rijeka',45.327,14.442,'Primorsko-goranska'],['crikvenica','Grad Crikvenica',45.176,14.692,'Primorsko-goranska'],['krk','Grad Krk',45.027,14.575,'Primorsko-goranska'],['losinj','Grad Mali Lošinj',44.531,14.468,'Primorsko-goranska'],
@@ -105,27 +105,13 @@ const TOWNS = [
   ['zadar','Grad Zadar',44.119,15.231,'Zadarska'],['biograd','Grad Biograd na Moru',43.937,15.443,'Zadarska'],
   ['vodice','Grad Vodice',43.759,15.778,'Šibensko-kninska'],['sibenik','Grad Šibenik',43.735,15.890,'Šibensko-kninska'],
   ['trogir','Grad Trogir',43.516,16.251,'Splitsko-dalmatinska'],['okrug','Općina Okrug',43.494,16.255,'Splitsko-dalmatinska'],['split','Grad Split',43.508,16.440,'Splitsko-dalmatinska'],['solta','Općina Šolta',43.388,16.276,'Splitsko-dalmatinska'],['supetar','Grad Supetar',43.384,16.553,'Splitsko-dalmatinska'],['milna','Općina Milna',43.326,16.452,'Splitsko-dalmatinska'],['bol','Općina Bol',43.262,16.655,'Splitsko-dalmatinska'],['omis','Grad Omiš',43.444,16.689,'Splitsko-dalmatinska'],['makarska','Grad Makarska',43.297,17.017,'Splitsko-dalmatinska'],['hvar','Grad Hvar',43.172,16.442,'Splitsko-dalmatinska'],['vis','Grad Vis',43.062,16.183,'Splitsko-dalmatinska'],
-  ['ploce','Grad Ploče',43.056,17.433,'Dubrovačko-neretvanska',{lk:'lk-ploce'}],['vela-luka','Općina Vela Luka',42.963,16.720,'Dubrovačko-neretvanska'],['korcula','Grad Korčula',42.960,17.135,'Dubrovačko-neretvanska'],['ston','Općina Ston',42.838,17.697,'Dubrovačko-neretvanska'],['mljet','Općina Mljet',42.746,17.530,'Dubrovačko-neretvanska'],['dubrovnik','Grad Dubrovnik',42.650,18.094,'Dubrovačko-neretvanska'],['konavle','Općina Konavle',42.581,18.218,'Dubrovačko-neretvanska']
-].map(a => ({id:a[0], unit:a[1], lat:a[2], lng:a[3], county:a[4], lk:(a[5] && a[5].lk) || (LK.find(l => l.county === a[4]) || {}).id}));
-const PORTS = [
-  {id:'p-split',name:'Gradska luka Split',authority:'lu-split',poly:rect(43.4985,16.4320,43.5068,16.4475)},
-  {id:'p-supetar',name:'Luka Supetar',authority:'zlu-split',poly:rect(43.3830,16.5470,43.3880,16.5560)},
-  {id:'p-gruz',name:'Luka Gruž, Dubrovnik',authority:'lu-dubrovnik',poly:rect(42.6560,18.0790,42.6640,18.0930)},
-  {id:'p-zadar',name:'Gradska luka Zadar',authority:'lu-zadar',poly:rect(44.1125,15.2195,44.1200,15.2320)},
-  {id:'p-rijeka',name:'Luka Rijeka',authority:'lu-rijeka',poly:rect(45.3180,14.4180,45.3290,14.4450)}
-];
-const CONCESSIONS = [
-  {id:'c-znjan',name:'Plaža Žnjan',service:'k-znjan',poly:rect(43.4990,16.4600,43.5055,16.4860)},
-  {id:'c-bacvice',name:'Plaža Bačvice',service:'k-bacvice',poly:rect(43.5000,16.4478,43.5030,16.4520)},
-  {id:'c-banje',name:'Plaža Banje',service:'k-banje',poly:rect(42.6398,18.1125,42.6428,18.1180)}
-];
+  ['ploce','Grad Ploče',43.056,17.433,'Dubrovačko-neretvanska'],['vela-luka','Općina Vela Luka',42.963,16.720,'Dubrovačko-neretvanska'],['korcula','Grad Korčula',42.960,17.135,'Dubrovačko-neretvanska'],['ston','Općina Ston',42.838,17.697,'Dubrovačko-neretvanska'],['mljet','Općina Mljet',42.746,17.530,'Dubrovačko-neretvanska'],['dubrovnik','Grad Dubrovnik',42.650,18.094,'Dubrovačko-neretvanska'],['konavle','Općina Konavle',42.581,18.218,'Dubrovačko-neretvanska']
+].map(a => ({id:a[0], unit:a[1], lat:a[2], lng:a[3], county:a[4]}));
 /* Službe: naziv se slaže iz vrste i mjesta, pa se prevodi (HR/EN) */
 const SERVICES = {};
 LK.forEach(l => SERVICES[l.id] = {id:l.id, kind:'lk', arg:l.city, group:'lk'});
-[['lu-split','lu','Split'],['zlu-split','zlu','Split'],['lu-dubrovnik','lu','Dubrovnik'],['lu-zadar','lu','Zadar'],['lu-rijeka','lu','Rijeka']].forEach(a => SERVICES[a[0]] = {id:a[0], kind:a[1], arg:a[2], group:'lu'});
-[['k-znjan','Žnjan'],['k-bacvice','Bačvice'],['k-banje','Banje']].forEach(a => SERVICES[a[0]] = {id:a[0], kind:'k', arg:a[1], group:'k'});
 TOWNS.forEach(tw => SERVICES['kr-' + tw.id] = {id:'kr-' + tw.id, kind:'kr', arg:tw.unit, group:'kr'});
-const SERVICE_GROUPS = ['lk','lu','k','kr'];
+const SERVICE_GROUPS = ['lk','kr'];
 function svcName(id, hr){
   const f = hr ? tHr : t;
   if (!id) return f('svc.none');
@@ -133,21 +119,16 @@ function svcName(id, hr){
   return s ? f('svc.' + s.kind, {x:s.arg}) : f('svc.unknown', {id:id});
 }
 
-const STATIONS = [
-  {id:'s1',name:'Split – gradska luka',lat:43.5030,lng:16.4410,what:'pump_waste'},
-  {id:'s2',name:'Milna, Brač',lat:43.3268,lng:16.4510,what:'pump'},
-  {id:'s3',name:'Bol, Brač',lat:43.2612,lng:16.6560,what:'waste_bilge'},
-  {id:'s4',name:'Hvar',lat:43.1715,lng:16.4400,what:'pump'},
-  {id:'s5',name:'Trogir',lat:43.5150,lng:16.2485,what:'waste'},
-  {id:'s6',name:'Zadar',lat:44.1175,lng:15.2280,what:'pump_waste'},
-  {id:'s7',name:'Šibenik',lat:43.7330,lng:15.8880,what:'pump'},
-  {id:'s8',name:'Korčula',lat:42.9620,lng:17.1340,what:'pump'},
-  {id:'s9',name:'Dubrovnik – Gruž',lat:42.6610,lng:18.0850,what:'pump_waste'},
-  {id:'s10',name:'Pula',lat:44.8730,lng:13.8460,what:'waste_bilge'},
-  {id:'s11',name:'Rijeka',lat:45.3255,lng:14.4370,what:'pump'},
-  {id:'s12',name:'Pomena, Mljet',lat:42.7900,lng:17.3480,what:'pump'}
-];
-const stWhat = s => t('stWhat.' + s.what);
+/* Stvarna prihvatna mjesta za fekalne vode (data/stations.js, kontakti data/kontakti.js, regije data/regije.js) */
+const STATIONS = ((window.CM_STATIONS && window.CM_STATIONS.locations) || []).map(s => {
+  const lat = Number(s.latitude != null ? s.latitude : s.coordinates && s.coordinates.latitude);
+  const lng = Number(s.longitude != null ? s.longitude : s.coordinates && s.coordinates.longitude);
+  return {id:s.id, name:s.name, address:s.address || '', lat, lng,
+    region:(window.CM_REGIONS && window.CM_REGIONS.lokacije && window.CM_REGIONS.lokacije[s.id]) || '',
+    contact:(window.CM_CONTACTS && window.CM_CONTACTS[s.id]) || null};
+}).filter(s => isFinite(s.lat) && isFinite(s.lng));
+const stUrl = s => 'map.html?station=' + encodeURIComponent(s.id);
+const stSub = s => [s.address, s.contact && s.contact.telefon].filter(Boolean).join(' · ');
 const BAYS = [
   {id:'sunj',name:'Uvala Šunj, Lopud',lat:42.6770,lng:17.9520,facing:135},
   {id:'sudjuradj',name:'Suđurađ, Šipan',lat:42.7110,lng:17.9170,facing:150},
@@ -161,33 +142,26 @@ const BAYS = [
 function nearestTown(p){ let best = TOWNS[0], bd = Infinity; TOWNS.forEach(tw => { const d = distNM(p, tw); if (d < bd){ bd = d; best = tw; } }); return best; }
 const shortTown = s => String(s || '').replace(/^(Grad|Općina) /, '');
 
-/* Pravila usmjeravanja (demo – treba potvrditi s institucijama). Razlozi su ključevi prijevoda. */
+/* Prijedlog službe: najbliža lučka kapetanija (stvarna sjedišta). Za izvore na kopnu
+   (septička jama, otpad na plaži / kopnu) predlaže se komunalni redar najbližeg grada ili općine.
+   Službenik uvijek može ručno preusmjeriti. Razlozi su ključevi prijevoda. */
+const LAND_TYPES = ['septicka','otpad_plaza','otpad_kopno'];
 function route(lat, lng, type){
-  const p = {lat, lng}, town = nearestTown(p), lkId = town.lk;
-  const port = PORTS.find(x => inPoly(p, x.poly)), conc = CONCESSIONS.find(x => inPoly(p, x.poly));
+  const p = {lat, lng}, town = nearestTown(p), near = nearestLK(p);
   const R = [], add = (k, v) => R.push(v ? {k, v} : {k});
+  const km = String(Math.max(1, Math.round(near.km)));
   let svc;
-  if (type === 'fekalne'){
-    if (port) add('inPort', {name:port.name}); else add('atSea');
-    add('fekLK'); svc = lkId;
-  } else if (type === 'ulje' || type === 'otpad_more'){
-    if (port){ add('inPort', {name:port.name}); add('portPollution'); svc = port.authority; }
-    else if (conc && type === 'otpad_more'){ add('inConc', {name:conc.name}); add('concSea'); svc = conc.service; }
-    else { add('seaOutside'); add('seaLK'); svc = lkId; }
-  } else if (type === 'otpad_plaza'){
-    if (conc){ add('inConcBeach', {name:conc.name}); add('beachConc'); svc = conc.service; }
-    else if (port){ add('inPort', {name:port.name}); add('portWaste'); svc = port.authority; }
-    else { add('beachNoConc'); add('beachKR'); svc = 'kr-' + town.id; }
-  } else if (type === 'septicka'){
-    add('septicLand'); add('septicKR'); svc = 'kr-' + town.id;
-  } else if (type === 'napusteno'){
-    if (port){ add('vesselInPort', {name:port.name}); add('vesselPortAuth'); svc = port.authority; }
-    else { add('vesselOutside'); add('vesselLK'); svc = lkId; }
+  if (LAND_TYPES.includes(type)){
+    add('nearestTown', {town:town.unit, km:String(Math.max(1, Math.round(distNM(p, town) * 1.852)))});
+    add('landKR'); svc = 'kr-' + town.id;
+    add('nearestLK', {city:near.lk.city, km});
   } else {
-    add('landWaste'); add('landKR'); svc = 'kr-' + town.id;
+    add('nearestLK', {city:near.lk.city, km});
+    add('seaLK'); svc = near.lk.id;
   }
-  add('where', {town:town.unit, county:town.county});
-  return {service:svc, reasons:R, county:town.county, town:town.unit};
+  const county = town.county || near.lk.county;
+  add('where', {town:town.unit, county});
+  return {service:svc, reasons:R, county, town:town.unit};
 }
 /* Varijable u porukama: službe, županije i statusi prevode se pri prikazu */
 function resolveVars(v, hr){
@@ -208,7 +182,7 @@ function hEntry(k, v, when){
   if (v) e.v = v;
   return e;
 }
-const LEGACY = {'Prijava zaprimljena (Nova prijava).':'receivedForm', 'Sinkronizirano nakon povratka veze':'synced', 'Prijava zaprimljena.':'received0'};
+const LEGACY = {'Prijava zaprimljena (Nova prijava).':'receivedForm', 'Prijava zaprimljena.':'received0'};
 function hText(h){
   if (h && h.k && hasKey('h.' + h.k)) return t('h.' + h.k, resolveVars(h.v));
   if (h && h.text && LEGACY[h.text]) return t('h.' + LEGACY[h.text]);
@@ -217,44 +191,9 @@ function hText(h){
 
 /* ================= stanje (zajedničko spremište "cistomore.v1") ================= */
 const KEY = 'cistomore.v1';
-const SEED_BASE = 1170;
+/* Stare demo prijave (raniji SEED_BASE 1170–1185, bez polja source) uklanjaju se pri učitavanju */
+const isOldDemo = r => r && r.source == null && (function(m){ return !!m && Number(m[1]) >= 1170 && Number(m[1]) <= 1185; })(/^\d{4}-(11[7-8]\d)$/.exec(String(r.id || '')));
 let S = null;
-let netOverride = false;
-const isOnline = () => navigator.onLine && !netOverride;
-
-function seed(prevSeq){
-  const now = Date.now(), ago = m => new Date(now - m * 60000).toISOString();
-  const raw = [
-    ['fekalne',43.3905,16.3185,'Uvala Nečujam, Šolta','Smeđa mrlja i miris iza motorne jahte nakon što je isplovila iz uvale.',12,'zaprimljeno','Motorna jahta 12–24 m',80],
-    ['otpad_plaza',43.5022,16.4720,'Plaža Žnjan, Split','Plastika i limenke uz rub plaže nakon vikenda.',40,'zaprimljeno',null,null],
-    ['ulje',43.5020,16.4385,'Gradska luka Split','Duga sjajna mrlja kod gata.',125,'obrada',null,null],
-    ['fekalne',43.4450,16.4700,'Splitski kanal','Jedrilica ispušta otpadne vode u plovidbi.',190,'obrada','Jedrilica 8–15 m',215],
-    ['septicka',43.4945,16.2610,'Okrug Gornji, Čiovo','Iz cijevi uz obalu teče mutna voda neugodnog mirisa.',1500,'zaprimljeno',null,null],
-    ['fekalne',43.3430,16.4250,'Uvala Lučice, Brač','Gulet na sidru, ispuštanje s krme.',1650,'zaprimljeno','Gulet / brod veći od 24 m',null],
-    ['otpad_more',42.6720,18.0050,'Kod Koločepa','Plutajući otpad nakon juga, uglavnom plastika.',1700,'obrada',null,null],
-    ['otpad_plaza',42.6770,17.9520,'Uvala Šunj, Lopud','Mnogo otpada naneseno valovima.',2900,'zaprimljeno',null,null],
-    ['fekalne',44.1250,15.2100,'Zadarski kanal','Mrlja iza velikog putničkog broda.',2950,'zaprimljeno','Brod za kružna putovanja',300],
-    ['otpad_plaza',42.6413,18.1155,'Plaža Banje, Dubrovnik','Otpad uz liniju mora.',4300,'zaprimljeno',null,null],
-    ['fekalne',42.6970,17.7380,'Saplunara, Mljet','Gulet u isplovljavanju ostavlja mrlju.',1450,'zaprimljeno','Gulet / brod veći od 24 m',120],
-    ['napusteno',43.3855,16.5515,'Supetar, Brač','Napušteni gumenjak vezan na lukobranu.',5800,'rijeseno','Gumenjak / brodica do 6 m',null],
-    ['fekalne',43.1600,16.3900,'Pakleni otoci','Motorni brod ispušta otpadne vode.',7200,'rijeseno','Motorni brod 6–12 m',0],
-    ['ulje',42.6600,18.0860,'Luka Gruž, Dubrovnik','Uljni film oko vezova.',8640,'rijeseno',null,null],
-    ['otpad_kopno',44.8500,13.8300,'Uz obalu južno od Pule','Građevinski otpad i vreće uz obalni put.',11500,'obrada',null,null],
-    ['otpad_more',45.3220,14.4300,'Luka Rijeka','Drvo i plastika u akvatoriju.',14400,'rijeseno',null,null]
-  ];
-  const year = new Date().getFullYear();
-  const reports = raw.map((r, i) => {
-    const rt = route(r[1], r[2], r[0]);
-    const created = ago(r[5]);
-    const hist = [hEntry('received', {svc:rt.service}, created)];
-    const idx = ORDER.indexOf(r[6]);
-    if (idx >= 1){ hist.push(hEntry('confirmed', {svc:rt.service}, ago(r[5] * 0.8))); hist.push(hEntry('status', {status:'obrada'}, ago(r[5] * 0.7))); }
-    if (idx >= 2) hist.push(hEntry('status', {status:'rijeseno'}, ago(r[5] * 0.3)));
-    return {id: year + '-' + String(SEED_BASE + i), type:r[0], lat:r[1], lng:r[2], place:r[3], desc:r[4], createdAt:created, status:r[6], vessel:r[7], heading:r[8],
-      service:rt.service, reasons:rt.reasons.map(x => reasonText(x, true)), county:rt.county, confirmed: idx >= 1, history:hist, photo:null, pending:false};
-  });
-  return {v:1, seq:Math.max(SEED_BASE + raw.length, Number(prevSeq) || 0), reports, warnings:{}, seeded:true};
-}
 
 /* Prijave iz drugih stranica (report.html) dolaze bez službe/županije: dopuni ih ovdje */
 function normalize(r){
@@ -274,7 +213,9 @@ function normalize(r){
   if (!r.history.length){ r.history.push(hEntry('received0', null, r.createdAt)); ch = true; }
   if (!Array.isArray(r.reasons)) set('reasons', []);
   if (typeof r.confirmed !== 'boolean') set('confirmed', !!r.confirmed);
-  if (typeof r.pending !== 'boolean') set('pending', !!r.pending);
+  if ('pending' in r){ delete r.pending; ch = true; }
+  // službe iz uklonjenih izmišljenih područja (lučke uprave, koncesionari): predloži ponovno
+  if (r.service && !SERVICES[r.service]){ r.service = null; r.confirmed = false; ch = true; }
   if (r.heading != null && typeof r.heading !== 'number'){ const h = Number(r.heading); set('heading', r.heading === '' || !isFinite(h) ? null : h); }
   if (r.place == null) set('place', '');
   if (typeof r.place !== 'string') set('place', String(r.place));
@@ -298,20 +239,12 @@ function readStore(){
 }
 function load(){
   let s = readStore(), dirty = false;
-  if (!s || !s.reports.length){ s = seed(s && s.seq); dirty = true; }
-  else if (!s.seeded){
-    // Prve prijave stigle su iz report.html prije prvog otvaranja obrade: demo podatke dodaj jednom, uz njih
-    const demo = seed(s.seq);
-    const ids = new Set(s.reports.map(r => String(r.id)));
-    s.reports = s.reports.concat(demo.reports.filter(d => !ids.has(d.id)));
-    s.seq = Math.max(Number(s.seq) || 0, demo.seq);
-    s.seeded = true;
-    dirty = true;
-  }
+  if (!s) return {s:{v:1, seq:0, reports:[], warnings:{}}, dirty:false};
+  if ('seeded' in s){ delete s.seeded; dirty = true; }
   if (s.v !== 1){ s.v = 1; dirty = true; }
   if (!s.warnings || typeof s.warnings !== 'object'){ s.warnings = {}; dirty = true; }
   const before = s.reports.length;
-  s.reports = s.reports.filter(r => r && typeof r === 'object');
+  s.reports = s.reports.filter(r => r && typeof r === 'object' && !isOldDemo(r));
   if (s.reports.length !== before) dirty = true;
   let maxN = 0;
   s.reports.forEach(r => {
@@ -337,41 +270,13 @@ function nextId(){
   return new Date().getFullYear() + '-' + S.seq;
 }
 
-function addHistory(r, k, v){ r.history.push(hEntry(k, v)); if (!isOnline()) r.pending = true; }
-function commit(msg){ save(); renderAll(); if (msg) toast(msg + (isOnline() ? '' : ' ' + t('toast.savedLocal'))); }
+function addHistory(r, k, v){ r.history.push(hEntry(k, v)); }
+function commit(msg){ save(); renderAll(); if (msg) toast(msg); }
 
 /* ================= toast (zajednički, app.js) ================= */
 function toast(text){
   if (typeof window.showToast === 'function') window.showToast(text);
 }
-
-/* ================= mreža / rad bez signala ================= */
-const ICON_ON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12.6a10 10 0 0 1 14 0M8.5 16.1a5 5 0 0 1 7 0"/><circle cx="12" cy="20" r="1"/></svg>';
-const ICON_OFF = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 2l20 20M8.5 16.5a5 5 0 0 1 7 0M5 12.9a10 10 0 0 1 5.2-2.8"/><circle cx="12" cy="20" r="1"/></svg>';
-function pendingCount(){ return S.reports.filter(r => r.pending).length; }
-function renderNet(){
-  const n = $('#net'), p = pendingCount();
-  if (isOnline()){
-    n.className = 'ob-net on';
-    n.innerHTML = ICON_ON + '<span class="txt">' + esc(t('net.on')) + '</span>';
-  } else {
-    n.className = 'ob-net off';
-    n.innerHTML = ICON_OFF + '<span class="txt">' + esc(t('net.off')) + (p ? ' · ' + esc(t('net.pending', {n:p})) : '') + '</span>';
-  }
-}
-function trySync(){
-  if (!isOnline()){ renderNet(); return; }
-  const p = pendingCount();
-  renderNet();
-  if (!p) return;
-  setTimeout(() => {
-    if (!isOnline()) return;
-    S.reports.forEach(r => { if (r.pending){ r.pending = false; r.history.push(hEntry('synced')); } });
-    save(); renderAll(); toast(t('toast.synced', {n:p}));
-  }, 1200);
-}
-window.addEventListener('online', trySync);
-window.addEventListener('offline', renderNet);
 
 /* ================= filteri ================= */
 const F = { q:'', region:'', period:'30', vessel:'', type:'', service:'', statuses:new Set(ORDER) };
@@ -490,35 +395,17 @@ function flushMap(m){
 
 /* ---------- slojevi pogleda 1 ---------- */
 const LAYERS1 = [
-  {key:'ports', color:'--ob-port', on:true},
-  {key:'conc', color:'--ob-conc', on:true},
-  {key:'lk', color:'--ob-lk', on:false}
+  {key:'lk', color:'--ob-lk', on:true}
 ];
-function polyStyle1(kind){
-  return kind === 'ports'
-    ? {color:stColor('port'), weight:2, dashArray:'6 4', fillColor:stColor('port'), fillOpacity:.15}
-    : {color:stColor('conc'), weight:2, fillColor:stColor('conc-fill'), fillOpacity:.3};
-}
 function initLayers1(){
   const m = maps.m1;
-  maps.polys1 = {
-    ports: PORTS.map(p => L.polygon(p.poly, polyStyle1('ports')).bindTooltip(() => esc(p.name + ' · ' + svcName(p.authority)))),
-    conc: CONCESSIONS.map(c => L.polygon(c.poly, polyStyle1('conc')).bindTooltip(() => esc(c.name + ' · ' + svcName(c.service))))
-  };
   maps.lay1 = {
-    ports: L.layerGroup(maps.polys1.ports),
-    conc: L.layerGroup(maps.polys1.conc),
-    lk: L.layerGroup(LK.map(l => L.marker([l.lat, l.lng], {icon:L.divIcon({className:'', html:'<div class="ob-lk-ico"></div>', iconSize:[22,22], iconAnchor:[11,11]})}).bindTooltip(() => esc(svcName(l.id)))))
+    lk:L.layerGroup(LK.map(l => L.marker([l.lat, l.lng], {icon:L.divIcon({className:'', html:'<div class="ob-lk-ico"></div>', iconSize:[22,22], iconAnchor:[11,11]})}).bindTooltip(() => esc(svcName(l.id)))))
   };
   maps.markers1 = L.layerGroup().addTo(m);
   LAYERS1.forEach(l => { if (l.on) maps.lay1[l.key].addTo(m); });
   renderChips1();
   renderMap1(true);
-}
-function restyleLayers1(){
-  if (!maps.polys1) return;
-  maps.polys1.ports.forEach(p => p.setStyle(polyStyle1('ports')));
-  maps.polys1.conc.forEach(p => p.setStyle(polyStyle1('conc')));
 }
 function renderChips1(){
   const box = $('#layers1'); if (!box) return;
@@ -543,12 +430,12 @@ function statusChips(){
 }
 function pillsHtml(r){
   return (hasLoc(r) ? '' : '<span class="ob-pill noloc">' + ICON_PIN_OFF + ' ' + esc(t('noLoc')) + '</span>') +
-    (r.pending ? '<span class="ob-pill pending">' + esc(t('list.pending')) + '</span>' : '') +
     '<span class="ob-pill ' + r.status + '">' + esc(stLabel(r.status)) + '</span>';
 }
 function renderList1(list){
   const ul = $('#list1');
   const c = $('#count1'); if (c) c.textContent = list.length + ' / ' + S.reports.length;
+  if (!S.reports.length){ ul.innerHTML = emptyStoreHtml('li'); return; }
   if (!list.length){ ul.innerHTML = '<li class="ob-empty">' + esc(t('list.empty')) + '</li>'; return; }
   ul.innerHTML = list.map(r => '<li><button type="button" class="ob-row" data-id="' + esc(r.id) + '" aria-current="' + (r.id === sel1) + '">' +
     '<span class="meta"><span><span class="id">#' + esc(r.id) + '</span> · ' + esc(fmtWhen(r.createdAt)) + '</span><span class="pills">' + pillsHtml(r) + '</span></span>' +
@@ -559,6 +446,10 @@ function renderList1(list){
       : '<span class="s none">' + ICON_ARROW + esc(t('svc.none')) + '</span>') +
     '</button></li>').join('');
   $$('.ob-row', ul).forEach(b => b.addEventListener('click', () => select1(b.dataset.id, true)));
+}
+function emptyStoreHtml(tag){
+  return '<' + tag + ' class="ob-empty ob-empty-store"><b>' + esc(t('emptyStore.title')) + '</b><span>' + esc(t('emptyStore.p')) + '</span>' +
+    '<a class="ob-btn ob-btn-primary ob-btn-sm" href="report.html">' + esc(t('emptyStore.link')) + '</a></' + tag + '>';
 }
 function markerStyle(r, selected){
   return {radius: selected ? 12 : 8, color: selected ? stColor('ring') : '#ffffff', weight: selected ? 4 : 2, fillColor: stColor(r.status), fillOpacity: 1};
@@ -624,7 +515,7 @@ function renderDetail1(){
   if (x.registration) kv.push([t('kv.registration'), x.registration]);
   if (x.observedFromLand != null && x.observedFromLand !== '') kv.push([t('kv.observedFromLand'), typeof x.observedFromLand === 'boolean' ? t(x.observedFromLand ? 'yes' : 'no') : String(x.observedFromLand)]);
   if (x.datetimeLocal) kv.push([t('kv.observedAt'), fmtLocalDT(x.datetimeLocal)]);
-  if (r.source) kv.push([t('kv.source'), r.source === 'report.html' ? t('kv.sourceForm') : r.source]);
+  if (r.source) kv.push([t('kv.source'), r.source === 'report.html' ? t('kv.sourceForm') : r.source === 'obrada.html' ? t('kv.sourceObrada') : r.source]);
 
   const reasons = hasLoc(r) ? route(r.lat, r.lng, r.type).reasons.map(z => reasonText(z))
     : (r.reasons && r.reasons.length ? r.reasons.map(String) : [t('route.noLocReason')]);
@@ -714,7 +605,9 @@ function initLayers2(){
   maps.lay2 = { reports:L.layerGroup().addTo(m), stations:L.layerGroup().addTo(m), track:L.layerGroup().addTo(m) };
   STATIONS.forEach(s => {
     L.marker([s.lat, s.lng], {pane:'stations', icon:L.divIcon({className:'', iconSize:[26,26], iconAnchor:[13,13], html:'<div class="ob-st-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/></svg></div>'})})
-      .bindTooltip(() => esc(t('st.example', {name:s.name, what:stWhat(s)}))).addTo(maps.lay2.stations);
+      .bindTooltip(() => esc(s.name + (s.address ? ' · ' + s.address : '')))
+      .bindPopup(() => '<b>' + esc(s.name) + '</b>' + (stSub(s) ? '<br>' + esc(stSub(s)) : '') + '<br><a href="' + esc(stUrl(s)) + '">' + esc(t('st.open')) + '</a>')
+      .addTo(maps.lay2.stations);
   });
   renderChips2();
   renderMap2(true);
@@ -758,7 +651,7 @@ function stationsAhead(r){
 }
 function renderTable2(list){
   const tb = $('#tbody2');
-  if (!list.length){ tb.innerHTML = '<tr><td colspan="6" class="ob-empty">' + esc(t('tbl.empty')) + '</td></tr>'; return; }
+  if (!list.length){ tb.innerHTML = '<tr><td colspan="6" class="ob-empty">' + esc(t(S.reports.length ? 'tbl.empty' : 'emptyStore.title')) + '</td></tr>'; return; }
   tb.innerHTML = list.map(r => '<tr data-id="' + esc(r.id) + '" aria-current="' + (r.id === sel2) + '">' +
     '<td data-label="' + esc(t('tbl.id')) + '"><button type="button" class="ob-link" data-id="' + esc(r.id) + '">#' + esc(r.id) + '</button></td>' +
     '<td data-label="' + esc(t('tbl.time')) + '">' + esc(fmtWhen(r.createdAt)) + '</td>' +
@@ -790,7 +683,7 @@ function renderDetail2(){
       kvHtml([[t('kv.vessel'), vesselLabel(r.vessel)], [t('kv.heading'), deg == null ? t('heading.unknown') : dirName(deg)], [t('kv.place'), r.place || t('noLoc')], [t('kv.competent'), svcName(r.service)]]).replace('class="ob-kv"', 'class="ob-kv" style="flex:1"') +
     '</div>' +
     '<div class="ob-card"><span class="ob-eyebrow">' + esc(deg == null ? t('d2.nearest') : t('d2.ahead')) + '</span>' +
-      (loc ? ah.map(x => '<div class="ob-ahead"><span><b>' + esc(x.s.name) + '</b><small>' + esc(stWhat(x.s)) + '</small></span><span class="d">' + fmtNM(x.d) + '</span></div>').join('')
+      (loc ? ah.map(x => '<div class="ob-ahead"><span><a class="ob-st-link" href="' + esc(stUrl(x.s)) + '"><b>' + esc(x.s.name) + '</b></a><small>' + esc(stSub(x.s)) + '</small></span><span class="d">' + fmtNM(x.d) + '</span></div>').join('')
            : '<p class="ob-hint" style="margin:0">' + esc(t('d2.noLocStations')) + '</p>') + '</div>' +
     '<div class="ob-btns"><button class="ob-btn ob-btn-primary" type="button" data-act="notify" style="flex:1 1 100%"' + (loc ? '' : ' disabled') + '>' + esc(t('act.notify')) + '</button>' +
       (ORDER.indexOf(r.status) < 2 ? '<button class="ob-btn ob-btn-dark" type="button" data-act="next" style="flex:1">' + esc(t(r.status === 'zaprimljeno' ? 'act.take' : 'act.resolve')) + '</button>' : '') +
@@ -852,7 +745,6 @@ async function loadForecast(){
   FC.state = 'loading'; renderSrc();
   const lat = BAYS.map(b => b.lat).join(','), lng = BAYS.map(b => b.lng).join(',');
   try {
-    if (!navigator.onLine || netOverride) throw new Error('offline');
     const w = await fetchJSON('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lng + '&hourly=wind_speed_10m,wind_direction_10m&wind_speed_unit=kn&timezone=Europe%2FZagreb&forecast_days=3', 12000);
     const W = Array.isArray(w) ? w : [w];
     if (W.length !== BAYS.length || !W[0].hourly) throw new Error('unexpected response');
@@ -878,22 +770,10 @@ async function loadForecast(){
     });
     FC.days = dayList; FC.perBay = perBay; FC.state = 'ok'; FC.currents = !!M; FC.updated = new Date();
   } catch(e){
-    fallbackForecast(); FC.state = 'fallback'; FC.err = e && e.message;
+    FC.state = 'error'; FC.err = e && e.message; FC.days = []; FC.perBay = {};
   }
   if (FC.day >= FC.days.length) FC.day = 0;
   renderView3();
-}
-function fallbackForecast(){
-  const now = new Date(); const keys = [0,1,2].map(i => dayKey(new Date(now.getTime() + i * 86400000)));
-  const scen = [{wd:135, base:18, peak:26}, {wd:140, base:24, peak:33}, {wd:45, base:12, peak:20}];
-  const perBay = {};
-  BAYS.forEach(b => {
-    perBay[b.id] = scen.map(s => {
-      const hours = []; for (let h = 0; h < 24; h++){ const f = Math.sin(Math.PI * h / 24); hours.push({h, ws: s.base + (s.peak - s.base) * f, wd: s.wd + (h % 5) - 2, cv:null, cd:null}); }
-      return analyseDay(b, hours);
-    });
-  });
-  FC.days = keys; FC.perBay = perBay; FC.currents = false; FC.updated = null;
 }
 function dayLabel(k, i){
   const d = new Date(k + 'T12:00:00');
@@ -905,7 +785,7 @@ function renderSrc(){
   const el = $('#fcSrc');
   if (FC.state === 'loading' || FC.state === 'idle'){ el.className = 'ob-src'; el.textContent = t('fc.loading'); return; }
   if (FC.state === 'ok'){ el.className = 'ob-src'; el.textContent = t('fc.ok', {what:t(FC.currents ? 'fc.windCur' : 'fc.wind'), time:fmtTime(FC.updated)}); return; }
-  if (FC.state === 'fallback'){ el.className = 'ob-src warn'; el.textContent = t('fc.fallback', {why:(navigator.onLine && !netOverride) ? '' : t('fc.noNet')}); }
+  if (FC.state === 'error'){ el.className = 'ob-src warn'; el.textContent = t('fc.errShort'); }
 }
 const RANK = {visok:0, srednji:1, nizak:2};
 const kn = v => Math.round(v) + ' ' + t('unit.kn');
@@ -913,7 +793,14 @@ function renderView3(){
   renderSrc();
   const tabs = $('#dayTabs');
   if (FC.state === 'idle' || (FC.state === 'loading' && !FC.days.length)){
-    tabs.innerHTML = ''; $('#bays').innerHTML = '<div class="ob-empty">' + esc(t('fc.loading')) + '</div>'; return;
+    tabs.innerHTML = ''; $('#bays').innerHTML = '<div class="ob-empty">' + esc(t('fc.loading')) + '</div>'; renderMap3(); return;
+  }
+  if (FC.state === 'error' || (FC.state === 'loading' && !FC.days.length)){
+    tabs.innerHTML = '';
+    $('#bays').innerHTML = '<div class="ob-empty ob-fc-err" role="alert"><b>' + esc(t('fc.errTitle')) + '</b><span>' + esc(t(navigator.onLine ? 'fc.errBody' : 'fc.errOffline')) + '</span>' +
+      '<button class="ob-btn ob-btn-primary ob-btn-sm" type="button" data-retry>' + esc(t('fc.retry')) + '</button></div>';
+    const rb = $('#bays [data-retry]'); if (rb) rb.addEventListener('click', loadForecast);
+    renderMap3(); return;
   }
   tabs.innerHTML = FC.days.map((k, i) => {
     let dom = null; BAYS.forEach(b => { const a = FC.perBay[b.id] && FC.perBay[b.id][i]; if (a && (!dom || a.dom.ws > dom.ws)) dom = a.dom; });
@@ -937,7 +824,7 @@ function renderView3(){
   $$('[data-warn]', box).forEach(btn => btn.addEventListener('click', () => {
     const b = BAYS.find(x => x.id === btn.dataset.warn);
     S.warnings[key + ':' + b.id] = new Date().toISOString(); save(); renderView3();
-    toast(t('toast.warn', {bay:b.name, owner:svcName(b.ownerId)}) + (isOnline() ? '' : ' ' + t('toast.warnOffline')));
+    toast(t('toast.warn', {bay:b.name, owner:svcName(b.ownerId)}));
   }));
   $$('[data-focus]', box).forEach(btn => btn.addEventListener('click', () => {
     const b = BAYS.find(x => x.id === btn.dataset.focus); FC.selBay = b.id;
@@ -987,7 +874,7 @@ $('#backdrop').addEventListener('click', closeDrawers);
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape'){
     if (document.querySelector('dialog[open]')) return;
-    closeDrawers(); closeMenu();
+    closeDrawers();
   }
 });
 
@@ -1076,7 +963,7 @@ $('#newForm').addEventListener('submit', e => {
   const hv = $('#nHeading').value;
   const r = {id, type, lat:pick.lat, lng:pick.lng, place:tHr('nearPlace', {town:shortTown(rt.town)}), desc:$('#nDesc').value.trim(), createdAt:now, status:'zaprimljeno',
     vessel: TYPES[type].vessel ? $('#nVessel').value : null, heading: (type === 'fekalne' && hv !== '') ? Number(hv) : null,
-    service:rt.service, reasons:rt.reasons.map(x => reasonText(x, true)), county:rt.county, confirmed:false, photo:photoData, pending:!isOnline(),
+    service:rt.service, reasons:rt.reasons.map(x => reasonText(x, true)), county:rt.county, confirmed:false, photo:photoData, source:'obrada.html',
     history:[hEntry('received', {svc:rt.service}, now)]};
   S.reports.push(r);
   if (!save()){ r.photo = null; save(); setTimeout(() => toast(t('toast.photoNotSaved')), 2800); }
@@ -1085,20 +972,10 @@ $('#newForm').addEventListener('submit', e => {
   fillFilters();
   if (type === 'fekalne' && currentView() === 'ispustanja'){ renderAll(); select2(id, true); }
   else { if (currentView() !== 'prijave') location.hash = '#prijave'; setTimeout(() => { renderView1(false); select1(id, true); }, 90); }
-  toast(t('toast.created', {id, svc:svcName(rt.service)}) + (isOnline() ? '' : ' ' + t('toast.createdOffline')));
+  toast(t('toast.created', {id, svc:svcName(rt.service)}));
 });
 $$('dialog [data-close]').forEach(b => b.addEventListener('click', () => b.closest('dialog').close()));
 
-/* ================= izbornik / vraćanje demo podataka ================= */
-function closeMenu(){ $('#menu').classList.remove('open'); $('#menuBtn').setAttribute('aria-expanded', 'false'); }
-$('#menuBtn').addEventListener('click', e => { e.stopPropagation(); const o = $('#menu').classList.toggle('open'); $('#menuBtn').setAttribute('aria-expanded', String(o)); });
-document.addEventListener('click', e => { if (!e.target.closest('#menu') && !e.target.closest('#menuBtn')) closeMenu(); });
-$('#simOffline').addEventListener('change', e => { netOverride = e.target.checked; if (netOverride) renderNet(); else trySync(); });
-$('#resetBtn').addEventListener('click', () => { closeMenu(); $('#confirmDlg').showModal(); });
-$('#cfYes').addEventListener('click', () => {
-  S = seed(S.seq); save(); sel1 = null; sel2 = null; $('#confirmDlg').close();
-  fillFilters(); renderAll(true); toast(t('toast.reset'));
-});
 
 /* ================= filteri: povezivanje ================= */
 function initFilters(){
@@ -1149,7 +1026,7 @@ function showView(){
 window.addEventListener('hashchange', () => { showView(); const bar = $('.ob-bar'); if (bar && bar.getBoundingClientRect().top < 0) bar.scrollIntoView({block:'start'}); });
 let rT; window.addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(() => { invalidateAll(); if (!window.matchMedia(DRAWER_MQ).matches) closeDrawers(); applyPhoneTableVisibility(); }, 150); });
 
-function renderAll(fit){ renderNet(); renderView1(!!fit); renderView2(!!fit); if (FC.state !== 'idle') renderView3(); }
+function renderAll(fit){ renderView1(!!fit); renderView2(!!fit); if (FC.state !== 'idle') renderView3(); }
 
 /* ================= zajedničko spremište: promjene iz drugih kartica (npr. report.html) ================= */
 window.addEventListener('storage', e => {
@@ -1172,7 +1049,7 @@ document.addEventListener('cm:lang', () => {
 });
 document.addEventListener('cm:mode', () => {
   // Leaflet SVG boje čitaju se iz CSS varijabli – ponovno iscrtaj
-  setTimeout(() => { restyleLayers1(); renderMap1(false); renderMap2(false); renderMap3(); if (pickMarker) pickMarker.setStyle({color:stColor('ring'), fillColor:stColor('zaprimljeno')}); }, 30);
+  setTimeout(() => { renderMap1(false); renderMap2(false); renderMap3(); if (pickMarker) pickMarker.setStyle({color:stColor('ring'), fillColor:stColor('zaprimljeno')}); }, 30);
 });
 
 /* ================= pokretanje ================= */
@@ -1182,7 +1059,6 @@ renderAll(false);
 renderSrc();
 showView();
 applyPhoneTableVisibility();
-trySync();
 setInterval(() => { if (currentView() === 'prijave') renderList1(filtered()); }, 60000);
 window.cistoMore = { maps, get state(){ return S; } };
 })();
