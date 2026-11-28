@@ -585,6 +585,11 @@
       a.className = 'po-account is-user' + (onProfile ? ' is-current' : '');
       a.href = 'profile.html';
       a.textContent = initials(CM.user.name || CM.user.username);
+      // Profilna slika (PATCH /api/me) umjesto inicijala
+      if (CM.user.avatar && /^data:image\/(jpeg|png|webp);base64,/.test(CM.user.avatar)) {
+        a.className += ' has-photo';
+        a.innerHTML = '<img src="' + esc(CM.user.avatar) + '" alt="">';
+      }
       var l = CM.t('ui.account', { name: CM.user.name || CM.user.username });
       a.setAttribute('aria-label', l); a.setAttribute('title', l);
     } else {

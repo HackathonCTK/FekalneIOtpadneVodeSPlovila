@@ -26,7 +26,7 @@
     reports: [], warnings: {}
   };
   function save() { lsSet(KEY, JSON.stringify(db)); }
-  function pub(u) { return u ? { id: u.id, username: u.username, name: u.name, createdAt: u.createdAt } : null; }
+  function pub(u) { return u ? { id: u.id, username: u.username, name: u.name, createdAt: u.createdAt, avatar: u.avatar || null } : null; }
   function userById(id) { for (var i = 0; i < db.users.length; i++) if (db.users[i].id === id) return db.users[i]; return null; }
 
   // Početno stanje: korisnik je već prijavljen, da se Dnevnik, Profil i Nova prijava mogu odmah otvoriti.
@@ -94,6 +94,22 @@
     b = b || {};
     var m, u = db.session.user ? userById(db.session.user) : null, a = db.session.admin ? userById(db.session.admin) : null;
     if (path === "/api/me" && method === "GET") return ok(200, { user: pub(u), demo: !!(u && u.password === "korisnik") });
+    if (path === "/api/me" && method === "PATCH") {
+      if (!u) return err(401, "unauthorized");
+      if (b.name !== undefined) { var nn = String(b.name || "").trim().slice(0, 60); if (nn.length < 2) return err(400, "invalid_name"); u.name = nn; }
+      if (b.avatar !== undefined) {
+        if (b.avatar !== null && !/^data:image\/(jpeg|png|webp);base64,/.test(String(b.avatar))) return err(400, "invalid_avatar");
+        if (b.avatar && b.avatar.length > 420000) return err(413, "avatar_too_large");
+        u.avatar = b.avatar;
+      }
+      save(); return ok(200, { user: pub(u) });
+    }
+    if (path === "/api/me/password" && method === "POST") {
+      if (!u) return err(401, "unauthorized");
+      if (u.password !== b.current) return err(400, "wrong_password");
+      if (String(b.next || "").length < 6) return err(400, "weak_password");
+      u.password = String(b.next); save(); return ok(200, { ok: true });
+    }
     if (path === "/api/register" && method === "POST") {
       var un = String(b.username || "").trim(), nm = String(b.name || "").trim(), pw = String(b.password || "");
       if (!/^[A-Za-z0-9._-]{3,32}$/.test(un)) return err(400, "invalid_username");
