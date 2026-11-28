@@ -507,6 +507,14 @@ body.po-body{
 .po-impact h3{ font-size:1.1rem; }
 .po-impact p{ margin:0; font-size:14px; color:var(--po-muted); }
 
+/* Jesi li znao? — činjenice s izvorom */
+.po-know-grid{ margin-top:20px; display:grid; gap:14px; grid-template-columns:repeat(auto-fit, minmax(min(100%, 260px), 1fr)); }
+.po-know{ padding:22px; border-radius:var(--po-radius); background:var(--po-surface); border:1px solid var(--po-line); box-shadow:var(--po-shadow); display:flex; flex-direction:column; gap:8px; }
+.po-know .po-know-big{ margin:0; font-family:var(--po-display); font-weight:800; font-size:clamp(1.7rem, 5vw, 2.2rem); line-height:1.05; color:var(--po-accent-2); font-variant-numeric:tabular-nums; }
+.po-know h3{ font-size:1.05rem; margin:0; }
+.po-know p{ margin:0; font-size:14px; color:var(--po-muted); }
+.po-know-src{ margin-top:auto; padding-top:6px; font-size:12.5px; font-weight:600; color:var(--po-accent-2); text-decoration:underline; text-underline-offset:2px; overflow-wrap:anywhere; }
+
 /* ---------- 3. Vodič ---------- */
 .po-guide{ display:grid; gap:16px; margin-bottom:28px; }
 @media (min-width:900px){ .po-guide{ grid-template-columns:240px minmax(0,1fr); align-items:start; } }
