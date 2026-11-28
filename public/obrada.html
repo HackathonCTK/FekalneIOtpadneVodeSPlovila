@@ -315,6 +315,29 @@ dialog[open]::backdrop{ animation:cm-fade .25s ease-out; }
 .backdrop.open{ animation:cm-fade .2s ease-out; }
 .map-note.show{ animation:cm-rise .3s var(--cm-ease); }
 .badge{ display:inline-block; }
+/* odbijeno, službenici, upozorenje DHMZ, podaci nadležne kapetanije */
+.pill.odbijeno{background:color-mix(in srgb,#C2413A 18%,transparent);color:#E2685F}
+:root[data-mode="light"] .pill.odbijeno{color:#9E2F28}
+.rejected{border:1px solid color-mix(in srgb,#C2413A 55%,transparent);background:color-mix(in srgb,#C2413A 10%,transparent);border-radius:12px;padding:10px 12px;font-size:13px}
+.rejected b{display:block;margin-bottom:2px}
+.history .by{color:var(--muted);font-size:12px}
+.staff-grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:12px;align-items:start}
+@media (max-width:999px){.staff-grid{grid-template-columns:minmax(0,1fr)}}
+.staff-panel{padding:14px 16px}
+.staff-form{display:flex;flex-direction:column;gap:10px}
+.staff-tbl td{vertical-align:middle}
+.staff-tbl select{height:36px;border:1px solid var(--line-strong);border-radius:10px;background:var(--po-inset);color:var(--ink);padding:0 8px;max-width:220px}
+.staff-tbl .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.tag-off{color:var(--muted)}
+.sea-bar{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;margin:-4px 0 12px;padding:10px 14px;border-radius:12px;border:1px solid var(--po-amber);background:var(--st-pending-bg);color:var(--ink);font-size:13px}
+.sea-bar b{color:var(--st-pending-fg)}
+.sea-bar details{flex-basis:100%}
+.sea-bar summary{cursor:pointer;font-weight:700;color:var(--link)}
+.sea-bar .src-note{color:var(--muted);font-size:12px}
+.card.lk .lk-row{display:flex;flex-wrap:wrap;gap:6px 10px;font-size:13px}
+.card.lk a{font-weight:700}
+.emerg{font-size:12.5px;color:var(--muted)}
+.emerg b{color:var(--ink)}
 @media (prefers-reduced-motion:reduce){
   .view.active,.toast,dialog[open],dialog[open]::backdrop,.menu.open,.backdrop.open,.map-note.show,.steps li.on i{ animation:none; }
   .btn:active,.chip:active{ transform:none; }
@@ -331,6 +354,7 @@ dialog[open]::backdrop{ animation:cm-fade .25s ease-out; }
     <a href="#prijave" data-view="prijave">Prijave i usmjeravanje <span class="badge" data-badge></span></a>
     <a href="#ispustanja" data-view="ispustanja">Ispuštanja s plovila</a>
     <a href="#prognoza" data-view="prognoza">Prognoza nanosa</a>
+    <a href="#sluzbenici" data-view="sluzbenici" data-glavni hidden>Službenici</a>
   </nav>
   <div class="hdr-right">
     <div id="net" class="net on" role="status" aria-live="polite"></div>
@@ -344,6 +368,8 @@ dialog[open]::backdrop{ animation:cm-fade .25s ease-out; }
   </div>
   <div class="menu" id="menu" role="dialog" aria-label="Postavke">
     <p class="who" id="who">Prijavljeni službenik</p>
+    <button class="btn btn-plain btn-sm" id="pwBtn" type="button" style="width:100%;margin-bottom:8px">Promijeni lozinku</button>
+    <a class="btn btn-plain btn-sm" href="#sluzbenici" data-glavni hidden style="width:100%;margin-bottom:8px">Službenici i računi</a>
     <label><input type="checkbox" id="simOffline"> Simuliraj rad bez signala</label>
     <p>Prijave se spremaju na serveru. Promjene napravljene bez signala čuvaju se na uređaju i šalju kad se veza vrati.</p>
     <button class="btn btn-plain btn-sm" id="resetBtn" type="button" style="width:100%">Vrati početne demo podatke</button>
@@ -365,6 +391,7 @@ dialog[open]::backdrop{ animation:cm-fade .25s ease-out; }
       </label>
       <button class="btn btn-plain filter-toggle" type="button" id="fToggle" aria-expanded="false" aria-controls="filters1">Filteri</button>
     </div>
+    <div class="sea-bar" id="seaBar" hidden></div>
     <div class="filters" id="filters1">
       <label class="field search">Pretraži<input type="search" id="fQ" placeholder="ID, lokacija, opis, registracija…" autocomplete="off"></label>
       <label class="field">Lokacija (županija)<select id="fRegion"></select></label>
@@ -463,6 +490,33 @@ dialog[open]::backdrop{ animation:cm-fade .25s ease-out; }
       <aside class="panel bays" id="bays" aria-label="Uvale s očekivanim nanosom"><div class="empty">Učitavanje prognoze…</div></aside>
     </div>
   </section>
+
+  <!-- ============ SLUŽBENICI (samo glavni admin) ============ -->
+  <section class="view" id="v-sluzbenici" aria-labelledby="h-staff">
+    <div class="view-head">
+      <div class="grow">
+        <h1 id="h-staff">Službenici i računi</h1>
+        <p>Dodaj zaposlenike službi na moru. Službenik dobiva privremenu lozinku koju pri prvoj prijavi mora promijeniti. Po zadanom vidi prijave svoje službe.</p>
+      </div>
+    </div>
+    <div class="staff-grid">
+      <section class="panel staff-panel" aria-labelledby="h-staff-list">
+        <div class="list-head"><h2 id="h-staff-list" style="font-size:17px">Računi portala</h2><span class="count" id="staffCount"></span></div>
+        <div class="tbl-wrap" style="margin-top:0"><table class="tbl staff-tbl"><thead><tr><th>Ime</th><th>Korisničko ime</th><th>Uloga</th><th>Služba</th><th>Stanje</th><th><span class="sr-only">Radnje</span></th></tr></thead><tbody id="staffBody"><tr><td colspan="6" class="empty">Učitavanje…</td></tr></tbody></table></div>
+      </section>
+      <form class="panel staff-panel staff-form" id="staffForm" novalidate aria-labelledby="h-staff-new">
+        <h2 id="h-staff-new" style="font-size:17px">Novi službenik</h2>
+        <label class="field">Ime i prezime<input id="sName" maxlength="60" autocomplete="off"></label>
+        <label class="field">Korisničko ime<input id="sUser" maxlength="32" autocomplete="off" placeholder="npr. ivan.horvat" spellcheck="false"></label>
+        <label class="field">Uloga<select id="sRole"><option value="sluzbenik">Službenik (obrađuje prijave)</option><option value="glavni">Glavni admin (i upravlja računima)</option></select></label>
+        <label class="field">Služba<select id="sService"></select></label>
+        <label class="field">Privremena lozinka<span style="display:flex;gap:6px"><input id="sPass" maxlength="60" autocomplete="off" style="flex:1" spellcheck="false"><button class="btn btn-plain btn-sm" type="button" id="sGen">Generiraj</button></span></label>
+        <p class="hint" style="margin:0">Najmanje 8 znakova. Lozinku predaj službeniku osobno; pri prvoj prijavi postavlja svoju.</p>
+        <p class="err" id="sErr" role="alert" style="margin:0"></p>
+        <button class="btn btn-primary" type="submit">Dodaj službenika</button>
+      </form>
+    </div>
+  </section>
 </main>
 <footer>Karta: lokalna baza karata (© OpenMapTiles, © suradnici OpenStreetMapa) ili OpenStreetMap preko interneta. Prognoza vjetra i struja: Open-Meteo. Prihvatna mjesta: popis s karte prihvatnih mjesta, rad uređaja treba potvrditi kod operatora. Granice luka i koncesija i pravila usmjeravanja su približni primjeri koje treba potvrditi s nadležnim institucijama.</footer>
 
@@ -471,6 +525,7 @@ dialog[open]::backdrop{ animation:cm-fade .25s ease-out; }
   <a href="#prijave" data-view="prijave"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v12H5.2L4 17.2z"/><path d="M8 9h8M8 12h5"/></svg>Prijave<span class="badge" data-badge></span></a>
   <a href="#ispustanja" data-view="ispustanja"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l2 3h14l2-3z"/><path d="M12 3v11M12 3l6 9H6z"/></svg>Ispuštanja</a>
   <a href="#prognoza" data-view="prognoza"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h11a3 3 0 1 0-3-3"/><path d="M3 12h16a3 3 0 1 1-3 3"/><path d="M3 16h7"/></svg>Prognoza</a>
+  <a href="#sluzbenici" data-view="sluzbenici" data-glavni hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M17 8v6M14 11h6"/></svg>Službenici</a>
 </nav>
 
 <!-- Unos prijave (zaprimljene telefonom ili e-poštom) -->
@@ -536,6 +591,47 @@ dialog[open]::backdrop{ animation:cm-fade .25s ease-out; }
   </div>
 </dialog>
 
+<!-- Odbijanje prijave (razlog vidi prijavitelj) -->
+<dialog id="rejDlg" aria-labelledby="rejTitle">
+  <form class="dlg" id="rejForm" novalidate>
+    <div class="dlg-h">
+      <h2 id="rejTitle" style="font-size:21px">Odbij prijavu</h2>
+      <button class="icon-btn" type="button" data-close aria-label="Zatvori"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="dlg-b">
+      <label class="field full">Razlog odbijanja<textarea id="rejWhy" maxlength="300" placeholder="Npr. na lokaciji nije pronađeno onečišćenje; prijava je dvostruka (#2026-1180); nije u nadležnosti službi na moru"></textarea></label>
+      <p class="full hint" style="margin:0">Prijavitelj vidi razlog u svom dnevniku. Piši kratko i pristojno.</p>
+      <p class="full err" id="rejErr" role="alert" style="margin:0"></p>
+    </div>
+    <div class="dlg-f">
+      <button class="btn btn-plain" type="button" data-close>Odustani</button>
+      <button class="btn btn-dark" type="submit">Odbij prijavu</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Promjena lozinke (obavezna kod privremene lozinke) -->
+<dialog id="pwDlg" aria-labelledby="pwTitle">
+  <form class="dlg" id="pwForm" novalidate>
+    <div class="dlg-h">
+      <h2 id="pwTitle" style="font-size:21px">Promijeni lozinku</h2>
+      <button class="icon-btn" type="button" data-close id="pwClose" aria-label="Zatvori"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="dlg-b">
+      <p class="full hint" id="pwForced" style="margin:0" hidden>Prijavljeni ste privremenom lozinkom. Prije rada postavite svoju lozinku.</p>
+      <label class="field full">Trenutna lozinka<input type="password" id="pwCur" autocomplete="current-password"></label>
+      <label class="field">Nova lozinka<input type="password" id="pwNew" autocomplete="new-password"></label>
+      <label class="field">Ponovi novu lozinku<input type="password" id="pwNew2" autocomplete="new-password"></label>
+      <p class="full hint" style="margin:0">Najmanje 8 znakova. Ostali uređaji s ovim računom bit će odjavljeni.</p>
+      <p class="full err" id="pwErr" role="alert" style="margin:0"></p>
+    </div>
+    <div class="dlg-f">
+      <button class="btn btn-plain" type="button" id="pwCancel">Odustani</button>
+      <button class="btn btn-primary" type="submit">Spremi lozinku</button>
+    </div>
+  </form>
+</dialog>
+
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
 <script src="vendor/leaflet/leaflet.js"></script>
@@ -558,7 +654,9 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp
 const RT = window.CM_ROUTING;
 const { STATUS, ORDER, TYPES, COUNTIES, LK, PORTS, CONCESSIONS, SERVICES, SERVICE_GROUPS, DIRS, RAD,
   distNM, bearing, destPoint, angDiff, route, dirIdx } = RT;
+const ALL_STATUS = RT.ALL_STATUS || ORDER.concat(['odbijeno']);
 const VESSELS = RT.VESSELS.map(v => v[0]);
+let ME = null;   // prijavljeni službenik: {name, username, staffRole: 'glavni'|'sluzbenik', service, mustChange}
 const svcName = id => RT.svcName(id);
 const fmtNM = n => (n < 10 ? n.toFixed(1).replace('.', ',') : Math.round(n)) + ' NM';
 const WINDS = ['Tramontana','Bura','Levant','Jugo','Oštro','Lebić','Pulenat','Maestral'];
@@ -641,7 +739,7 @@ const realId = id => ID_ALIAS[id] || id;
 const byId = id => { id = realId(id); return S.reports.find(r => r.id === id); };
 
 function addHistory(r, text){
-  const h = {t:new Date().toISOString(), text};
+  const h = {t:new Date().toISOString(), text, by: ME ? ME.name : undefined};
   r.history.push(h);
   (r._newHist = r._newHist || []).push(h);
 }
@@ -649,6 +747,7 @@ function addHistory(r, text){
 function commit(msg, r){
   if (r) {
     const op = {op:'patch', id:r.id, offline:!isOnline(), body:{status:r.status, service:r.service, confirmed:r.confirmed, history:r._newHist || []}};
+    if (r.status === 'odbijeno' && r.rejectReason) op.body.rejectReason = r.rejectReason;
     if (r._statusAt) op.body.statusAt = r._statusAt;
     r._newHist = []; r._statusAt = null; r.pending = true;
     Q.push(op); saveQueue();
@@ -762,7 +861,7 @@ window.addEventListener('online', trySync);
 window.addEventListener('offline', renderNet);
 
 /* ================= filters ================= */
-const F = { q:'', region:'', period:'30', vessel:'', type:'', service:'', statuses:new Set(ORDER) };
+const F = { q:'', region:'', period:'30', vessel:'', type:'', service:'', statuses:new Set(ALL_STATUS) };
 const D = { region:'', period:'30', vessel:'' };
 function fillSelect(sel, items, allLabel){
   sel.innerHTML = (allLabel ? '<option value="">' + esc(allLabel) + '</option>' : '') + items.map(i => '<option value="' + esc(i[0]) + '">' + esc(i[1]) + '</option>').join('');
@@ -859,10 +958,10 @@ function initLayers1(){
 /* ================= view 1 render ================= */
 let sel1 = null;
 function statusChips(){
-  const box = $('#statusChips'); const counts = {zaprimljeno:0, obrada:0, rijeseno:0};
+  const box = $('#statusChips'); const counts = {zaprimljeno:0, obrada:0, rijeseno:0, odbijeno:0};
   const base = S.reports.filter(r => (!F.service || r.service === F.service));
-  base.forEach(r => counts[r.status]++);
-  box.innerHTML = ORDER.map(k => '<button type="button" class="chip" data-st="' + k + '" aria-pressed="' + F.statuses.has(k) + '"><span class="sw" style="background:' + STATUS[k].color + ';border-radius:50%"></span>' + STATUS[k].label + ' ' + counts[k] + '</button>').join('') + '<span class="count" id="count1"></span>';
+  base.forEach(r => { counts[r.status] = (counts[r.status] || 0) + 1; });
+  box.innerHTML = ALL_STATUS.map(k => '<button type="button" class="chip" data-st="' + k + '" aria-pressed="' + F.statuses.has(k) + '"><span class="sw" style="background:' + STATUS[k].color + ';border-radius:50%"></span>' + STATUS[k].label + ' ' + counts[k] + '</button>').join('') + '<span class="count" id="count1"></span>';
   $$('[data-st]', box).forEach(b => b.addEventListener('click', () => {
     const k = b.dataset.st; if (F.statuses.has(k)) F.statuses.delete(k); else F.statuses.add(k); renderView1();
   }));
@@ -904,6 +1003,7 @@ function select1(id, fly){
   openDrawer('#detail1');
 }
 function stepsHtml(r){
+  if (r.status === 'odbijeno') return '<div class="rejected"><b>Odbijeno</b>' + esc(r.rejectReason || 'Razlog nije upisan.') + '</div>';
   const idx = ORDER.indexOf(r.status);
   return '<ol class="steps">' + ORDER.map((k, i) => '<li class="' + (i <= idx ? 'on' : '') + (i === idx ? ' cur' : '') + '"><i style="background:' + (i <= idx ? STATUS[r.status].color : '') + '"></i>' + STATUS[k].label + '</li>').join('') + '</ol>';
 }
@@ -949,6 +1049,8 @@ function statusButtons(r){
   if (idx === 0) h += '<button class="btn btn-dark" type="button" data-act="next">Preuzmi u obradu</button>';
   if (idx === 1) h += '<button class="btn btn-dark" type="button" data-act="next">Označi kao riješeno</button>';
   if (idx > 0) h += '<button class="btn btn-plain" type="button" data-act="prev">Vrati status</button>';
+  if (idx === 0 || idx === 1) h += '<button class="btn btn-plain" type="button" data-act="reject">Odbij…</button>';
+  if (r.status === 'odbijeno') h += '<button class="btn btn-dark" type="button" data-act="reopen">Ponovno otvori</button>';
   return h + '</div>';
 }
 function renderDetail1(){
@@ -970,11 +1072,13 @@ function renderDetail1(){
     '<div class="card route"><span class="eyebrow">' + (r.confirmed ? 'Nadležna služba' : 'Predložena nadležna služba') + '</span><span class="svc">' + esc(svcName(r.service)) + '</span>' +
     '<ul class="reasons">' + (r.reasons || []).map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>' +
     '<div class="btns">' + (r.confirmed ? '' : '<button class="btn btn-primary" type="button" data-act="confirm">Potvrdi i proslijedi</button>') + '<button class="btn btn-ghost" type="button" data-act="reassign">Druga služba…</button></div></div>' +
+    '<div class="card lk" data-lk><span class="eyebrow">Nadležna lučka kapetanija (HHI)</span><span class="hint">Učitavanje…</span></div>' +
     '<div><div class="eyebrow" style="margin-bottom:10px">Status</div>' + stepsHtml(r) + statusButtons(r) + '</div>' +
-    '<div class="public"><div class="eyebrow" style="margin-bottom:6px">Što vidi prijavitelj</div>Prijava #' + esc(r.id) + ': <b>' + STATUS[r.status].label + '</b>. ' + (r.confirmed ? 'Zadužena' : 'Predložena') + ' služba: ' + esc(svcName(r.service)) + '. Zadnja promjena: ' + esc(fmtWhen(r.history[r.history.length - 1].t)) + '.</div>' +
-    '<div><div class="eyebrow" style="margin-bottom:8px">Povijest (interno)</div><ul class="history">' + r.history.slice().reverse().map(h => '<li><time>' + esc(fmtStamp(h.t)) + '</time><span>' + esc(h.text) + '</span></li>').join('') + '</ul></div>';
+    '<div class="public"><div class="eyebrow" style="margin-bottom:6px">Što vidi prijavitelj</div>Prijava #' + esc(r.id) + ': <b>' + STATUS[r.status].label + '</b>. ' + (r.status === 'odbijeno' && r.rejectReason ? 'Razlog: ' + esc(r.rejectReason) + ' ' : '') + (r.confirmed ? 'Zadužena' : 'Predložena') + ' služba: ' + esc(svcName(r.service)) + '. Zadnja promjena: ' + esc(fmtWhen(r.history[r.history.length - 1].t)) + '.</div>' +
+    '<div><div class="eyebrow" style="margin-bottom:8px">Povijest (interno)</div><ul class="history">' + r.history.slice().reverse().map(h => '<li><time>' + esc(fmtStamp(h.t)) + '</time><span>' + esc(h.text) + (h.by ? ' <span class="by">· ' + esc(h.by) + '</span>' : '') + '</span></li>').join('') + '</ul></div>';
   bindDetailActions(el, r);
   bindThumbs(el, r);
+  fillLk(el.querySelector('[data-lk]'), r);
   detailMotion(el, 'd1', r);
 }
 function setStatus(r, st){ r.status = st; r._statusAt = new Date().toISOString(); }
@@ -984,7 +1088,9 @@ function bindDetailActions(el, r){
     if (a === 'close') return closeDrawers();
     if (a === 'confirm'){ r.confirmed = true; addHistory(r, 'Potvrđeno i proslijeđeno: ' + svcName(r.service)); commit('Prijava #' + r.id + ' proslijeđena: ' + svcName(r.service) + '.', r); }
     if (a === 'reassign') openReassign(r);
-    if (a === 'next'){ const i = ORDER.indexOf(r.status); if (i < 2){ setStatus(r, ORDER[i + 1]); if (!r.confirmed){ r.confirmed = true; addHistory(r, 'Potvrđeno i proslijeđeno: ' + svcName(r.service)); } addHistory(r, 'Status: ' + STATUS[r.status].label); commit('Status prijave #' + r.id + ': ' + STATUS[r.status].label + '.', r); } }
+    if (a === 'reject') openReject(r);
+    if (a === 'reopen'){ setStatus(r, 'zaprimljeno'); r.rejectReason = null; addHistory(r, 'Prijava ponovno otvorena (status: ' + STATUS.zaprimljeno.label + ')'); commit('Prijava #' + r.id + ' ponovno je otvorena.', r); }
+    if (a === 'next'){ const i = ORDER.indexOf(r.status); if (i >= 0 && i < 2){ setStatus(r, ORDER[i + 1]); if (!r.confirmed){ r.confirmed = true; addHistory(r, 'Potvrđeno i proslijeđeno: ' + svcName(r.service)); } addHistory(r, 'Status: ' + STATUS[r.status].label); commit('Status prijave #' + r.id + ': ' + STATUS[r.status].label + '.', r); } }
     if (a === 'prev'){ const i = ORDER.indexOf(r.status); if (i > 0){ setStatus(r, ORDER[i - 1]); addHistory(r, 'Status vraćen na: ' + STATUS[r.status].label); commit('Status prijave #' + r.id + ' vraćen na ' + STATUS[r.status].label + '.', r); } }
     if (a === 'notify') notifyStations(r);
     if (a === 'open1'){ sel1 = r.id; closeDrawers(); location.hash = '#prijave'; setTimeout(() => select1(r.id, true), 150); }
@@ -1108,9 +1214,9 @@ function renderDetail2(){
     '<div class="card"><span class="eyebrow">' + (deg == null ? 'Najbliža prihvatna mjesta' : 'Prihvatna mjesta na smjeru plovidbe') + '</span>' +
       ah.map(x => '<div class="ahead"><span><b>' + esc(x.s.name) + '</b><small>' + esc(x.s.what) + '</small></span><span class="d">' + fmtNM(x.d) + '</span></div>').join('') + '</div>' +
     '<div class="btns"><button class="btn btn-primary" type="button" data-act="notify" style="flex:1 1 100%">Obavijesti marine na smjeru plovidbe</button>' +
-      (ORDER.indexOf(r.status) < 2 ? '<button class="btn btn-dark" type="button" data-act="next" style="flex:1">' + (r.status === 'zaprimljeno' ? 'Preuzmi u obradu' : 'Označi kao riješeno') + '</button>' : '') +
+      (ORDER.indexOf(r.status) >= 0 && ORDER.indexOf(r.status) < 2 ? '<button class="btn btn-dark" type="button" data-act="next" style="flex:1">' + (r.status === 'zaprimljeno' ? 'Preuzmi u obradu' : 'Označi kao riješeno') + '</button>' : '') +
       '<button class="btn btn-ghost" type="button" data-act="open1" style="flex:1">Otvori u Prijavama</button></div>' +
-    '<div><div class="eyebrow" style="margin-bottom:8px">Povijest</div><ul class="history">' + r.history.slice().reverse().slice(0, 6).map(h => '<li><time>' + esc(fmtStamp(h.t)) + '</time><span>' + esc(h.text) + '</span></li>').join('') + '</ul></div>';
+    '<div><div class="eyebrow" style="margin-bottom:8px">Povijest</div><ul class="history">' + r.history.slice().reverse().slice(0, 6).map(h => '<li><time>' + esc(fmtStamp(h.t)) + '</time><span>' + esc(h.text) + (h.by ? ' <span class="by">· ' + esc(h.by) + '</span>' : '') + '</span></li>').join('') + '</ul></div>';
   bindDetailActions(el, r);
   bindThumbs(el, r);
   detailMotion(el, 'd2', r);
@@ -1437,7 +1543,7 @@ function initFilters(){
   [['#dRegion','region'],['#dPeriod','period'],['#dVessel','vessel']].forEach(([s, k]) =>
     $(s).addEventListener('change', e => { D[k] = e.target.value; renderView2(true); }));
   $('#fClear').addEventListener('click', () => {
-    Object.assign(F, {q:'', region:'', period:'30', vessel:'', type:''}); F.statuses = new Set(ORDER);
+    Object.assign(F, {q:'', region:'', period:'30', vessel:'', type:''}); F.statuses = new Set(ALL_STATUS);
     $('#fQ').value = ''; $('#fRegion').value = ''; $('#fPeriod').value = '30'; $('#fVessel').value = ''; $('#fType').value = '';
     renderView1(true); updateFilterCount();
   });
@@ -1469,8 +1575,209 @@ function applyPhoneTableVisibility(){
   else $('#tblWrap').style.display = '';
 }
 
+/* ================= odbijanje prijave ================= */
+let rejectTarget = null;
+function openReject(r){
+  rejectTarget = r; $('#rejWhy').value = ''; $('#rejErr').textContent = '';
+  $('#rejDlg').showModal(); $('#rejWhy').focus();
+}
+$('#rejForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const r = rejectTarget; if (!r) return;
+  const why = $('#rejWhy').value.trim().replace(/\s+/g, ' ');
+  if (why.length < 3){ $('#rejErr').textContent = 'Upišite razlog (prijavitelj ga vidi u dnevniku).'; $('#rejWhy').focus(); return; }
+  setStatus(r, 'odbijeno'); r.rejectReason = why;
+  addHistory(r, 'Odbijeno: ' + why);
+  $('#rejDlg').close();
+  commit('Prijava #' + r.id + ' je odbijena.', r);
+});
+
+/* ================= podaci HHI: nadležna lučka kapetanija, najbliža ispostava, VTS kanal =================
+   Izvor: Hrvatski hidrografski institut / MMPI (ArcGIS Online, javno, uz navođenje izvora). Podaci o ispostavama su iz 2020. */
+const HHI = 'https://services8.arcgis.com/tDYJmhP975urQUZt/ArcGIS/rest/services/';
+const lkCache = {};
+let officesP = null;
+function hhiPoint(layer, r, fields){
+  return fetch(HHI + layer + '/FeatureServer/0/query?geometry=' + r.lng + ',' + r.lat + '&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=' + fields + '&returnGeometry=false&f=json')
+    .then(x => x.json()).then(j => (j.features && j.features[0] && j.features[0].attributes) || null);
+}
+function offices(){
+  if (!officesP) officesP = fetch(HHI + encodeURIComponent('Lučke_kapetanije_i_ispostave') + '/FeatureServer/0/query?where=1%3D1&outFields=Naziv,LK,Vrsta,Aktivno,Adresa,Telefon,Email&outSR=4326&f=geojson')
+    .then(x => x.json()).then(j => (j.features || []).filter(f => f.geometry && (f.properties.Aktivno || '').toLowerCase() !== 'ne'))
+    .catch(e => { officesP = null; throw e; });
+  return officesP;
+}
+function lkInfo(r){
+  const key = r.lat.toFixed(3) + ',' + r.lng.toFixed(3);
+  if (!lkCache[key]) lkCache[key] = Promise.all([
+    hhiPoint('Podrucja_nadleznosti_LK_view', r, 'Name,Short_n').catch(() => null),
+    hhiPoint('VTS', r, 'NAME,Pozivni,VHS_gl,VHS_pom').catch(() => null),
+    offices().then(list => {
+      let best = null, bd = Infinity;
+      list.forEach(f => { const [lo, la] = f.geometry.coordinates; const d = distNM({lat: r.lat, lng: r.lng}, {lat: la, lng: lo}); if (d < bd){ bd = d; best = f; } });
+      return best ? {p: best.properties, d: bd} : null;
+    }).catch(() => null)
+  ]).then(([area, vts, near]) => ({area, vts, near}));
+  return lkCache[key];
+}
+function fillLk(box, r){
+  if (!box) return;
+  if (!isOnline()){ box.innerHTML = '<span class="eyebrow">Nadležna lučka kapetanija (HHI)</span><span class="hint">Bez veze: podaci HHI-ja nisu dostupni.</span>' + emergHtml(); return; }
+  lkInfo(r).then(({area, vts, near}) => {
+    if (!box.isConnected) return;
+    let h = '<span class="eyebrow">Nadležna lučka kapetanija (HHI)</span>';
+    h += '<span class="svc" style="font-size:16px">' + esc(area ? area.Name : 'Izvan područja lučkih kapetanija (otvoreno more: MRCC Rijeka)') + '</span>';
+    if (near){
+      const p = near.p, tel = String(p.Telefon || '').trim(), mail = String(p.Email || '').trim();
+      h += '<div class="lk-row"><span>Najbliža: <b>' + esc(p.Vrsta + ' ' + p.Naziv) + '</b> · ' + fmtNM(near.d) + '</span></div><div class="lk-row">' +
+        (tel && tel !== '-' ? '<a href="tel:' + esc(tel.replace(/[^\d+]/g, '')) + '">' + esc(tel) + '</a>' : '') +
+        (mail && mail !== '-' ? '<a href="mailto:' + esc(mail) + '?subject=' + encodeURIComponent('ČistoMore prijava #' + r.id) + '">' + esc(mail) + '</a>' : '') +
+        (p.Adresa ? '<span class="hint">' + esc(p.Adresa) + '</span>' : '') + '</div>';
+    }
+    if (vts && vts.Pozivni) h += '<div class="lk-row"><span>VTS: <b>' + esc(vts.Pozivni) + '</b>, VHF ' + esc(vts.VHS_gl) + (vts.VHS_pom && vts.VHS_pom.trim() ? ' (pomoćni ' + esc(vts.VHS_pom) + ')' : '') + '</span></div>';
+    h += emergHtml() + '<span class="hint">Izvor: HHI / MMPI (kontakti ispostava iz 2020.)</span>';
+    box.innerHTML = h;
+  });
+}
+function emergHtml(){ return '<p class="emerg" style="margin:4px 0 0">Hitno (veće onečišćenje, opasnost): <b>MRCC Rijeka 195</b> ili 112 · VHF kanal <b>16</b></p>'; }
+
+/* ================= DHMZ: upozorenje za pomorce (preko našeg servera) ================= */
+function loadSeaWarning(){
+  CM.api('GET', '/api/dhmz/pomorci').then(r => {
+    const bar = $('#seaBar');
+    if (!r.ok || !r.data || !r.data.warning){ bar.hidden = true; return; }
+    const d = r.data;
+    bar.innerHTML = '<b>Upozorenje za pomorce (DHMZ):</b><span>' + esc(d.warning) + '</span>' +
+      '<details><summary>Prognoza po područjima</summary>' + d.areas.map(a => '<p style="margin:6px 0 0"><b>' + esc(a.name) + ':</b> ' + esc(a.text) + '</p>').join('') +
+      '<p class="src-note" style="margin:6px 0 0">' + esc(d.title) + ' · ' + esc(d.validity) + ' · Izvor: DHMZ – meteo.hr</p></details>';
+    bar.hidden = false;
+  }, () => { $('#seaBar').hidden = true; });
+}
+
+/* ================= službenici: računi portala (samo glavni admin) ================= */
+let STAFF = [];
+const ROLE_LABEL = {glavni:'Glavni admin', sluzbenik:'Službenik'};
+const STAFF_ERR = {invalid_username:'Korisničko ime: 3–32 znaka (slova, brojevi, točka, crtica).', username_taken:'To korisničko ime već postoji.',
+  invalid_name:'Upišite ime i prezime.', weak_password:'Lozinka mora imati najmanje 8 znakova.', invalid_service:'Odaberite službu.',
+  last_admin:'Mora ostati barem jedan aktivni glavni admin.', cannot_change_self:'Ne možete isključiti, smanjiti ulogu ni resetirati lozinku sami sebi.',
+  forbidden:'Samo glavni admin upravlja računima.', network:'Nema veze sa serverom.'};
+const staffErr = c => STAFF_ERR[c] || 'Spremanje nije uspjelo (' + c + ').';
+function genPass(){
+  const a = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789', b = new Uint32Array(12);
+  crypto.getRandomValues(b); return Array.from(b, x => a[x % a.length]).join('');
+}
+async function staffApi(method, path, body){
+  let r; try { r = await CM.api(method, path, body); } catch(e){ throw 'network'; }
+  if (r.status === 401) { toLogin(); throw 'unauthorized'; }
+  if (!r.ok) throw (r.data && r.data.error) || 'server';
+  return r.data;
+}
+async function loadStaff(){
+  try { STAFF = (await staffApi('GET', '/api/admin/staff')).staff; renderStaff(); }
+  catch(c){ $('#staffBody').innerHTML = '<tr><td colspan="6" class="empty">' + esc(staffErr(c)) + '</td></tr>'; }
+}
+function svcOptions(sel){
+  let h = '<option value="">Sve službe (bez dodjele)</option>';
+  SERVICE_GROUPS.forEach(g => { h += '<optgroup label="' + esc(g) + '">' + Object.values(SERVICES).filter(s => s.group === g).map(s => '<option value="' + s.id + '"' + (s.id === sel ? ' selected' : '') + '>' + esc(s.name) + '</option>').join('') + '</optgroup>'; });
+  return h;
+}
+function renderStaff(){
+  $('#staffCount').textContent = STAFF.filter(s => s.active).length + ' aktivnih / ' + STAFF.length;
+  $('#staffBody').innerHTML = STAFF.map(s => {
+    const self = ME && s.id === ME.id;
+    return '<tr data-sid="' + s.id + '"><td data-label="Ime"><b>' + esc(s.name) + '</b>' + (self ? ' <span class="hint">(vi)</span>' : '') + (s.mustChange ? '<br><span class="hint">čeka promjenu privremene lozinke</span>' : '') + '</td>' +
+      '<td data-label="Korisničko ime" style="font-family:var(--po-mono)">' + esc(s.username) + '</td>' +
+      '<td data-label="Uloga"><select data-f="staffRole"' + (self ? ' disabled' : '') + '><option value="sluzbenik"' + (s.staffRole === 'sluzbenik' ? ' selected' : '') + '>Službenik</option><option value="glavni"' + (s.staffRole === 'glavni' ? ' selected' : '') + '>Glavni admin</option></select></td>' +
+      '<td data-label="Služba"><select data-f="service">' + svcOptions(s.service) + '</select></td>' +
+      '<td data-label="Stanje">' + (s.active ? 'Aktivan' : '<span class="tag-off">Isključen</span>') + '</td>' +
+      '<td data-label="Radnje"><span class="acts">' + (self ? '' :
+        '<button class="btn btn-plain btn-sm" type="button" data-a="reset">Nova privremena lozinka</button>' +
+        '<button class="btn btn-plain btn-sm" type="button" data-a="active">' + (s.active ? 'Isključi' : 'Uključi') + '</button>') + '</span></td></tr>';
+  }).join('') || '<tr><td colspan="6" class="empty">Nema računa.</td></tr>';
+  $$('#staffBody tr[data-sid]').forEach(tr => {
+    const s = STAFF.find(x => x.id === +tr.dataset.sid);
+    $$('select[data-f]', tr).forEach(sel => sel.addEventListener('change', () => patchStaff(s, {[sel.dataset.f]: sel.value || null}, 'Spremljeno: ' + s.name + '.')));
+    $$('[data-a]', tr).forEach(b => b.addEventListener('click', () => {
+      if (b.dataset.a === 'active') patchStaff(s, {active: !s.active}, s.name + (s.active ? ' je isključen.' : ' je ponovno uključen.'));
+      if (b.dataset.a === 'reset'){
+        const p = genPass();
+        if (!confirm('Postaviti novu privremenu lozinku za ' + s.name + '?\n\nLozinka: ' + p + '\n\nZapišite je i predajte službeniku. Svi njegovi uređaji bit će odjavljeni.')) return;
+        patchStaff(s, {password: p}, 'Nova privremena lozinka za ' + s.name + ': ' + p);
+      }
+    }));
+  });
+}
+async function patchStaff(s, body, okMsg){
+  try { const d = await staffApi('PATCH', '/api/admin/staff/' + s.id, body); Object.assign(s, d.user); renderStaff(); toast(okMsg); }
+  catch(c){ toast(staffErr(c)); renderStaff(); }
+}
+$('#sService').innerHTML = svcOptions('');
+$('#sGen').addEventListener('click', () => { $('#sPass').value = genPass(); });
+$('#staffForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const body = {name: $('#sName').value.trim(), username: $('#sUser').value.trim(), staffRole: $('#sRole').value, service: $('#sService').value || null, password: $('#sPass').value};
+  $('#sErr').textContent = '';
+  if (body.name.length < 2) return void ($('#sErr').textContent = staffErr('invalid_name'));
+  if (!/^[A-Za-z0-9._-]{3,32}$/.test(body.username)) return void ($('#sErr').textContent = staffErr('invalid_username'));
+  if (body.password.length < 8) return void ($('#sErr').textContent = staffErr('weak_password'));
+  try {
+    const d = await staffApi('POST', '/api/admin/staff', body);
+    STAFF.push(d.user); renderStaff();
+    toast('Dodan službenik ' + d.user.name + ' (' + d.user.username + '). Privremena lozinka: ' + body.password);
+    $('#staffForm').reset(); $('#sService').innerHTML = svcOptions('');
+  } catch(c){ $('#sErr').textContent = staffErr(c); }
+});
+
+/* ================= vlastita lozinka ================= */
+let pwForced = false;
+function openPw(forced){
+  pwForced = !!forced;
+  $('#pwForced').hidden = !pwForced; $('#pwClose').hidden = pwForced;
+  $('#pwCancel').textContent = pwForced ? 'Odjava' : 'Odustani';
+  $('#pwForm').reset(); $('#pwErr').textContent = '';
+  $('#pwDlg').showModal(); $('#pwCur').focus();
+}
+$('#pwBtn').addEventListener('click', () => { $('#menu').classList.remove('open'); openPw(false); });
+$('#pwCancel').addEventListener('click', () => { if (pwForced) $('#logoutBtn').click(); else $('#pwDlg').close(); });
+$('#pwDlg').addEventListener('cancel', e => { if (pwForced) e.preventDefault(); });   // Esc ne zatvara obaveznu promjenu
+$('#pwForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const cur = $('#pwCur').value, nw = $('#pwNew').value, nw2 = $('#pwNew2').value, err = $('#pwErr');
+  err.textContent = '';
+  if (!cur || !nw) return void (err.textContent = 'Upišite trenutnu i novu lozinku.');
+  if (nw.length < 8) return void (err.textContent = 'Nova lozinka mora imati najmanje 8 znakova.');
+  if (nw !== nw2) return void (err.textContent = 'Nove lozinke se ne podudaraju.');
+  let r; try { r = await CM.api('POST', '/api/admin/password', {current: cur, next: nw}); } catch(x){ err.textContent = 'Nema veze sa serverom.'; return; }
+  if (r.status === 401) return toLogin();
+  if (!r.ok){ const c = r.data && r.data.error; err.textContent = c === 'wrong_password' ? 'Trenutna lozinka nije točna.' : c === 'same_password' ? 'Nova lozinka mora biti drukčija od privremene.' : c === 'weak_password' ? 'Nova lozinka mora imati najmanje 8 znakova.' : 'Promjena nije uspjela.'; return; }
+  const wasForced = pwForced;
+  pwForced = false; $('#pwDlg').close();
+  if (r.data.user) applyMe(r.data.user);
+  toast('Lozinka je promijenjena.');
+  if (wasForced) startWork();
+});
+
+/* ================= prijavljeni službenik ================= */
+function applyMe(u){
+  ME = u;
+  try { localStorage.setItem('cm-admin', JSON.stringify({username: u.username, name: u.name, staffRole: u.staffRole, service: u.service})); } catch(e){}
+  const glavni = u.staffRole === 'glavni';
+  $$('[data-glavni]').forEach(x => { x.hidden = !glavni; });
+  $('#resetBtn').hidden = !glavni;
+  $('#who').textContent = 'Prijavljeni: ' + u.name + ' (' + u.username + ') · ' + (ROLE_LABEL[u.staffRole] || 'Službenik') + (u.service ? ' · ' + svcName(u.service) : '');
+  if (!glavni && currentView() === 'sluzbenici') location.hash = '#prijave';
+}
+let svcDefaulted = false;
+function startWork(){
+  // Službenik vezan za službu po zadanom vidi prijave svoje službe (može odabrati „Sve službe“)
+  if (!svcDefaulted && ME && ME.service && ME.staffRole !== 'glavni'){ svcDefaulted = true; F.service = ME.service; $('#fService').value = ME.service; }
+  if (Q.length) flush(); else fetchAll().then(ok => { if (ok) renderAll(true); });
+  if (ME && ME.staffRole === 'glavni' && currentView() === 'sluzbenici') loadStaff();
+  loadSeaWarning();
+}
+
 /* ================= routing between views ================= */
-const VIEWS = ['prijave','ispustanja','prognoza'];
+const VIEWS = ['prijave','ispustanja','prognoza','sluzbenici'];
 function currentView(){ const h = location.hash.replace('#', ''); return VIEWS.includes(h) ? h : 'prijave'; }
 function showView(){
   const v = currentView();
@@ -1480,6 +1787,7 @@ function showView(){
   ensureMaps(v);
   if (v === 'prognoza' && FC.state === 'idle') loadForecast();
   if (v === 'prognoza') renderMap3();
+  if (v === 'sluzbenici' && ME && ME.staffRole === 'glavni') loadStaff();
   window.scrollTo(0, 0);
 }
 window.addEventListener('hashchange', showView);
@@ -1496,7 +1804,9 @@ applyPhoneTableVisibility();
 // Provjera prijave službenika; bez veze radi se s kopijom na uređaju
 CM.api('GET', '/api/admin/me').then(r => {
   if (r.status === 401 || (r.ok && !r.data.user)) return toLogin();
-  if (Q.length) flush(); else fetchAll().then(ok => { if (ok) renderAll(true); });
+  if (r.ok) applyMe(r.data.user);
+  if (ME && ME.mustChange) return openPw(true);   // privremena lozinka: najprije vlastita
+  startWork();
 }, () => { renderNet(); });
 setInterval(() => { if (currentView() === 'prijave') renderList1(filtered()); }, 60000);
 setInterval(() => { if (document.visibilityState === 'visible' && isOnline() && !flushing) { if (Q.length) flush(); else fetchAll(); } }, 20000);

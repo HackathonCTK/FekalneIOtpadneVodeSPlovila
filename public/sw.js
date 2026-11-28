@@ -4,7 +4,7 @@
  * - /api/ (računi, prijave) se nikad ne sprema: prijave bez signala čekaju u pregledniku (app.js) i šalju se kasnije
  * - zahtjevi prema drugim poslužiteljima (OpenStreetMap, Open-Meteo) idu izravno
  */
-const APP_CACHE = 'cistomore-app-v8';
+const APP_CACHE = 'cistomore-app-v9';
 const MAP_CACHE = 'cistomore-map-v2';
 const MAX_MAP_ITEMS = 4000;
 const FONTS = ['bricolage-grotesque-latin-opsz-normal', 'bricolage-grotesque-latin-ext-opsz-normal',
