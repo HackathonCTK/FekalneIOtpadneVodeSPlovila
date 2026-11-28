@@ -19,6 +19,7 @@
   var LANG_KEY = "cm-lang";       // zajednički ključ: ostale grupe ga mogu čitati
   var BEST_KEY = "po-quiz-best10";  // novi ključ: stari rezultat bio je od 8 pitanja
   var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var M = (window.CM && window.CM.motion) || null;   // zajednički pokret (app.js): reveal, swap, pop…
 
   function $(sel, ctx) { return (ctx || doc).querySelector(sel); }
   function $$(sel, ctx) { return Array.prototype.slice.call((ctx || doc).querySelectorAll(sel)); }
@@ -258,7 +259,11 @@
     // Tekst ocjene mijenja se samo kad se stvarno promijeni (čitač zaslona ga ne ponavlja na svaki pomak)
     var verdict = !dump ? L.verdictPump : n < 8 ? L.verdictDumpLow : L.verdictDump;
     var vEl = $("#po-bay-verdict");
-    if (vEl.textContent !== verdict) vEl.textContent = verdict;
+    if (vEl.textContent !== verdict) {
+      vEl.textContent = verdict;
+      if (M && vEl.__seen) M.swap(vEl);   // prvi upis (pri učitavanju) bez prijelaza
+      vEl.__seen = true;
+    }
   }
 
   /* =====================================================================
@@ -331,6 +336,7 @@
     if (capPick === null) { fb.textContent = ""; fb.className = "po-caps-feedback"; return; }
     fb.textContent = t("pump.caps.feedback")[capPick];
     fb.className = "po-caps-feedback " + (capPick === 2 ? "is-right" : "is-wrong");
+    if (M) M.swap(fb);
   }
 
   /* =====================================================================
@@ -338,6 +344,9 @@
      ===================================================================== */
   var CERT_KEY = "po-cert";   // { name, score, total, date } — Profil ga može prikazati kao značku
   var quizFocus = null;       // "next" | "question" | "result" | "certName" | "certImg"
+  var quizAnim = null;        // "q" novo pitanje | "a" odgovor | "r" rezultat | "c" certifikat (data-anim na #po-quiz, vidi CSS)
+  var quizMoved = null;       // { to, dir } poredaj ili { multi } odabir: što je upravo promijenjeno
+  var quizPct = null;         // zadnja nacrtana širina trake napretka (da se traka animira, a ne preskoči)
   // error je ključ teksta (nameErr | error), pa se prevodi pri svakom prikazu
   var cert = { name: "", draft: "", url: null, blob: null, error: "", date: null, busy: false, gen: 0 };
 
@@ -422,16 +431,21 @@
     var box = $("#po-quiz");
     var Q = t("quiz");
     var qs = quizQs(), n = qs.length;
+    var anim = quizAnim, moved = quizMoved;
+    quizAnim = null; quizMoved = null;
+    box.setAttribute("data-anim", anim || "");
 
-    if (quiz.done) { renderResult(box, Q, n); return; }
+    if (quiz.done) { renderResult(box, Q, n, anim); return; }
 
     var q = qs[quiz.i];
     var pick = quiz.picks[quiz.i];
     var answered = pick != null;
     var keys = ["A", "B", "C", "D", "E", "F"];
+    var pct = Math.round(((quiz.i + (answered ? 1 : 0)) / n) * 100);
+    var startPct = quizPct == null ? pct : quizPct;
     var html =
       '<div class="po-quiz-top"><span>' + fmt(Q.progress, { i: quiz.i + 1, n: n }) + "</span><span>" + quizScore() + "/" + n + "</span></div>" +
-      '<div class="po-progress" aria-hidden="true"><i style="width:' + Math.round(((quiz.i + (answered ? 1 : 0)) / n) * 100) + '%"></i></div>' +
+      '<div class="po-progress" aria-hidden="true"><i style="width:' + startPct + '%"></i></div>' +
       (q.type !== "single" ? '<p class="po-quiz-kind">' + Q.kind[q.type] + "</p>" : "") +
       '<h3 id="po-quiz-q" tabindex="-1">' + q.q + "</h3>";
 
@@ -490,10 +504,16 @@
         (quiz.i === n - 1 ? Q.finish : Q.next) + ' <span aria-hidden="true">→</span></button></div>';
     }
     box.innerHTML = html;
+    // Traka napretka klizi na novu vrijednost (nova traka pa prisilni reflow, da prijelaz stvarno krene)
+    var bar = $(".po-progress i", box);
+    if (bar && startPct !== pct) { void bar.offsetWidth; bar.style.width = pct + "%"; }
+    quizPct = pct;
+    quizMotion(box, anim, moved, q);
 
     function answer(p) {
       quiz.picks[quiz.i] = p;
       quizFocus = "next";
+      quizAnim = "a";
       renderQuiz();
       var qq = quizQs()[quiz.i];
       announce((isRight(qq, p) ? t("quiz.correct") : t("quiz.wrong")) + " " + qq.e);
@@ -513,6 +533,7 @@
         if (at >= 0) cur.splice(at, 1); else cur.push(o);
         quiz.draft[quiz.i] = cur;
         quizFocus = { multi: o };
+        quizMoved = { multi: o };
         renderQuiz();
       });
     });
@@ -527,6 +548,7 @@
         // fokus ostaje na istoj stavci (na njenom novom mjestu); na rubu prijeđi na drugu strelicu
         var edge = to === 0 || to === cur.length - 1;
         quizFocus = { move: to, dir: edge ? -dir : dir };
+        quizMoved = { to: to, dir: dir };
         renderQuiz();
         announce(fmt(t("quiz.movedTo"), { s: quizQs()[quiz.i].a[tmp], n: to + 1 }));
       });
@@ -542,9 +564,9 @@
     var next = $("#po-quiz-next");
     if (next) {
       next.addEventListener("click", function () {
-        if (quiz.i < n - 1) { quiz.i++; quizFocus = "question"; }
+        if (quiz.i < n - 1) { quiz.i++; quizFocus = "question"; quizAnim = "q"; }
         else {
-          quiz.done = true; quizFocus = "result";
+          quiz.done = true; quizFocus = "result"; quizAnim = "r";
           var s = quizScore(), best = quizBest();
           if (best == null || s > best) sset(BEST_KEY, String(s));
         }
@@ -558,7 +580,7 @@
     quizFocus = null;
   }
 
-  function renderResult(box, Q, n) {
+  function renderResult(box, Q, n, anim) {
     var s = quizScore();
     var CT = Q.cert;
     var ok = s >= CT.min;
@@ -567,7 +589,7 @@
     var html =
       '<div class="po-result">' +
       '<p class="po-eyebrow" style="margin:0">' + fmt(Q.result, { s: s, n: n }) + "</p>" +
-      '<div class="po-result-score" tabindex="-1" id="po-quiz-result">' + s + "/" + n + "</div>" +
+      '<div class="po-result-score" tabindex="-1" id="po-quiz-result"><span class="po-sr">' + s + "/" + n + '</span><span aria-hidden="true" id="po-score-vis">' + s + "/" + n + "</span></div>" +
       "<p>" + tier.t + "</p>" +
       (best != null ? '<p class="po-note">' + fmt(Q.best, { b: best, n: n }) + "</p>" : "");
 
@@ -607,9 +629,15 @@
       '<a class="po-btn ' + (ok ? "po-btn-ghost" : "po-btn-primary") + '" href="#vodic">' + t("nav.guide") + "</a></div></div>";
     box.innerHTML = html;
 
+    // Rezultat: broj se pobroji, a za certifikat padne konfeti (samo kad se rezultat prvi put pojavi)
+    if (anim === "r" && M && !reduceMotion) {
+      var vis = $("#po-score-vis");
+      if (vis) countScore(vis, s, n);
+      if (ok) confetti($(".po-result", box));
+    }
     $("#po-quiz-again").addEventListener("click", function () {
       cert.gen++; cert.busy = false; cert.date = null;  // poništi crtanje koje je možda još u tijeku
-      quiz = newQuiz(); clearCert(); quizFocus = "question"; renderQuiz();
+      quiz = newQuiz(); clearCert(); quizFocus = "question"; quizAnim = "q"; quizPct = null; renderQuiz();
     });
     var form = $("#po-cert-form");
     if (form) {
@@ -655,6 +683,63 @@
     quizFocus = null;
   }
 
+  /* ---------- Pokret u kvizu (Web Animations; uz prefers-reduced-motion se ne poziva) ---------- */
+  function quizMotion(box, anim, moved, q) {
+    if (reduceMotion || !box.animate) return;
+    // Poredaj: pomaknuta stavka i ona koju je zamijenila klize na novo mjesto
+    if (moved && moved.to != null) {
+      var items = $$(".po-order-item", box), a = items[moved.to], b = items[moved.to - moved.dir];
+      if (a && b) {
+        var d = moved.dir * (b.offsetHeight + 8), opt = { duration: 240, easing: "cubic-bezier(.2,.7,.2,1)" };
+        a.animate([{ transform: "translateY(" + (-d) + "px)" }, { transform: "none" }], opt);
+        b.animate([{ transform: "translateY(" + d + "px)" }, { transform: "none" }], opt);
+      }
+    }
+    // Više točnih: oznaka odabrane opcije poskoči
+    if (moved && moved.multi != null) {
+      var mk = $('[data-multi="' + moved.multi + '"] .po-option-key', box);
+      if (mk) mk.animate([{ transform: "scale(.6)" }, { transform: "scale(1.15)", offset: 0.6 }, { transform: "none" }], { duration: 260, easing: "ease-out" });
+    }
+    // Točan odgovor: brojač rezultata poskoči
+    if (anim === "a" && q && isRight(q, quiz.picks[quiz.i])) {
+      var sc = $(".po-quiz-top span:last-child", box);
+      if (sc) sc.animate([{ transform: "scale(1)" }, { transform: "scale(1.5)" }, { transform: "scale(1)" }], { duration: 380, easing: "ease-out" });
+    }
+  }
+  function countScore(el, s, n) {
+    if (doc.hidden || !s) return;
+    var t0 = null, dur = 700;
+    (function step(t) {
+      if (t0 == null) t0 = t;
+      var k = Math.min(1, (t - t0) / dur);
+      k = 1 - Math.pow(1 - k, 3);
+      el.textContent = Math.round(s * k) + "/" + n;
+      if (k < 1) requestAnimationFrame(step);
+    })(performance.now());
+    setTimeout(function () { el.textContent = s + "/" + n; }, dur + 150);
+  }
+  function confetti(host) {
+    if (!host || !host.animate || reduceMotion) return;
+    var wrap = doc.createElement("div");
+    wrap.className = "po-confetti";
+    wrap.setAttribute("aria-hidden", "true");
+    var colors = ["var(--po-accent)", "var(--po-accent-2)", "var(--po-amber)", "var(--po-warn)", "#fff"];
+    for (var i = 0; i < 26; i++) {
+      var p = doc.createElement("i");
+      p.style.background = colors[i % colors.length];
+      wrap.appendChild(p);
+      var ang = (-90 + (Math.random() - 0.5) * 140) * Math.PI / 180, dist = 90 + Math.random() * 130;
+      var x = Math.cos(ang) * dist, y = Math.sin(ang) * dist;
+      p.animate([
+        { transform: "translate(0,0) rotate(0deg)", opacity: 1 },
+        { transform: "translate(" + x + "px," + y + "px) rotate(" + Math.round(Math.random() * 360) + "deg)", opacity: 1, offset: 0.45 },
+        { transform: "translate(" + (x * 1.15) + "px," + (y + 160) + "px) rotate(" + Math.round(Math.random() * 720) + "deg)", opacity: 0 }
+      ], { duration: 1300 + Math.random() * 500, easing: "cubic-bezier(.2,.7,.3,1)", fill: "forwards" });
+    }
+    host.appendChild(wrap);
+    setTimeout(function () { if (wrap.parentNode) wrap.parentNode.removeChild(wrap); }, 2000);
+  }
+
   function makeCert(s, n, focusImg) {
     if (!cert.date) cert.date = new Date().toISOString();
     cert.busy = true;
@@ -668,7 +753,7 @@
       cert.url = URL.createObjectURL(blob);
       sset(CERT_KEY, JSON.stringify({ name: nm, score: s, total: n, date: cert.date }));
       sset("po-cert-name", nm);
-      if (focusImg) quizFocus = "certImg";
+      if (focusImg) { quizFocus = "certImg"; quizAnim = "c"; }
       renderQuiz();
       if (focusImg) announce(t("quiz.cert.earned"));
     }).catch(function () {
@@ -854,12 +939,19 @@
   function initChrome() {
     var top = $("#po-top"), main = $("#po-main");
     var ticking = false;
+    // Tanka traka napretka čitanja uz gornji rub
+    var readbar = doc.createElement("div");
+    readbar.className = "po-readbar";
+    readbar.setAttribute("aria-hidden", "true");
+    doc.body.appendChild(readbar);
     function onScroll() {
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(function () {
         // Puna pozadina čim počne zaron, da logo i gumbi ostanu čitljivi preko tamnog mora
         top.classList.toggle("is-solid", window.scrollY > window.innerHeight * 0.2);
+        var span = doc.documentElement.scrollHeight - window.innerHeight;
+        readbar.style.transform = "scaleX(" + (span > 0 ? Math.min(1, Math.max(0, window.scrollY / span)) : 0).toFixed(4) + ")";
         ticking = false;
       });
     }
@@ -936,6 +1028,11 @@
       .fromTo(".po-plume", { autoAlpha: 0, scale: 0.15 }, { autoAlpha: 0.95, scale: 1, duration: 3.2, ease: "power1.out" }, 1.2)
       .to(".po-plume", { yPercent: 85, scale: 1.9, autoAlpha: 0.5, duration: 5.2 }, 4.4);
 
+    // Dubinski paralax: sunce se sporije gubi (dalje je), a dno i trava „izrone“ prema kraju zarona
+    tl.to(".po-sun", { y: "22vh", duration: 6 }, 0)
+      .fromTo(".po-grass", { yPercent: 32 }, { yPercent: 0, duration: 10 }, 0)
+      .fromTo(".po-seabed", { yPercent: 14 }, { yPercent: 0, duration: 10 }, 0);
+
     // Na računalu zadnja rečenica ostaje lijevo, uz brojke desno
     var wide = window.matchMedia("(min-width: 860px)").matches;
     var slots = [[1.5, 3.1], [3.3, 4.9], [5.1, 6.7], [6.9, 8.0]];
@@ -969,6 +1066,59 @@
     });
   }
 
+  /* =====================================================================
+     Pokret sekcija: ulaz pri skrolanju (CM.motion), uvala, žive ilustracije, brojke
+     ===================================================================== */
+  function initReveal() {
+    var bayEl = $(".po-bay");
+    function seen() { if (bayEl) bayEl.classList.add("is-seen"); }
+    if (!M || reduceMotion || !("IntersectionObserver" in window) || doc.hidden) seen();
+    if (!M || reduceMotion) return;
+    var groups = [".po-head > *", ".po-bay", ".po-impact", ".po-guide", ".po-checker", ".po-step", ".po-caps", ".po-stations-head",
+      ".po-station", ".po-howto", ".po-photos > h3", ".po-photos > p", ".po-photo", ".po-know", ".po-quiz", ".po-final .po-wrap > *"];
+    M.reveal($$(groups.join(", "), $("#po-main")));
+    // Mjerači uvale se napune tek kad uvala dođe na ekran
+    if (bayEl && !bayEl.classList.contains("is-seen")) {
+      var bio = new IntersectionObserver(function (es) {
+        if (es.some(function (e) { return e.isIntersecting; })) { seen(); bio.disconnect(); }
+      }, { threshold: 0.25 });
+      bio.observe(bayEl);
+      doc.addEventListener("visibilitychange", function () { if (doc.hidden) { seen(); bio.disconnect(); } });
+    }
+  }
+  function countUp(el) {
+    if (!el || doc.hidden) return;
+    var m = /^(\d+)(\D.*)?$/.exec(el.textContent.trim());
+    if (!m || +m[1] < 2) return;
+    var to = +m[1], suf = m[2] || "", t0 = null, dur = 900, last = null;
+    (function step(t) {
+      if (t0 == null) t0 = t;
+      var k = Math.min(1, (t - t0) / dur);
+      k = 1 - Math.pow(1 - k, 3);
+      if (last != null && el.textContent !== last) return;   // jezik promijenjen usred brojanja: ne diraj
+      last = Math.round(to * k) + suf;
+      el.textContent = last;
+      if (k < 1) requestAnimationFrame(step);
+    })(performance.now());
+  }
+  function initLive() {
+    if (reduceMotion || !("IntersectionObserver" in window)) return;
+    // Ilustracije se animiraju samo dok su na ekranu
+    var live = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { e.target.classList.toggle("is-live", e.isIntersecting); });
+    }, { threshold: 0.35 });
+    $$(".po-howto").forEach(function (el) { live.observe(el); });
+    // „Jesi li znao?“: brojke se pobroje kad kartica uđe
+    var know = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        know.unobserve(e.target);
+        countUp($(".po-know-big", e.target));
+      });
+    }, { threshold: 0.6 });
+    $$(".po-know").forEach(function (el) { know.observe(el); });
+  }
+
   /* ---------- Pokretanje ---------- */
   function start() {
     cert.name = cert.draft = sget("po-cert-name") || "";
@@ -980,6 +1130,8 @@
     initLang();
     applyLang();
     initChrome();
+    initReveal();
+    initLive();
   }
   // Skripta je "defer": DOM je već učitan, pa se sadržaj prikazuje odmah.
   // GSAP se učitava poslije (također "defer"), pa animaciju pokrećemo na DOMContentLoaded.

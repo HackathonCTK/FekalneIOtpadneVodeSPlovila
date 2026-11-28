@@ -16,6 +16,7 @@
 <link rel="stylesheet" href="vendor/fonts/fonts.css">
 <link rel="stylesheet" href="tokens.css">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="motion.css">
 </head>
 <body class="cm-body">
 <a class="cm-skip" href="#main" data-t="ui.skip">Preskoči na sadržaj</a>
@@ -146,10 +147,10 @@
 
     var pending = CM.outbox.mine();
     var count = function (st) { return reports.filter(function (r) { return r.status === st; }).length; };
-    $('sTotal').textContent = reports.length + pending.length;
-    $('sNew').textContent = count('zaprimljeno');
-    $('sWork').textContent = count('obrada');
-    $('sDone').textContent = count('rijeseno');
+    CM.motion.count($('sTotal'), reports.length + pending.length);
+    CM.motion.count($('sNew'), count('zaprimljeno'));
+    CM.motion.count($('sWork'), count('obrada'));
+    CM.motion.count($('sDone'), count('rijeseno'));
     $('pendingNote').hidden = !pending.length;
     $('pendingNote').textContent = CM.t('home.pending', { n: pending.length });
 
@@ -178,6 +179,8 @@
         '<span class="cm-list-sub" style="display:block">' + CM.esc(place) + ' · ' + CM.esc(CM.fmtWhen(it.createdAt)) + '</span></span>' + pill + '</a>';
       ul.appendChild(li);
     });
+    // Nove stavke ulaze jedna za drugom; već viđene se ne animiraju iznova pri osvježavanju
+    CM.motion.list(ul, 'li', function (el) { var a = el.firstChild, p = a && a.querySelector('.cm-pill'); return a ? a.getAttribute('href') + (p ? p.className : '') : ''; });
   }
   function R_VESSEL(type) { return window.CM_ROUTING && CM_ROUTING.TYPES[type] && CM_ROUTING.TYPES[type].vessel; }
 

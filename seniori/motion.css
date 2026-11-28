@@ -1,0 +1,128 @@
+/* =========================================================================
+   ČistoMore — pokret (animacije) zajednički za sve stranice
+   Pokreće ih CM.motion u app.js. Samo transform i opacity, kratko (do ~0,5 s).
+   Uz prefers-reduced-motion: reduce sve se gasi (vidi na dnu).
+   ========================================================================= */
+:root{
+  --cm-ease:cubic-bezier(.2,.7,.2,1);
+  --cm-spring:cubic-bezier(.34,1.56,.64,1);
+}
+
+@keyframes cm-fade{ from{ opacity:0; } }
+@keyframes cm-rise{ from{ opacity:0; transform:translateY(14px); } }
+@keyframes cm-swap{ from{ opacity:0; transform:translateX(10px); } }
+@keyframes cm-pop{ from{ opacity:0; transform:scale(.94); } }
+@keyframes cm-grow{ from{ transform:scaleX(0); } }
+@keyframes cm-spin{ to{ transform:rotate(360deg); } }
+@keyframes cm-tap{ 50%{ transform:scale(.95); } }
+@keyframes cm-shake{ 20%{ transform:translateX(-5px); } 40%{ transform:translateX(5px); } 60%{ transform:translateX(-3px); } 80%{ transform:translateX(3px); } }
+@keyframes cm-ring{ 0%, 100%{ transform:rotate(0); } 15%{ transform:rotate(16deg); } 30%{ transform:rotate(-13deg); } 45%{ transform:rotate(9deg); } 60%{ transform:rotate(-6deg); } 75%{ transform:rotate(3deg); } }
+@keyframes cm-ping{
+  from{ box-shadow:0 0 0 2px var(--po-bg), 0 0 0 2px color-mix(in srgb, var(--po-warn) 65%, transparent); }
+  to{ box-shadow:0 0 0 2px var(--po-bg), 0 0 0 10px transparent; }
+}
+@keyframes cm-flash{ from{ background-color:var(--po-accent-soft); } }
+@keyframes cm-draw{ to{ stroke-dashoffset:0; } }
+
+/* ---------- Ulaz sadržaja: CM.motion.reveal / enter / list ---------- */
+.cm-rv{ opacity:0; transform:translateY(14px); }
+.cm-in{ animation:cm-rise .5s var(--cm-ease) backwards; animation-delay:calc(var(--i, 0) * 70ms); }
+.cm-swap{ animation:cm-swap .28s var(--cm-ease); }
+.cm-pop{ animation:cm-pop .3s var(--cm-spring); }
+.cm-flash{ animation:cm-flash 1.1s ease-out; }
+.cm-shake{ animation:cm-shake .38s ease-in-out; }
+
+/* ---------- Mikro-interakcije ---------- */
+.cm-qa{ transition:border-color .2s, background .2s, transform .25s var(--cm-ease), box-shadow .25s; }
+.cm-qa:active{ transform:scale(.97); }
+.cm-qa-icon{ transition:transform .3s var(--cm-spring); }
+.cm-list-icon{ transition:transform .3s var(--cm-spring); }
+@media (hover:hover){
+  .cm-qa:hover{ transform:translateY(-3px); box-shadow:0 14px 30px rgba(0,0,0,.2); }
+  .cm-qa:hover .cm-qa-icon{ transform:scale(1.1) rotate(-5deg); }
+  a.cm-list-row:hover .cm-list-icon{ transform:scale(1.1) rotate(-5deg); }
+  .po-btn-primary:hover{ transform:translateY(-1px); }
+  .po-btn-primary:active{ transform:scale(.98); }
+}
+.po-mode, .po-account{ transition:border-color .2s, transform .2s var(--cm-spring); }
+.po-mode:active, .po-account:active{ transform:scale(.9); }
+.po-mode svg{ transition:transform .4s var(--cm-spring); }
+.po-mode:hover svg{ transform:rotate(18deg); }
+.po-top .po-lang button{ transition:background .25s, color .25s; }
+
+/* Donja traka i lijevi izbornik: pritisak, aktivna ikona poskoči pri dolasku na stranicu */
+.bottomnav .nav-item{ transition:color .2s, transform .15s; }
+.bottomnav .nav-item:active{ transform:scale(.92); }
+.bottomnav .nav-item svg, .sidenav .nav-item svg{ transition:transform .3s var(--cm-spring); }
+.bottomnav .nav-item.active svg, .sidenav .nav-item.active svg{ animation:cm-pop .45s var(--cm-spring) .1s backwards; }
+.sidenav .nav-item:hover svg{ transform:scale(1.12); }
+
+/* Prekidač, odabir, tabovi */
+.cm-switch::after{ transition:transform .28s var(--cm-spring), width .15s; }
+.cm-switch:active::after{ width:26px; }
+.cm-switch[aria-checked="true"]:active::after{ transform:translateX(14px); }
+.cm-choice input:checked + span, .cm-rose input:checked + span{ animation:cm-tap .28s var(--cm-ease); }
+.cm-tabs button{ transition:background .25s, color .25s; }
+.cm-field input, .cm-field select, .cm-field textarea{ transition:border-color .15s, box-shadow .2s; }
+.file-thumb{ animation:cm-pop .3s var(--cm-spring); }
+.file-drop{ transition:border-color .2s, background .2s, transform .2s var(--cm-ease); }
+.file-drop:hover, .file-drop:focus-within{ transform:translateY(-1px); }
+
+/* Greške i napomene */
+.cm-error:not(:empty){ animation:cm-rise .28s var(--cm-ease); }
+.cm-notice:not([hidden]){ animation:cm-rise .35s var(--cm-ease); }
+
+/* Obavijest (toast): opruga umjesto običnog pomaka */
+.toast{ transition:opacity .25s ease, transform .4s var(--cm-spring); }
+
+/* Gumbi u tijeku (slanje, osvježavanje) */
+.po-btn[aria-busy="true"] svg{ animation:cm-spin .8s linear infinite; }
+#submitBtn[aria-disabled="true"] span::after, .cm-auth .po-btn[aria-disabled="true"]::after{
+  content:""; display:inline-block; width:.9em; height:.9em; margin-left:8px; vertical-align:-.12em;
+  border:2px solid currentColor; border-right-color:transparent; border-radius:50%; animation:cm-spin .7s linear infinite;
+}
+
+/* Statusi: trake koraka se pune kad kartica uđe */
+.cm-in .cm-steps li.on i{ transform-origin:left center; animation:cm-grow .6s var(--cm-ease) backwards; }
+.cm-in .cm-steps li.on:nth-child(2) i{ animation-delay:.12s; }
+.cm-in .cm-steps li.on:nth-child(3) i{ animation-delay:.24s; }
+.lg-item.is-target{ animation:cm-flash 1.6s ease-out .3s; }
+.lg-new{ animation:cm-pop .4s var(--cm-spring) .4s backwards; }
+.cm-pill{ transition:background-color .3s, color .3s; }
+
+/* Kvačica nakon slanja prijave (CM.motion.check()) */
+.cm-check{ width:64px; height:64px; display:block; margin:0 0 12px; }
+.cm-check circle{
+  fill:none; stroke:var(--po-accent); stroke-width:3; stroke-linecap:round;
+  stroke-dasharray:152; stroke-dashoffset:152; transform:rotate(-90deg); transform-origin:center;
+  animation:cm-draw .6s var(--cm-ease) .05s forwards;
+}
+.cm-check path{
+  fill:none; stroke:var(--po-accent); stroke-width:4; stroke-linecap:round; stroke-linejoin:round;
+  stroke-dasharray:40; stroke-dashoffset:40; animation:cm-draw .4s var(--cm-ease) .5s forwards;
+}
+
+/* Zvono: panel se otvara iz kuta, stavke ulaze jedna za drugom, nova obavijest zazvoni */
+.cm-notif{ transform-origin:top right; animation:cm-pop .22s var(--cm-ease); }
+.cm-notif li{ animation:cm-rise .3s var(--cm-ease) backwards; }
+.cm-notif li:nth-child(2){ animation-delay:.04s; }
+.cm-notif li:nth-child(3){ animation-delay:.08s; }
+.cm-notif li:nth-child(4){ animation-delay:.12s; }
+.cm-notif li:nth-child(5){ animation-delay:.16s; }
+.cm-notif li:nth-child(n+6){ animation-delay:.2s; }
+.cm-bell-btn svg{ transform-origin:50% 14%; }
+.cm-bell-btn.is-ring svg{ animation:cm-ring .9s ease-in-out; }
+.cm-bell-btn.has-unread::after{ animation:cm-ping 1.6s ease-out 3; }
+
+/* Mjesta gdje se sadržaj mijenja na istom mjestu (detalj, rezultat) */
+.cm-count{ font-variant-numeric:tabular-nums; }
+
+@media (prefers-reduced-motion: reduce){
+  .cm-rv{ opacity:1; transform:none; }
+  .cm-in, .cm-swap, .cm-pop, .cm-flash, .cm-shake,
+  .cm-notif, .cm-notif li, .cm-bell-btn.is-ring svg, .cm-bell-btn.has-unread::after,
+  .bottomnav .nav-item.active svg, .sidenav .nav-item.active svg, .file-thumb, .lg-new, .lg-item.is-target,
+  .cm-error:not(:empty), .cm-notice:not([hidden]){ animation:none; }
+  .cm-check circle, .cm-check path{ animation:none; stroke-dashoffset:0; }
+  .cm-qa:hover, .po-btn-primary:hover, .file-drop:hover{ transform:none; }
+}

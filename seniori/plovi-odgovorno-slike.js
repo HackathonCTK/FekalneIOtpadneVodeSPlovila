@@ -31,7 +31,7 @@ window.PO_ILLUSTRATIONS = [
     '<rect class="il-acc" x="236" y="62" width="24" height="10" rx="3"/>' +
     '<text class="il-label il-label-acc" x="248" y="52" text-anchor="middle">WASTE</text>' +
     /* strelice toka */
-    '<path class="il-arrow" d="M100 156 l8 4 l-8 4"/><path class="il-arrow" d="M168 156 l8 4 l-8 4"/><path class="il-arrow" d="M244 92 l4 -8 l4 8"/>' +
+    '<path class="il-arrow" d="M100 156 l8 4 l-8 4"/><path class="il-arrow il-d2" d="M168 156 l8 4 l-8 4"/><path class="il-arrow il-d3" d="M244 92 l4 -8 l4 8"/>' +
   '</svg>',
 
   /* 2. Prihvatna stanica uz gat */
@@ -49,6 +49,7 @@ window.PO_ILLUSTRATIONS = [
     '<rect class="il-line-box" x="256" y="96" width="24" height="14" rx="3"/>' +
     /* crijevo do broda */
     '<path class="il-hose" d="M250 104 C 210 104, 200 70, 150 74 C 120 76, 118 92, 112 96"/>' +
+    '<path class="il-flow" d="M250 104 C 210 104, 200 70, 150 74 C 120 76, 118 92, 112 96"/>' +
     /* brod */
     '<path class="il-hull" d="M8 100 H160 L146 140 H24 Z"/>' +
     '<rect class="il-obj" x="40" y="70" width="58" height="30" rx="6"/>' +
@@ -78,13 +79,14 @@ window.PO_ILLUSTRATIONS = [
     '<ellipse class="il-cap il-cap-ok" cx="130" cy="130" rx="44" ry="12"/>' +
     '<text class="il-label il-label-acc" x="130" y="164" text-anchor="middle">WASTE</text>' +
     /* nastavak */
-    '<path class="il-nozzle" d="M112 128 L118 92 H142 L148 128 Z"/>' +
+    '<g class="il-plug"><path class="il-nozzle" d="M112 128 L118 92 H142 L148 128 Z"/>' +
     '<rect class="il-panel" x="114" y="70" width="32" height="24" rx="6"/>' +
-    '<path class="il-line" d="M146 80 h14" stroke-width="5"/>' +
+    '<path class="il-line" d="M146 80 h14" stroke-width="5"/></g>' +
     /* crijevo prema stanici */
     '<path class="il-hose" d="M130 70 C 130 30, 200 24, 230 40 S 300 70, 318 60"/>' +
+    '<path class="il-flow" d="M130 70 C 130 30, 200 24, 230 40 S 300 70, 318 60"/>' +
     /* strelice: sadržaj ide u crijevo */
-    '<path class="il-arrow" d="M186 30 l10 2 l-6 8"/><path class="il-arrow" d="M262 58 l10 0 l-4 9"/>' +
+    '<path class="il-arrow il-d2" d="M186 30 l10 2 l-6 8"/><path class="il-arrow il-d3" d="M262 58 l10 0 l-4 9"/>' +
     '<path class="il-arrow il-arrow-up" d="M130 118 V100 M124 106 l6 -6 l6 6"/>' +
   '</svg>',
 
