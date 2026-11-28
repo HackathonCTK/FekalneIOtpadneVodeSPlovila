@@ -109,6 +109,7 @@
         <a href="#utjecaj" data-i18n="nav.impact">Utjecaj</a>
         <a href="#vodic" data-i18n="nav.guide">Vodič</a>
         <a href="#prihvat" data-i18n="nav.pumpout">Prihvat</a>
+        <a href="#slike" data-i18n="nav.howto">U slikama</a>
         <a href="#znao" data-i18n="nav.know">Činjenice</a>
         <a href="#kviz" data-i18n="nav.quiz">Kviz</a>
       </div>
@@ -220,6 +221,23 @@
       </div>
     </section>
 
+    <!-- ===== 4a. KORAK PO KORAK U SLIKAMA (ilustracije i fotografije) ===== -->
+    <section class="po-section" id="slike" aria-labelledby="slike-title">
+      <div class="po-wrap">
+        <header class="po-head">
+          <p class="po-eyebrow" data-i18n="howto.eyebrow">Kako to izgleda</p>
+          <h2 id="slike-title" data-i18n="howto.title"></h2>
+          <p class="po-lead" data-i18n="howto.lead"></p>
+        </header>
+        <div class="po-howto-grid" id="po-howto"></div>
+        <div class="po-photos" id="po-photos-wrap" hidden>
+          <h3 data-i18n="howto.photosTitle"></h3>
+          <p class="po-note" data-i18n="howto.photosNote"></p>
+          <div class="po-photo-row" id="po-photos"></div>
+        </div>
+      </div>
+    </section>
+
     <!-- ===== 4b. JESI LI ZNAO? (činjenice s izvorima) ===== -->
     <section class="po-section" id="znao" aria-labelledby="znao-title">
       <div class="po-wrap">
@@ -279,6 +297,7 @@
 <script src="app.js"></script>
 <!-- Sadržaj se prikazuje odmah; GSAP (samo za animaciju uvoda) dolazi poslije i ne blokira tekst. Spremljen lokalno. -->
 <script src="plovi-odgovorno-sadrzaj.js" defer></script>
+<script src="plovi-odgovorno-slike.js" defer></script>
 <script src="plovi-odgovorno.js" defer></script>
 <script src="vendor/gsap/gsap.min.js" defer></script>
 <script src="vendor/gsap/ScrollTrigger.min.js" defer></script>

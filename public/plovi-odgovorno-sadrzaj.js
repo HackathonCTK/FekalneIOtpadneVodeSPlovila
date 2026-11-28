@@ -39,6 +39,7 @@ window.PO_CONTENT = {
       impact: "Utjecaj",
       guide: "Vodič",
       pumpout: "Prihvat",
+      howto: "U slikama",
       know: "Činjenice",
       quiz: "Kviz"
     },
@@ -201,6 +202,27 @@ window.PO_CONTENT = {
         onMap: "Prikaži na karti"
       }
     },
+    howto: {
+      eyebrow: "Kako to izgleda",
+      title: "Pražnjenje spremnika korak po korak",
+      lead: "Kako je sustav spojen na brodu i što točno radiš na prihvatnoj stanici, u slikama.",
+      steps: [
+        { t: "Kako je spojen sustav na brodu", d: "WC vodi preko Y-ventila u spremnik. Iz spremnika cijev ide do palubnog čepa WASTE, gdje ga prazni prihvatna stanica. Ventil prema moru drži zatvorenim." },
+        { t: "Prihvatna stanica u marini", d: "Na gatu ili uz benzinsku postaju stoji pumpa s crijevom i oznakom pump-out. Pristani uz nju, ugasi motor i priveži brod." },
+        { t: "Nađi pravi čep na palubi", d: "Obično su na palubi tri čepa: FUEL (gorivo), WATER (pitka voda) i WASTE (otpadne vode). Crijevo stanice spaja se samo na WASTE." },
+        { t: "Spoji crijevo i isprazni", d: "Otvori čep ključem, čvrsto prisloni nastavak i uključi pumpu. Kad kroz prozirni dio crijeva više ništa ne teče, spremnik je prazan." },
+        { t: "Isperi spremnik", d: "Pusti malo čiste vode kroz WC i isprazni još jednom. Tako ne ostaju talog i neugodni miris." },
+        { t: "Zatvori i zabilježi", d: "Zatvori čep, isperi nastavak i vrati crijevo. Potvrdu o isporuci otpada čuvaj na brodu dvije godine, a pražnjenje upiši u brodski dnevnik." }
+      ],
+      photosTitle: "Kako to izgleda u marini",
+      photosNote: "Primjeri iz stvarnih marina. Izgled stanice i čepova razlikuje se od marine do marine.",
+      photos: [
+        { src: "img/pumpout-neumagen.jpg", c: "Prihvatna stanica uz riječni gat (Njemačka): pumpa i namotano crijevo", alt: "Plava prihvatna stanica za fekalne vode s namotanim crijevom uz rijeku", author: "Gmbo 2013", license: "CC0 1.0", lu: "https://creativecommons.org/publicdomain/zero/1.0/deed.hr", page: "https://commons.wikimedia.org/wiki/File:F%C3%A4kalienabsaugung_Neumagen-Dhron.JPG" },
+        { src: "img/pumpout-san-diego.jpg", c: "Stanica na gatu marine s uputama i nastavkom za palubni čep (SAD)", alt: "Inox prihvatna stanica na drvenom gatu, s naljepnicom s uputama i crijevom", author: "Mds08011", license: "CC BY 4.0", lu: "https://creativecommons.org/licenses/by/4.0/deed.hr", page: "https://commons.wikimedia.org/wiki/File:Boat_pump_out_location.jpg" },
+        { src: "img/pumpout-kuca-brod-1970.jpg", c: "Crijevo stanice spojeno na palubni čep tijekom pražnjenja spremnika (SAD, 1970-e)", alt: "Čovjek na palubi kuće-broda drži crijevo spojeno na palubni čep dok se prazni spremnik", author: "Bill Kuykendall / U.S. National Archives", license: "javno vlasništvo", lu: "https://commons.wikimedia.org/wiki/Help:Public_domain", page: "https://commons.wikimedia.org/wiki/File:A_MEMBER_OF_THE_MISSOURI_WATER_PATROL_WATCHES_AS_HOUSEBOAT%27S_TOILET_HOLDING_TANK_IS_PUMPED_OUT_AT_LINK%27S_LANDING_IN..._-_NARA_-_551228.jpg" },
+        { src: "img/pumpout-enkhuizen.jpg", c: "Moderna samoposlužna prihvatna stanica s piktogramom (Nizozemska)", alt: "Siva samoposlužna prihvatna stanica s piktogramom pražnjenja spremnika, uz vezane brodove", author: "S.J. de Waard", license: "CC BY-SA", lu: "https://creativecommons.org/licenses/by-sa/3.0/deed.hr", page: "https://commons.wikimedia.org/wiki/File:Pump-out_station_in_Enkhuizen_(01).JPG" }
+      ]
+    },
     know: {
       eyebrow: "Jesi li znao?",
       title: "Brojke i pravila koja se isplati znati",
@@ -330,6 +352,7 @@ window.PO_CONTENT = {
       impact: "Impact",
       guide: "Guide",
       pumpout: "Pump-out",
+      howto: "In pictures",
       know: "Facts",
       quiz: "Quiz"
     },
@@ -491,6 +514,27 @@ window.PO_CONTENT = {
         open: "Open the station map",
         onMap: "Show on map"
       }
+    },
+    howto: {
+      eyebrow: "What it looks like",
+      title: "Emptying the tank step by step",
+      lead: "How the system is connected on board and exactly what you do at a pump-out station, in pictures.",
+      steps: [
+        { t: "How the system is connected on board", d: "The toilet runs through a Y-valve into the holding tank. From the tank a pipe goes up to the WASTE deck fitting, where the pump-out station empties it. Keep the seacock to the sea closed." },
+        { t: "The pump-out station in the marina", d: "On the pontoon or next to the fuel dock there's a pump with a hose and a pump-out sign. Come alongside, switch off the engine and tie up." },
+        { t: "Find the right deck cap", d: "There are usually three caps on deck: FUEL, WATER (drinking water) and WASTE. The station hose connects to WASTE only." },
+        { t: "Connect the hose and pump out", d: "Open the cap with the key, press the nozzle on firmly and start the pump. When nothing more flows through the clear part of the hose, the tank is empty." },
+        { t: "Rinse the tank", d: "Run some clean water through the toilet and pump out once more. That way no sludge or bad smell is left behind." },
+        { t: "Close up and log it", d: "Close the cap, rinse the nozzle and put the hose back. Keep the waste delivery receipt on board for two years and note the pump-out in the logbook." }
+      ],
+      photosTitle: "What it looks like in a marina",
+      photosNote: "Examples from real marinas. Stations and deck caps look different from marina to marina.",
+      photos: [
+        { c: "Pump-out station on a river pontoon (Germany): pump and coiled hose", alt: "Blue sewage pump-out station with a coiled hose by a river" },
+        { c: "Station on a marina dock with instructions and the deck-fitting nozzle (USA)", alt: "Stainless pump-out station on a wooden dock, with an instruction label and hose" },
+        { c: "The station hose connected to the deck fitting while the tank is pumped out (USA, 1970s)", license: "public domain", alt: "A man on a houseboat deck holds the hose connected to the deck fitting while the tank is emptied" },
+        { c: "Modern self-service pump-out station with a pictogram (Netherlands)", alt: "Grey self-service pump-out station with a tank-emptying pictogram, next to moored boats" }
+      ]
     },
     know: {
       eyebrow: "Did you know?",

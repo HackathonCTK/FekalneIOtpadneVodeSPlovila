@@ -130,6 +130,26 @@
       return '<li class="po-station" data-station="' + s.id + '"><span class="po-station-pin">' + icon("pin", 18) + '</span><h4 data-st="name"></h4><p data-st="place"></p><p class="po-hours" data-st="contact"></p><a href="map.html?station=' + encodeURIComponent(s.id) + '"><span data-i18n="pump.stations.onMap"></span> →</a></li>';
     }).join("");
 
+    // Korak po korak u slikama: nacrtane ilustracije (plovi-odgovorno-slike.js) + tekst iz sadržaja
+    var ILL = window.PO_ILLUSTRATIONS || [];
+    $("#po-howto").innerHTML = base.howto.steps.map(function (_, i) {
+      var k = "howto.steps." + i;
+      return '<figure class="po-howto"><div class="po-howto-art">' + (ILL[i] || "") + "</div>" +
+        '<figcaption><h3 data-i18n="' + k + '.t"></h3><p data-i18n="' + k + '.d"></p></figcaption></figure>';
+    }).join("");
+    // Fotografije (slobodne licence, Wikimedia Commons): autor i licenca ispod svake
+    var photos = base.howto.photos || [];
+    if (photos.length) {
+      $("#po-photos-wrap").hidden = false;
+      $("#po-photos").innerHTML = photos.map(function (ph, i) {
+        var k = "howto.photos." + i;
+        return '<figure class="po-photo"><img src="' + ph.src + '" loading="lazy" decoding="async" width="800" height="600" data-i18n-alt="' + k + '.alt" alt="">' +
+          '<figcaption><span data-i18n="' + k + '.c"></span><small>' +
+          '<a href="' + ph.page + '" target="_blank" rel="noopener">' + ph.author + "</a>, " +
+          '<a href="' + ph.lu + '" target="_blank" rel="noopener"><span data-i18n="' + k + '.license">' + ph.license + "</span></a>, Wikimedia Commons</small></figcaption></figure>";
+      }).join("");
+    }
+
     // Jesi li znao? — kratke činjenice, svaka sa svojim izvorom
     $("#po-know").innerHTML = base.know.items.map(function (it, i) {
       var k = "know.items." + i;
@@ -695,6 +715,7 @@
     $$("[data-i18n]").forEach(function (el) { var v = t(el.getAttribute("data-i18n")); if (v != null) el.textContent = v; });
     $$("[data-i18n-html]").forEach(function (el) { var v = t(el.getAttribute("data-i18n-html")); if (v != null) el.innerHTML = v; });
     $$("[data-i18n-aria]").forEach(function (el) { var v = t(el.getAttribute("data-i18n-aria")); if (v != null) el.setAttribute("aria-label", v); });
+    $$("[data-i18n-alt]").forEach(function (el) { var v = t(el.getAttribute("data-i18n-alt")); if (v != null) el.setAttribute("alt", v); });
     renderStations();
     updateBay();
     updateChecker();
@@ -768,7 +789,7 @@
           });
         });
       }, { rootMargin: "-45% 0px -50% 0px" });
-      ["utjecaj", "vodic", "prihvat", "znao", "kviz"].forEach(function (id) { var s = doc.getElementById(id); if (s) io.observe(s); });
+      ["utjecaj", "vodic", "prihvat", "slike", "znao", "kviz"].forEach(function (id) { var s = doc.getElementById(id); if (s) io.observe(s); });
     }
   }
 
