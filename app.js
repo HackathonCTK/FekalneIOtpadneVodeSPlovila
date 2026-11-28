@@ -273,7 +273,8 @@
       db.seq = Math.max(Number(db.seq) || 0, 1185) + 1;
       var now = new Date();
       var r = {
-        id: now.getFullYear() + "-" + db.seq,
+        // privremeni broj dok prijava ne stigne na server (cm-api.js); server dodjeljuje pravi broj
+        id: now.getFullYear() + "-L" + db.seq,
         type: p.type || "fekalne",
         lat: p.lat, lng: p.lng,
         place: p.place || "",
@@ -307,8 +308,10 @@
   var STATUS_KEY = { zaprimljeno: "cm.notif.st.new", obrada: "cm.notif.st.progress", rijeseno: "cm.notif.st.done" };
   function notifItems() {
     var out = [];
+    var me = window.CM_account && window.CM_account.user();
     window.CM_reports.all().forEach(function (r) {
       if (!r || r.source !== "report.html" || !Array.isArray(r.history) || r.history.length < 2) return;
+      if (me && r._srv && r.owner !== me.id) return;   // služba vidi sve prijave, ali obavijesti samo za svoje
       var last = r.history[r.history.length - 1];
       out.push({ id: r.id, status: r.status, t: last && last.t ? last.t : r.createdAt });
     });

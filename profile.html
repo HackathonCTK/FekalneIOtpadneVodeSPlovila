@@ -11,10 +11,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=JetBrains+Mono:wght@400;600&family=Manrope:wght@400;600;700&display=swap">
 <link rel="stylesheet" href="styles.css">
 <style>
-  /* Profil: privremena stranica dok se ne napravi korisnički račun (naknadno) */
-  .pf-soon{ display:inline-block; font-family:var(--font-mono); font-size:11.5px; font-weight:600; letter-spacing:.12em; text-transform:uppercase;
-    padding:5px 12px; border-radius:999px; background:var(--surface-2); color:var(--text); border:1px solid var(--border); }
-  .pf-lead{ margin:12px 0 0; color:var(--text-muted); line-height:1.6; max-width:60ch; }
+  /* Profil: račun (prijava, registracija, Google), moje prijave, značka, admin */
+  .pf-lead{ margin:0 0 14px; color:var(--text-muted); line-height:1.6; max-width:60ch; }
   .pf-badge{ display:flex; gap:14px; align-items:center; }
   .pf-badge-icon{ width:52px; height:52px; border-radius:16px; flex-shrink:0; display:grid; place-items:center;
     background:linear-gradient(135deg, var(--fab-grad-1), var(--fab-grad-2)); color:var(--on-fab); }
@@ -24,6 +22,45 @@
   .pf-links a{ display:flex; align-items:center; justify-content:center; min-height:46px; padding:12px 16px; border-radius:var(--radius-sm);
     border:1.5px solid var(--border); font-weight:700; font-size:14px; color:var(--text); background:var(--surface); }
   .pf-links a:hover{ border-color:var(--primary); }
+
+  .pf-tabs{ display:flex; gap:6px; padding:4px; border-radius:999px; background:var(--surface-2); border:1px solid var(--border); margin-bottom:16px; }
+  .pf-tabs button{ flex:1; min-height:40px; border:0; border-radius:999px; background:transparent; color:var(--text); font:inherit; font-weight:700; cursor:pointer; }
+  .pf-tabs button[aria-selected="true"]{ background:linear-gradient(135deg, var(--fab-grad-1), var(--fab-grad-2)); color:var(--on-fab); }
+  .pf-form{ display:grid; gap:12px; }
+  .pf-form label{ display:grid; gap:6px; font-size:13px; font-weight:700; }
+  .content [hidden]{ display:none !important; }
+  .pf-form input{ min-height:46px; padding:10px 14px; border-radius:var(--radius-sm); border:1.5px solid var(--border); background:var(--surface); color:var(--text); font:inherit; font-size:16px; }
+  .pf-form input:focus-visible{ outline:2px solid var(--primary); outline-offset:1px; border-color:var(--primary); }
+  .pf-btn{ min-height:46px; cursor:pointer; }
+  .pf-btn[disabled]{ opacity:.6; cursor:progress; }
+  .pf-err{ margin:0; min-height:1.2em; color:var(--danger); font-size:13px; font-weight:600; }
+  .pf-or{ display:flex; align-items:center; gap:10px; margin:16px 0 12px; color:var(--text-muted); font-size:12.5px; text-transform:uppercase; letter-spacing:.1em; }
+  .pf-or::before, .pf-or::after{ content:""; flex:1; height:1px; background:var(--border); }
+  .pf-google{ display:flex; justify-content:center; min-height:44px; }
+  .pf-note{ margin:10px 0 0; font-size:12.5px; color:var(--text-muted); }
+
+  .pf-me{ display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
+  .pf-avatar{ width:52px; height:52px; border-radius:50%; display:grid; place-items:center; flex-shrink:0;
+    background:var(--surface-2); border:1px solid var(--border); font-family:var(--font-display); font-weight:800; font-size:20px; }
+  .pf-me-info{ flex:1; min-width:0; }
+  .pf-me-info b{ display:block; font-family:var(--font-display); font-size:18px; overflow-wrap:anywhere; }
+  .pf-me-info span{ font-size:13px; color:var(--text-muted); overflow-wrap:anywhere; }
+  .pf-role{ display:inline-block; margin-top:6px; font-family:var(--font-mono); font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
+    padding:3px 10px; border-radius:999px; background:var(--surface-2); border:1px solid var(--border); }
+  .pf-row{ display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+  .pf-row .pf-form{ flex:1; min-width:220px; grid-template-columns:1fr auto; align-items:end; }
+
+  .pf-list{ list-style:none; margin:0; padding:0; display:grid; gap:8px; }
+  .pf-list li{ display:flex; justify-content:space-between; gap:10px; align-items:center; padding:12px 14px; border-radius:var(--radius-sm); background:var(--surface-2); border:1px solid var(--border); }
+  .pf-list li > div{ min-width:0; }
+  .pf-list b{ font-family:var(--font-mono); font-size:13px; }
+  .pf-list small{ display:block; color:var(--text-muted); font-size:12.5px; overflow-wrap:anywhere; }
+  .pf-st{ flex-shrink:0; font-size:12px; font-weight:700; padding:4px 10px; border-radius:999px; border:1px solid var(--border); background:var(--surface); }
+  .pf-st[data-s="obrada"]{ border-color:var(--warning, #E9B949); }
+  .pf-st[data-s="rijeseno"]{ border-color:var(--success, #2EC4B6); }
+  .pf-st[data-s="lokalno"]{ border-style:dashed; }
+  .pf-empty{ margin:0; color:var(--text-muted); font-size:14px; }
+  .pf-admin select{ min-height:40px; padding:6px 10px; border-radius:10px; border:1.5px solid var(--border); background:var(--surface); color:var(--text); font:inherit; font-size:14px; }
 </style>
 </head>
 <body>
@@ -42,18 +79,74 @@
       </a>
     </div>
     <h1 class="page-title" data-i18n="profile.heading">Profil</h1>
-    <div class="page-sub" data-i18n="profile.sub">Korisnički računi stižu uskoro</div>
+    <div class="page-sub" id="pf-sub" data-i18n="profile.subOut">Prijavi se da šalješ i pratiš prijave</div>
     <svg class="wave" viewBox="0 0 400 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0 20 Q 50 0 100 20 T 200 20 T 300 20 T 400 20 V40 H0 Z" fill="rgba(255,255,255,0.14)"/></svg>
   </header>
 
   <nav class="sidenav" data-cm-nav="profile"></nav>
 
   <main class="content">
-    <div class="section-title" data-i18n="profile.sectionSoon">Uskoro</div>
-    <div class="card">
-      <span class="pf-soon" data-i18n="cm.soon">Uskoro</span>
-      <p class="pf-lead" data-i18n="profile.lead">Ovdje će biti tvoj profil: prijave koje si poslao, pražnjenja spremnika i postavke. Do tada se način (tamni ili svijetli) i jezik mijenjaju gumbima u gornjoj traci na svakoj stranici.</p>
-    </div>
+
+    <!-- Nije prijavljen -->
+    <section id="pf-out" aria-labelledby="pf-out-title">
+      <div class="section-title" id="pf-out-title" data-i18n="profile.account">Račun</div>
+      <div class="card">
+        <p class="pf-lead" data-i18n="profile.leadOut">S računom šalješ prijave onečišćenja, pratiš njihov status i čuvaš certifikat iz kviza na svim uređajima.</p>
+        <div class="pf-tabs" role="tablist" data-i18n-attr="aria-label:profile.account">
+          <button type="button" role="tab" id="pf-tab-login" aria-selected="true" aria-controls="pf-form" data-i18n="profile.tabLogin">Prijava</button>
+          <button type="button" role="tab" id="pf-tab-reg" aria-selected="false" aria-controls="pf-form" data-i18n="profile.tabRegister">Novi račun</button>
+        </div>
+        <form class="pf-form" id="pf-form" role="tabpanel" novalidate>
+          <label id="pf-name-wrap" hidden><span data-i18n="profile.name">Ime i prezime</span>
+            <input id="pf-name" name="name" type="text" autocomplete="name" maxlength="60"></label>
+          <label><span data-i18n="profile.email">E-mail</span>
+            <input id="pf-email" name="email" type="email" autocomplete="email" inputmode="email" maxlength="254" required></label>
+          <label><span data-i18n="profile.password">Lozinka</span>
+            <input id="pf-pass" name="password" type="password" autocomplete="current-password" minlength="8" required></label>
+          <p class="pf-err" id="pf-err" role="alert"></p>
+          <button class="btn primary pf-btn" type="submit" id="pf-submit" data-i18n="profile.doLogin">Prijavi se</button>
+        </form>
+        <div id="pf-google-box" hidden>
+          <div class="pf-or" data-i18n="profile.or">ili</div>
+          <div class="pf-google" id="pf-google"></div>
+        </div>
+        <p class="pf-note" id="pf-server" hidden></p>
+      </div>
+    </section>
+
+    <!-- Prijavljen -->
+    <section id="pf-in" hidden aria-labelledby="pf-in-title">
+      <div class="section-title" id="pf-in-title" data-i18n="profile.account">Račun</div>
+      <div class="card">
+        <div class="pf-me">
+          <div class="pf-avatar" id="pf-avatar" aria-hidden="true">?</div>
+          <div class="pf-me-info">
+            <b id="pf-me-name"></b>
+            <span id="pf-me-email"></span><br>
+            <span class="pf-role" id="pf-me-role"></span>
+          </div>
+        </div>
+        <div class="pf-row">
+          <form class="pf-form" id="pf-rename" novalidate>
+            <label><span data-i18n="profile.name">Ime i prezime</span><input id="pf-rename-input" type="text" autocomplete="name" maxlength="60"></label>
+            <button class="btn ghost pf-btn" type="submit" data-i18n="profile.save">Spremi</button>
+          </form>
+        </div>
+        <p class="pf-err" id="pf-in-err" role="alert"></p>
+        <div class="pf-row"><button class="btn ghost pf-btn" type="button" id="pf-logout" data-i18n="profile.logout">Odjavi se</button></div>
+      </div>
+
+      <div class="section-title" data-i18n="profile.myReports">Moje prijave</div>
+      <div class="card"><ul class="pf-list" id="pf-reports"></ul></div>
+
+      <div id="pf-admin-wrap" hidden>
+        <div class="section-title" data-i18n="profile.admin">Računi (admin)</div>
+        <div class="card pf-admin">
+          <p class="pf-lead" data-i18n="profile.adminLead">Označi račune nadležnih službi. Samo oni mogu mijenjati status prijava na stranici Obrada.</p>
+          <ul class="pf-list" id="pf-users"></ul>
+        </div>
+      </div>
+    </section>
 
     <div class="section-title" data-i18n="profile.sectionBadges">Značke</div>
     <div class="card" id="pf-badge-card">
@@ -77,14 +170,28 @@
 </div>
 
 <script src="app.js"></script>
+<script src="cm-api.js"></script>
 <script>
-  /* Profil: prijevodi i značka iz kviza (po-cert sprema plovi-odgovorno.js) */
+  /* Profil: račun, moje prijave, admin i značka iz kviza (po-cert sprema plovi-odgovorno.js) */
   (function () {
     CM_i18n.add({
       hr: { profile: {
-        title: "ČistoMore – Profil", brandSub: "Profil", heading: "Profil", sub: "Korisnički računi stižu uskoro",
-        sectionSoon: "Uskoro", sectionBadges: "Značke",
-        lead: "Ovdje će biti tvoj profil: prijave koje si poslao, pražnjenja spremnika i postavke. Do tada se način (tamni ili svijetli) i jezik mijenjaju gumbima u gornjoj traci na svakoj stranici.",
+        title: "ČistoMore – Profil", brandSub: "Profil", heading: "Profil",
+        subOut: "Prijavi se da šalješ i pratiš prijave", subIn: "Bok, {name}!",
+        account: "Račun", sectionBadges: "Značke",
+        leadOut: "S računom šalješ prijave onečišćenja, pratiš njihov status i čuvaš certifikat iz kviza na svim uređajima.",
+        tabLogin: "Prijava", tabRegister: "Novi račun",
+        name: "Ime i prezime", email: "E-mail", password: "Lozinka (barem 8 znakova)",
+        doLogin: "Prijavi se", doRegister: "Napravi račun", busy: "Pričekaj…", or: "ili",
+        serverDown: "Server trenutno nije dostupan, pa prijava nije moguća. Pokušaj malo kasnije.",
+        googleOff: "Prijava Googleom bit će dostupna kad se postavi na serveru.",
+        save: "Spremi", saved: "Ime je spremljeno.", logout: "Odjavi se", loggedOut: "Odjavljen si.",
+        welcome: "Prijavljen si kao {name}.",
+        role: { korisnik: "Korisnik", sluzba: "Nadležna služba", admin: "Admin" },
+        myReports: "Moje prijave", noReports: "Još nemaš prijava. Pošalji prvu na stranici Nova prijava.",
+        st: { zaprimljeno: "Zaprimljeno", obrada: "U obradi", rijeseno: "Riješeno", lokalno: "Čeka slanje" },
+        admin: "Računi (admin)", adminLead: "Označi račune nadležnih službi. Samo oni mogu mijenjati status prijava na stranici Obrada.",
+        roleSaved: "Uloga je spremljena.", reportsN: "{n} prijava",
         badgeNone: "Još nemaš značku",
         badgeNoneText: "Riješi kviz „Plovi odgovorno“ s barem 8 od 10 točnih i dobit ćeš certifikat „Odgovorni nautičar“.",
         badgeTitle: "Odgovorni nautičar",
@@ -92,9 +199,22 @@
         toQuiz: "Kviz i certifikat"
       } },
       en: { profile: {
-        title: "ČistoMore – Profile", brandSub: "Profile", heading: "Profile", sub: "User accounts are coming soon",
-        sectionSoon: "Coming soon", sectionBadges: "Badges",
-        lead: "Your profile will live here: the reports you've sent, your pump-outs and your settings. Until then, switch dark or light mode and the language with the buttons in the top bar on every page.",
+        title: "ČistoMore – Profile", brandSub: "Profile", heading: "Profile",
+        subOut: "Sign in to send and track reports", subIn: "Hi, {name}!",
+        account: "Account", sectionBadges: "Badges",
+        leadOut: "With an account you can send pollution reports, track their status and keep your quiz certificate on all your devices.",
+        tabLogin: "Sign in", tabRegister: "New account",
+        name: "Full name", email: "Email", password: "Password (at least 8 characters)",
+        doLogin: "Sign in", doRegister: "Create account", busy: "Please wait…", or: "or",
+        serverDown: "The server isn't reachable right now, so you can't sign in. Try again a little later.",
+        googleOff: "Google sign-in will be available once it's set up on the server.",
+        save: "Save", saved: "Name saved.", logout: "Sign out", loggedOut: "You're signed out.",
+        welcome: "Signed in as {name}.",
+        role: { korisnik: "User", sluzba: "Authority", admin: "Admin" },
+        myReports: "My reports", noReports: "No reports yet. Send your first one on the New report page.",
+        st: { zaprimljeno: "Received", obrada: "In progress", rijeseno: "Resolved", lokalno: "Waiting to send" },
+        admin: "Accounts (admin)", adminLead: "Mark the accounts of the authorities. Only they can change report status on the Report handling page.",
+        roleSaved: "Role saved.", reportsN: "{n} reports",
         badgeNone: "No badge yet",
         badgeNoneText: "Get at least 8 of 10 right in the “Sail responsibly” quiz to earn the “Responsible skipper” certificate.",
         badgeTitle: "Responsible skipper",
@@ -102,21 +222,179 @@
         toQuiz: "Quiz and certificate"
       } }
     });
+
+    var $ = function (id) { return document.getElementById(id); };
+    var T = function (k, v) { return CM_i18n.t(k, v); };
+    var mode = "login";
+    var next = (function () { var m = /[?&]next=([\w.-]+\.html)/.exec(location.search); return m ? m[1] : null; })();
+
+    /* ---------- Prijava / registracija ---------- */
+    function setMode(m) {
+      mode = m;
+      $("pf-tab-login").setAttribute("aria-selected", String(m === "login"));
+      $("pf-tab-reg").setAttribute("aria-selected", String(m === "register"));
+      $("pf-name-wrap").hidden = m !== "register";
+      $("pf-pass").setAttribute("autocomplete", m === "register" ? "new-password" : "current-password");
+      $("pf-submit").setAttribute("data-i18n", m === "register" ? "profile.doRegister" : "profile.doLogin");
+      $("pf-submit").textContent = T(m === "register" ? "profile.doRegister" : "profile.doLogin");
+      $("pf-err").textContent = "";
+    }
+    $("pf-tab-login").addEventListener("click", function () { setMode("login"); });
+    $("pf-tab-reg").addEventListener("click", function () { setMode("register"); });
+
+    function busy(on) {
+      var b = $("pf-submit");
+      b.disabled = on;
+      b.textContent = on ? T("profile.busy") : T(mode === "register" ? "profile.doRegister" : "profile.doLogin");
+    }
+    function afterLogin(u) {
+      showToast(T("profile.welcome", { name: u.ime }));
+      if (next) { location.href = next; return; }
+      render();
+    }
+    $("pf-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var email = $("pf-email").value.trim(), pass = $("pf-pass").value, name = $("pf-name").value.trim();
+      var err = $("pf-err");
+      if (mode === "register" && !name) { err.textContent = T("acc.err.ime-obavezno"); $("pf-name").focus(); return; }
+      if (!/^[^@\s]+@[^@\s.]+\.[^@\s]+$/.test(email)) { err.textContent = T("acc.err.email-neispravan"); $("pf-email").focus(); return; }
+      if (pass.length < 8) { err.textContent = T("acc.err.lozinka-prekratka"); $("pf-pass").focus(); return; }
+      err.textContent = ""; busy(true);
+      var p = mode === "register" ? CM_account.register(name, email, pass) : CM_account.login(email, pass);
+      p.then(function (u) { busy(false); $("pf-pass").value = ""; afterLogin(u); })
+       .catch(function (e2) { busy(false); err.textContent = CM_api.errText(e2); });
+    });
+
+    /* ---------- Google ---------- */
+    var gLoaded = false;
+    function setupGoogle(clientId) {
+      var box = $("pf-google-box");
+      if (!clientId) { box.hidden = true; return; }
+      box.hidden = false;
+      function draw() {
+        try {
+          google.accounts.id.initialize({
+            client_id: clientId,
+            callback: function (resp) {
+              CM_account.google(resp.credential).then(afterLogin)
+                .catch(function (e) { $("pf-err").textContent = CM_api.errText(e); });
+            }
+          });
+          $("pf-google").innerHTML = "";
+          google.accounts.id.renderButton($("pf-google"), {
+            theme: CM_getMode() === "light" ? "outline" : "filled_black", size: "large", shape: "pill",
+            text: "continue_with", locale: CM_i18n.lang(), width: Math.min(320, $("pf-google").clientWidth || 320)
+          });
+        } catch (e) { box.hidden = true; }
+      }
+      if (window.google && google.accounts) return draw();
+      if (gLoaded) return;
+      gLoaded = true;
+      var s = document.createElement("script");
+      s.src = "https://accounts.google.com/gsi/client";
+      s.async = true; s.defer = true;
+      s.onload = draw;
+      s.onerror = function () { box.hidden = true; };
+      document.head.appendChild(s);
+    }
+
+    /* ---------- Prijavljen ---------- */
+    function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+    function fmtDate(iso) {
+      var dt = new Date(iso); if (isNaN(dt)) return "";
+      try { return dt.toLocaleDateString(CM_i18n.lang() === "hr" ? "hr-HR" : "en-GB", { day: "numeric", month: "short", year: "numeric" }); } catch (e) { return iso.slice(0, 10); }
+    }
+    function renderReports(u) {
+      var list = CM_reports.all().filter(function (r) {
+        return r && r.source === "report.html" && (r._srv ? r.owner === u.id : true);
+      });
+      var ul = $("pf-reports");
+      if (!list.length) { ul.innerHTML = '<li style="background:none;border:0;padding:0"><p class="pf-empty">' + esc(T("profile.noReports")) + "</p></li>"; return; }
+      ul.innerHTML = list.map(function (r) {
+        var st = r._srv ? r.status : "lokalno";
+        return "<li><div><b>#" + esc(r.id) + "</b><small>" + esc(fmtDate(r.createdAt)) + (r.place ? " · " + esc(r.place) : "") + "</small></div>" +
+          '<span class="pf-st" data-s="' + esc(st) + '">' + esc(T("profile.st." + st)) + "</span></li>";
+      }).join("");
+    }
+    function renderAdmin(u) {
+      var wrap = $("pf-admin-wrap");
+      if (u.uloga !== "admin") { wrap.hidden = true; return; }
+      wrap.hidden = false;
+      CM_api.req("GET", "/api/admin/korisnici").then(function (j) {
+        $("pf-users").innerHTML = j.korisnici.map(function (k) {
+          var fixed = k.uloga === "admin";
+          return "<li><div><b>" + esc(k.ime || k.email) + "</b><small>" + esc(k.email) + " · " + esc(T("profile.reportsN", { n: k.prijava })) + "</small></div>" +
+            (fixed ? '<span class="pf-st">' + esc(T("profile.role.admin")) + "</span>"
+                   : '<select data-uid="' + esc(k.id) + '" aria-label="' + esc(k.email) + '">' +
+                     '<option value="korisnik"' + (k.uloga === "korisnik" ? " selected" : "") + ">" + esc(T("profile.role.korisnik")) + "</option>" +
+                     '<option value="sluzba"' + (k.uloga === "sluzba" ? " selected" : "") + ">" + esc(T("profile.role.sluzba")) + "</option></select>") +
+            "</li>";
+        }).join("");
+      }).catch(function () {});
+    }
+    $("pf-users").addEventListener("change", function (e) {
+      var sel = e.target.closest("select[data-uid]"); if (!sel) return;
+      CM_api.req("PATCH", "/api/admin/korisnici/" + encodeURIComponent(sel.getAttribute("data-uid")), { uloga: sel.value })
+        .then(function () { showToast(T("profile.roleSaved")); })
+        .catch(function (e2) { showToast(CM_api.errText(e2)); });
+    });
+    $("pf-rename").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var v = $("pf-rename-input").value.trim();
+      if (!v) { $("pf-in-err").textContent = T("acc.err.ime-obavezno"); return; }
+      $("pf-in-err").textContent = "";
+      CM_account.rename(v).then(function () { showToast(T("profile.saved")); render(); })
+        .catch(function (e2) { $("pf-in-err").textContent = CM_api.errText(e2); });
+    });
+    $("pf-logout").addEventListener("click", function () {
+      CM_account.logout().then(function () { showToast(T("profile.loggedOut")); render(); });
+    });
+
+    /* ---------- Značka ---------- */
     function renderBadge() {
       var c = null;
       try { c = JSON.parse(localStorage.getItem("po-cert") || "null"); } catch (e) {}
-      var title = document.getElementById("pf-badge-title");
-      var text = document.getElementById("pf-badge-text");
+      var title = $("pf-badge-title"), text = $("pf-badge-text");
       if (!c || !c.name) return;
       title.removeAttribute("data-i18n"); text.removeAttribute("data-i18n");
-      var lang = CM_i18n.lang();
-      var date = "";
-      try { date = new Date(c.date).toLocaleDateString(lang === "hr" ? "hr-HR" : "en-GB", { day: "numeric", month: "long", year: "numeric" }); } catch (e) {}
-      title.textContent = CM_i18n.t("profile.badgeTitle");
-      text.textContent = CM_i18n.t("profile.badgeText", { name: c.name, score: c.score, total: c.total, date: date });
+      title.textContent = T("profile.badgeTitle");
+      text.textContent = T("profile.badgeText", { name: c.name, score: c.score, total: c.total, date: fmtDate(c.date) });
     }
-    renderBadge();
-    document.addEventListener("cm:lang", renderBadge);
+
+    /* ---------- Prikaz ---------- */
+    function render() {
+      var u = CM_account.user();
+      $("pf-out").hidden = !!u;
+      $("pf-in").hidden = !u;
+      var sub = $("pf-sub");
+      if (u) {
+        sub.removeAttribute("data-i18n");
+        sub.textContent = T("profile.subIn", { name: u.ime });
+        $("pf-avatar").textContent = (u.ime || u.email || "?").trim().charAt(0).toUpperCase();
+        $("pf-me-name").textContent = u.ime;
+        $("pf-me-email").textContent = u.email;
+        $("pf-me-role").textContent = T("profile.role." + u.uloga);
+        if (document.activeElement !== $("pf-rename-input")) $("pf-rename-input").value = u.ime;
+        renderReports(u);
+        renderAdmin(u);
+      } else {
+        sub.setAttribute("data-i18n", "profile.subOut");
+        sub.textContent = T("profile.subOut");
+        var note = $("pf-server");
+        CM_api.base().then(function (b) {
+          note.hidden = !!b;
+          note.textContent = b ? "" : T("profile.serverDown");
+          setupGoogle(b && CM_api.info ? CM_api.info.googleClientId : null);
+        });
+      }
+      renderBadge();
+    }
+    setMode("login");
+    render();
+    document.addEventListener("cm:account", render);
+    document.addEventListener("cm:sync", render);
+    document.addEventListener("cm:lang", function () { setMode(mode); render(); });
+    document.addEventListener("cm:mode", function () { if (!CM_account.user() && CM_api.info) setupGoogle(CM_api.info.googleClientId); });
   })();
 </script>
 </body>

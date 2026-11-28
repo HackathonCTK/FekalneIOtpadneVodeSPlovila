@@ -2,3 +2,9 @@
 data/*.mbtiles
 tools/
 node_modules/
+
+# API server (računalo s bazom): postavke s tajnama, baza, kopije i logovi se ne pushaju
+api/config.json
+api/data/
+api/backup/
+api/logs/

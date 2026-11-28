@@ -23,3 +23,11 @@ Cilj: sve radi na https://hackathonctk.github.io/FekalneIOtpadneVodeSPlovila/ (P
    `git switch main && git pull && git merge --no-ff integracija-sve && git push origin main`
 3. Nakon 1–2 min provjeriti na Pagesu: sve stranice 200, konzola bez grešaka, karta (OSM) se učitava na `map.html` i `obrada.html`.
 4. Poznato: `api.bigdatacloud.net` (provjera more/kopno u report.html) vraća 403 – prekidač „promatram s kopna“ je ručni.
+
+## Računi i baza (studeni 2026.)
+- Server: `api/server.js` (Node 22+, `node:sqlite`, bez npm paketa). Postavke `api/config.json` (ne pusha se; predložak `api/config.example.json`).
+- Pokreće se na Josipovom Windows 10 računalu (24/7): `api/windows/1-instaliraj.bat`, pa `2-pokreni-sada.bat`. Upute: **`api/UPUTE-SERVER.md`**.
+- Cloudflare brzi tunel; server upisuje adresu u `api.json` na grani `api-adresa`, a `cm-api.js` je odande čita.
+- Klijent: `cm-api.js` (na svim stranicama nakon `app.js`): `CM_account` (e-mail/lozinka, Google), `CM_sync` (prijave u `cistomore.v1` se usklađuju sa serverom, `_srv`), kviz preko događaja `cm:quiz`.
+- Uloge: korisnik, služba (označava admin na Profilu), admin (`adminEmails`). Prijave samo s računom.
+- Test API-ja: `node api/server.js` (s `"tunnel":{"enabled":false}`), stranice na `http://localhost:8765` same koriste `http://localhost:8787`.

@@ -479,6 +479,11 @@ body{ font-family:var(--font-body); -webkit-font-smoothing:antialiased; }
   .card, .stat, .qa-btn, .btn, .nav-item, .nav-fab{ transition:none; }
 }
 /* Zvono za obavijesti (app.js) */
+/* Obavijest o računu (cm-api.js): Obrada bez prava službe, Nova prijava bez prijave */
+.cm-acc-notice{ margin:0 0 14px; padding:12px 14px; border-radius:var(--radius-sm, 12px); border:1px dashed var(--border); background:var(--surface-2); color:var(--text); font-size:14px; line-height:1.5; }
+.cm-acc-notice a{ color:inherit; font-weight:700; text-decoration:underline; text-underline-offset:2px; }
+.rp-login-gate{ margin:0 0 12px; }
+
 .cm-bell-btn{ position:relative; }
 .cm-bell-btn.has-unread::after{
   content:""; position:absolute; top:7px; right:8px; width:9px; height:9px; border-radius:50%;

@@ -394,6 +394,7 @@
           quiz.done = true; quizFocus = "result";
           var s = quizScore(), best = quizBest();
           if (best == null || s > best) sset(BEST_KEY, String(s));
+          doc.dispatchEvent(new CustomEvent("cm:quiz", { detail: { rezultat: s, ukupno: n, ime: sget("po-cert-name") || "" } }));
         }
         renderQuiz();
       });
@@ -513,6 +514,8 @@
       cert.url = URL.createObjectURL(blob);
       sset(CERT_KEY, JSON.stringify({ name: nm, score: s, total: n, date: cert.date }));
       sset("po-cert-name", nm);
+      // cm-api.js sprema rezultat i ime na korisnički račun
+      if (focusImg) doc.dispatchEvent(new CustomEvent("cm:quiz", { detail: { rezultat: s, ukupno: n, ime: nm } }));
       if (focusImg) quizFocus = "certImg";
       renderQuiz();
       if (focusImg) announce(t("quiz.cert.earned"));
@@ -845,7 +848,8 @@
 
   /* ---------- Pokretanje ---------- */
   function start() {
-    cert.name = cert.draft = sget("po-cert-name") || "";
+    var accUser = window.CM_account && window.CM_account.user();
+    cert.name = cert.draft = sget("po-cert-name") || (accUser && accUser.ime) || "";
     buildStatic();
     buildBay();
     initTabs();

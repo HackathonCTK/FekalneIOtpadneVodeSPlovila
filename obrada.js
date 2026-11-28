@@ -255,6 +255,8 @@ function load(){
   return {s, dirty};
 }
 function save(){
+  // cm-api.js promjene službe šalje na server
+  setTimeout(() => document.dispatchEvent(new CustomEvent('cm:reports-saved')), 0);
   try { localStorage.setItem(KEY, JSON.stringify(S)); return true; }
   catch(e){
     // vjerojatno pun prostor – makni fotografije riješenih prijava i pokušaj ponovno
@@ -272,6 +274,13 @@ function nextId(){
 
 function addHistory(r, k, v){ r.history.push(hEntry(k, v)); }
 function commit(msg){ save(); renderAll(); if (msg) toast(msg); }
+
+/* Podaci sa servera (cm-api.js) stigli u spremište: učitaj ponovno i prikaži */
+document.addEventListener('cm:sync', () => {
+  const L = load(); S = L.s;
+  if (L.dirty) save();
+  renderAll(true);
+});
 
 /* ================= toast (zajednički, app.js) ================= */
 function toast(text){

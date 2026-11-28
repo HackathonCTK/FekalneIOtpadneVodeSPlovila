@@ -347,6 +347,12 @@
     e.preventDefault();
     if (busy) return;
 
+    // Prijave se šalju samo s računom (cm-api.js)
+    if (window.CM_account && !CM_account.user()) {
+      showLoginGate(true);
+      return;
+    }
+
     var coords = readCoords();
     // Ručno upisane koordinate koje se ne daju pročitati: pokaži poruku uz polje
     if (coords.lat !== coords.lat) { checkCoordField(latInput, 90, "report.val.lat"); latInput.reportValidity(); return; }
@@ -397,22 +403,65 @@
       } catch (err) { r = null; }
 
       var stored = r && window.CM_reports.all().some(function (x) { return x.id === r.id; });
-      busy = false;
-      submitBtn.disabled = false;
-      submitLabel.setAttribute("data-i18n", "report.submit");
-      submitLabel.textContent = t("report.submit");
+      if (!stored) { finishBusy(); showToast(t("report.toast.saveFail")); return; }
 
-      if (!stored) { showToast(t("report.toast.saveFail")); return; }
-
-      showToast(t(wantsPhoto && photo && !r.photo ? "report.toast.savedNoPhoto" : "report.toast.saved", { id: r.id }));
-      lastId = r.id;
-      renderDone();
-      doneCard.hidden = false;
-      resetForm();
-      doneCard.scrollIntoView({ behavior: "smooth", block: "center" });
-      doneCard.focus({ preventScroll: true });
+      // Pošalji na server; ako server nije dostupan, prijava ostaje na uređaju i šalje se kasnije
+      var send = window.CM_sync ? CM_sync.now().then(function (map) { return (map && map[r.id]) || null; }, function () { return null; })
+                                : Promise.resolve(r.id);
+      send.then(function (serverId) {
+        finishBusy();
+        if (!serverId) {
+          showToast(t("acc.offline"));
+        } else {
+          showToast(t(wantsPhoto && photo && !r.photo ? "report.toast.savedNoPhoto" : "report.toast.saved", { id: serverId }));
+        }
+        showDone(serverId || r.id);
+      });
     });
   });
+
+  function finishBusy() {
+    busy = false;
+    submitBtn.disabled = false;
+    submitLabel.setAttribute("data-i18n", "report.submit");
+    submitLabel.textContent = t("report.submit");
+  }
+
+  // Poruka „prijavi se“ iznad gumba za slanje
+  function showLoginGate(focus) {
+    var gate = $("rpLoginGate");
+    var need = !!(window.CM_account && !CM_account.user());
+    if (!gate) {
+      if (!need) return;
+      gate = document.createElement("div");
+      gate.id = "rpLoginGate";
+      gate.className = "cm-acc-notice rp-login-gate";
+      gate.setAttribute("role", "status");
+      submitBtn.parentNode.insertBefore(gate, submitBtn);
+    }
+    gate.hidden = !need;
+    if (!need) return;
+    gate.innerHTML = "";
+    var p = document.createElement("span");
+    p.textContent = t("acc.needLogin") + " ";
+    var a = document.createElement("a");
+    a.href = "profile.html?next=report.html";
+    a.textContent = t("acc.needLoginBtn");
+    gate.appendChild(p); gate.appendChild(a);
+    if (focus) { gate.scrollIntoView({ behavior: "smooth", block: "center" }); a.focus({ preventScroll: true }); }
+  }
+  showLoginGate(false);
+  document.addEventListener("cm:account", function () { showLoginGate(false); });
+  document.addEventListener("cm:lang", function () { showLoginGate(false); });
+
+  function showDone(id) {
+    lastId = id;
+    renderDone();
+    doneCard.hidden = false;
+    resetForm();
+    doneCard.scrollIntoView({ behavior: "smooth", block: "center" });
+    doneCard.focus({ preventScroll: true });
+  }
 
   // ---------- Promjena jezika: tekstovi koje gradi JS ----------
   document.addEventListener("cm:lang", function () {
