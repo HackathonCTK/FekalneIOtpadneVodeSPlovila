@@ -1,0 +1,61 @@
+name: Pregled Seniori
+
+# Pri svakom pushu na Seniori kopira public/ u mapu seniori/ na grani main (GitHub Pages poslužuje main).
+# Pregled: https://hackathonctk.github.io/FekalneIOtpadneVodeSPlovila/seniori/
+# Server nije potreban: preview/preview.js u pregledniku glumi API (račun, prijave, obrada).
+on:
+  push:
+    branches: [Seniori]
+    paths:
+      - "public/**"
+      - "preview/**"
+      - ".github/workflows/seniori-preview.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: seniori-preview
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skini Seniori
+        uses: actions/checkout@v4
+        with:
+          ref: Seniori
+          path: src
+
+      - name: Skini main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: site
+
+      - name: Složi pregled u seniori/
+        run: |
+          rm -rf site/seniori
+          mkdir -p site/seniori
+          cp -r src/public/. site/seniori/
+          rm -f site/seniori/sw.js
+          cp src/preview/preview.js site/seniori/preview.js
+          for f in site/seniori/*.html; do
+            sed -i 's|<head>|<head><script src="preview.js"></script>|' "$f"
+          done
+          grep -L 'preview.js' site/seniori/*.html && echo "Upozorenje: neke stranice nemaju <head>" || true
+
+      - name: Objavi na main
+        working-directory: site
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A seniori
+          if git diff --cached --quiet; then
+            echo "Nema promjena."
+          else
+            git commit -m "Pregled Seniori: $(git -C ../src rev-parse --short HEAD)"
+            git push origin HEAD:main
+          fi
