@@ -17,6 +17,7 @@
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <link rel="stylesheet" href="tokens.css">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="motion.css">
 </head>
 <body class="cm-body">
 <a class="cm-skip" href="#main" data-t="ui.skip">Preskoči na sadržaj</a>
@@ -588,7 +589,7 @@
       text = CM.t('rep.loginText');
       btns = '<a class="po-btn po-btn-primary po-btn-sm" href="' + CM.esc(CM.loginUrl()) + '">' + CM.esc(CM.t('rep.relogin')) + '</a>';
     }
-    card.innerHTML = '<p class="cm-eyebrow" style="margin-bottom:6px">' + (kind === 'sent' ? '✓ ' : '') + CM.esc(CM.label.status('zaprimljeno')) + '</p>' +
+    card.innerHTML = (kind === 'sent' ? CM.motion.check() : '') + '<p class="cm-eyebrow" style="margin-bottom:6px">' + (kind === 'sent' ? '✓ ' : '') + CM.esc(CM.label.status('zaprimljeno')) + '</p>' +
       '<h2 style="font-size:1.4rem">' + CM.esc(title) + '</h2><p style="margin:8px 0 16px;color:var(--po-muted)">' + CM.esc(text) + '</p>' +
       '<div class="cm-actions">' + btns + '<button type="button" class="po-btn po-btn-ghost po-btn-sm" id="anotherBtn">' + CM.esc(CM.t('rep.another')) + '</button></div>';
     if (kind !== 'sent') card.querySelector('.cm-eyebrow').textContent = CM.t('st.pending');
@@ -620,6 +621,7 @@
     if (errs.length) {
       $('formErr').textContent = errs.length === 1 ? CM.t(errs[0].key) : CM.t('rep.errFix') + ' ' + CM.t(errs[0].key);
       $(errs[0].id).focus();
+      CM.motion.shake($(errs[0].id));
       return;
     }
     $('formErr').textContent = '';

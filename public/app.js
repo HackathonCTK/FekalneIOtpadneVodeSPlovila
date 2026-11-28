@@ -481,12 +481,22 @@
     });
     return out.sort(function (a, b) { return String(b.t).localeCompare(String(a.t)); }).slice(0, 12);
   }
+  var lastBell = null;
   function syncBell() {
     var btn = doc.getElementById('cm-bell');
     if (!btn) return;
     var seen = sget(NOTIF_SEEN) || '';
     var n = notifItems().filter(function (x) { return String(x.t) > seen; }).length;
     btn.classList.toggle('has-unread', n > 0);
+    // Nova obavijest: zvono zazvoni (samo kad se broj poveća, ne pri svakom otvaranju stranice)
+    var prev = lastBell;
+    if (prev == null) { try { prev = Number(sessionStorage.getItem('cm-bell-n')) || 0; } catch (e) { prev = 0; } }
+    lastBell = n;
+    try { sessionStorage.setItem('cm-bell-n', String(n)); } catch (e) { /* ignore */ }
+    if (n > prev && !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+      btn.classList.remove('is-ring'); void btn.offsetWidth; btn.classList.add('is-ring');
+      setTimeout(function () { btn.classList.remove('is-ring'); }, 1000);
+    }
     var label = CM.t('notif.title') + (n ? ' (' + n + ')' : '');
     btn.setAttribute('aria-label', label);
     btn.setAttribute('title', label);
@@ -584,6 +594,169 @@
       a.setAttribute('aria-label', CM.t('ui.login')); a.setAttribute('title', CM.t('ui.login'));
     }
   }
+
+  /* =====================================================================
+     Pokret: ulaz sadržaja pri učitavanju i skrolanju, popisi, brojači, kvačica
+     Stilovi: motion.css. Samo transform i opacity. Uz prefers-reduced-motion
+     i u skrivenoj kartici (preglednik koči animacije) ništa se ne skriva.
+     ===================================================================== */
+  var reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var canObserve = 'IntersectionObserver' in window;
+  var M = CM.motion = { reduced: reduceMotion };
+  var ANIM = { 'cm-in': 'cm-rise', 'cm-swap': 'cm-swap', 'cm-pop': 'cm-pop', 'cm-flash': 'cm-flash', 'cm-shake': 'cm-shake' };
+
+  // Pokreće animaciju (klasa iz motion.css) i uklanja je kad završi, da hover i prijelazi ostanu slobodni
+  M.play = function (el, cls, i) {
+    if (reduceMotion || !el) return;
+    cls = cls || 'cm-in';
+    el.classList.remove('cm-rv', cls);
+    if (i != null) el.style.setProperty('--i', Math.min(i, 7)); else el.style.removeProperty('--i');
+    void el.offsetWidth;
+    el.classList.add(cls);
+    el.addEventListener('animationend', function end(e) {
+      if (e.target !== el || e.animationName !== ANIM[cls]) return;
+      el.removeEventListener('animationend', end);
+      el.classList.remove(cls);
+      el.style.removeProperty('--i');
+    });
+  };
+
+  var revealIO = null;
+  function getRevealIO() {
+    if (!revealIO) {
+      revealIO = new IntersectionObserver(function (entries) {
+        var n = 0;
+        entries.forEach(function (en) {
+          if (!en.isIntersecting) return;
+          revealIO.unobserve(en.target);
+          M.play(en.target, 'cm-in', n++);
+        });
+      }, { rootMargin: '0px 0px -6% 0px', threshold: 0.04 });
+    }
+    return revealIO;
+  }
+
+  // Elementi na ekranu ulaze odmah jedan za drugim; oni ispod ekrana kad dođu na red (skrolanje)
+  M.reveal = function (els) {
+    if (reduceMotion || !canObserve || doc.hidden || !els) return;
+    var vh = window.innerHeight || 800, n = 0;
+    Array.prototype.forEach.call(els, function (el) {
+      if (!el || el.__cmRv) return;
+      el.__cmRv = true;
+      var r = el.getBoundingClientRect();
+      if (!r.width && !r.height) return;                 // skriveno: pojavit će se preko atributa hidden (watchHidden)
+      if (r.bottom <= 0) return;                          // iznad zaslona (npr. skok na sidro)
+      if (r.top < vh * 0.94) { M.play(el, 'cm-in', n++); return; }
+      el.classList.add('cm-rv');
+      waiting.push(el);
+      getRevealIO().observe(el);
+    });
+  };
+
+  // Brzo skrolanje ili skok preskoči elemente (promatrač ih ne vidi): oni iznad zaslona se prikažu bez animacije
+  var waiting = [], sweepQueued = false;
+  function sweep() {
+    sweepQueued = false;
+    waiting = waiting.filter(function (el) {
+      if (!el.classList.contains('cm-rv')) return false;
+      if (el.getBoundingClientRect().bottom < 0) {
+        el.classList.remove('cm-rv');
+        if (revealIO) revealIO.unobserve(el);
+        return false;
+      }
+      return true;
+    });
+  }
+  window.addEventListener('scroll', function () {
+    if (waiting.length && !sweepQueued) { sweepQueued = true; requestAnimationFrame(sweep); }
+  }, { passive: true });
+
+  // Popis koji se iznova crta: animiraju se samo stavke koje još nisu viđene (ključ = id, data-id ili tekst)
+  var listSeen = typeof WeakMap === 'function' ? new WeakMap() : null;
+  M.list = function (box, sel, keyOf) {
+    if (reduceMotion || !box || !listSeen) return;
+    var seen = listSeen.get(box);
+    if (!seen) { seen = {}; listSeen.set(box, seen); }
+    var n = 0;
+    Array.prototype.forEach.call(box.querySelectorAll(sel || ':scope > *'), function (el) {
+      var k = keyOf ? keyOf(el) : (el.id || el.getAttribute('data-id') || el.textContent.replace(/\s+/g, ' ').slice(0, 80));
+      if (!k || seen[k]) return;
+      seen[k] = 1;
+      M.play(el, 'cm-in', n++);
+    });
+  };
+
+  // Sadržaj se zamijenio na istom mjestu (npr. detalj prijave): kratak prijelaz
+  M.swap = function (el) { M.play(el, 'cm-swap'); };
+  M.shake = function (el) { M.play(el, 'cm-shake'); };
+  M.pop = function (el) { M.play(el, 'cm-pop'); };
+  M.flash = function (el) { M.play(el, 'cm-flash'); };
+
+  // Brojač: broji od prethodne vrijednosti do nove (po zadanom 0,7 s)
+  M.count = function (el, to, ms) {
+    if (!el) return;
+    to = Number(to);
+    var from = el.__cmN || 0;
+    el.__cmN = to;
+    if (el.__cmRaf) cancelAnimationFrame(el.__cmRaf);
+    clearTimeout(el.__cmTo);
+    if (!isFinite(to)) { el.textContent = ''; return; }
+    if (reduceMotion || doc.hidden || to === from || Math.abs(to - from) > 99999) { el.textContent = String(to); return; }
+    var t0 = null, dur = ms || 700;
+    el.textContent = String(from);
+    (function step(t) {
+      if (t0 == null) t0 = t;
+      var k = Math.min(1, (t - t0) / dur);
+      k = 1 - Math.pow(1 - k, 3);
+      el.textContent = String(Math.round(from + (to - from) * k));
+      if (k < 1) el.__cmRaf = requestAnimationFrame(step);
+    })(performance.now());
+    el.__cmTo = setTimeout(function () { el.textContent = String(to); }, dur + 150);
+  };
+
+  // Kvačica koja se crta (nakon uspješnog slanja)
+  M.check = function () {
+    return '<svg class="cm-check" viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="24"/><path d="M17 29l8 8 14-16"/></svg>';
+  };
+
+  // Ono što je bilo skriveno (atribut hidden) i pojavi se kasnije, nježno uđe (npr. rezultat slanja, kartice nakon prijave)
+  function watchHidden(main) {
+    if (typeof MutationObserver !== 'function') return;
+    new MutationObserver(function (list) {
+      list.forEach(function (m) {
+        var el = m.target;
+        if (m.oldValue === null || el.hasAttribute('hidden')) return;
+        M.play(el, 'cm-in', 0);
+      });
+    }).observe(main, { attributes: true, attributeFilter: ['hidden'], attributeOldValue: true, subtree: true });
+  }
+
+  // Prijava: kartica se zatrese kad se pojavi poruka o grešci
+  function watchErrors(main) {
+    if (typeof MutationObserver !== 'function') return;
+    new MutationObserver(function (list) {
+      var cards = [];
+      list.forEach(function (m) {
+        var el = m.target.nodeType === 1 ? m.target : m.target.parentNode;
+        if (!el || !el.classList || !el.classList.contains('cm-error') || !el.textContent) return;
+        var card = el.closest('.cm-card');
+        if (card && cards.indexOf(card) < 0) { cards.push(card); M.shake(card); }
+      });
+    }).observe(main, { childList: true, characterData: true, subtree: true });
+  }
+
+  var AUTO_REVEAL = [
+    '.cm-head > *', '.cm-section-title', '.cm-stats > *', '.cm-quick > *', '.cm-main > .cm-card:not(form)', '.cm-main > .po-card',
+    '.cm-main > section > .cm-card', '.pf-card', '.cm-form-section', '.lg-bar', '.cm-auth > *', '.cm-main > .cm-tabs', '.al-main > *'
+  ].join(', ');
+  function initMotion() {
+    var main = doc.querySelector('main.cm-main, main.al-main');
+    if (!main || reduceMotion) return;
+    M.reveal(main.querySelectorAll(AUTO_REVEAL));
+    watchHidden(main);
+    if (main.classList.contains('al-main') || main.querySelector('.cm-auth')) watchErrors(main);
+  }
+  if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', initMotion); else initMotion();
 
   CM.renderChrome = function () {
     var hdr = doc.querySelector('[data-cm-header]');

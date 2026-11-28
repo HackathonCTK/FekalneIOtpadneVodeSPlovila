@@ -19,6 +19,7 @@
 <!-- Zajednički dizajn (tokeni, gornja traka, izbornici, toast), zatim stilovi dijela 4 -->
 <link rel="stylesheet" href="tokens.css">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="motion.css">
 <link rel="stylesheet" href="plovi-odgovorno.css">
 </head>
 <body class="po-body">
@@ -48,9 +49,19 @@
           <svg class="po-wave po-wave-front" viewBox="0 0 1200 40" preserveAspectRatio="none"><path d="M0 24 Q100 10 200 24 T400 24 T600 24 T800 24 T1000 24 T1200 24 V40 H0Z"/></svg>
           <div class="po-rays"></div>
           <div class="po-bubbles"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <!-- Ribe plove dubinom (ukras; ukupno 8, različite dubine, veličine i brzine) -->
+          <svg class="po-fish" viewBox="0 0 28 14" style="--y:34vh;--w:26px;--d:36s;--delay:-8s"><path d="M1 7C6 .5 14 .5 19 7 14 13.5 6 13.5 1 7ZM18 7L27 1.5V12.5Z"/></svg>
+          <svg class="po-fish is-r" viewBox="0 0 28 14" style="--y:58vh;--w:20px;--d:44s;--delay:-20s"><path d="M1 7C6 .5 14 .5 19 7 14 13.5 6 13.5 1 7ZM18 7L27 1.5V12.5Z"/></svg>
+          <svg class="po-fish" viewBox="0 0 28 14" style="--y:84vh;--w:34px;--d:52s;--delay:-30s"><path d="M1 7C6 .5 14 .5 19 7 14 13.5 6 13.5 1 7ZM18 7L27 1.5V12.5Z"/></svg>
+          <svg class="po-fish is-r" viewBox="0 0 28 14" style="--y:110vh;--w:22px;--d:40s;--delay:-12s"><path d="M1 7C6 .5 14 .5 19 7 14 13.5 6 13.5 1 7ZM18 7L27 1.5V12.5Z"/></svg>
+          <svg class="po-fish" viewBox="0 0 28 14" style="--y:132vh;--w:18px;--d:48s;--delay:-36s"><path d="M1 7C6 .5 14 .5 19 7 14 13.5 6 13.5 1 7ZM18 7L27 1.5V12.5Z"/></svg>
+          <svg class="po-fish is-r" viewBox="0 0 28 14" style="--y:154vh;--w:30px;--d:58s;--delay:-4s"><path d="M1 7C6 .5 14 .5 19 7 14 13.5 6 13.5 1 7ZM18 7L27 1.5V12.5Z"/></svg>
+          <svg class="po-fish" viewBox="0 0 28 14" style="--y:176vh;--w:24px;--d:42s;--delay:-26s"><path d="M1 7C6 .5 14 .5 19 7 14 13.5 6 13.5 1 7ZM18 7L27 1.5V12.5Z"/></svg>
+          <svg class="po-fish is-r" viewBox="0 0 28 14" style="--y:198vh;--w:16px;--d:46s;--delay:-16s"><path d="M1 7C6 .5 14 .5 19 7 14 13.5 6 13.5 1 7ZM18 7L27 1.5V12.5Z"/></svg>
         </div>
         <div class="po-plume"><span></span><span></span><span></span><span></span></div>
         <div class="po-boat">
+          <span class="po-wake"><i></i><i></i></span>
           <svg class="po-boat-inner" viewBox="0 0 220 210">
             <defs>
               <linearGradient id="po-sail" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F4FBFA"/><stop offset="1" stop-color="#BFDAD6"/></linearGradient>

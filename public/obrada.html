@@ -14,6 +14,7 @@
 </script>
 <link rel="stylesheet" href="vendor/fonts/fonts.css">
 <link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="motion.css">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <link rel="stylesheet" href="vendor/maplibre-gl/maplibre-gl.css">
 <style>
@@ -294,6 +295,30 @@ footer{max-width:1800px;margin:0 auto;padding:0 20px 28px;color:var(--muted);fon
 @media (max-width:479px){ .nb-txt{display:none} #newBtn{padding:0 12px} .brand b{font-size:16px} }
 .wfc{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:12px;align-items:start}
 @media (max-width:1000px){ .wfc{grid-template-columns:minmax(0,1fr)} .wfc .map-panel{height:60vh} .bays{height:auto} }
+/* pokret (ključni okviri i klase su u motion.css; samo opacity/transform, pa karta ostaje stabilna) */
+.view.active{ animation:cm-fade .35s ease-out; }
+.row{ transition:background .15s; }
+.btn{ transition:background .2s,border-color .2s,color .2s,transform .15s var(--cm-ease); }
+.btn:active{ transform:scale(.97); }
+@media (hover:hover){ .btn-primary:hover, .btn-dark:hover{ transform:translateY(-1px); } }
+.chip{ transition:background .2s,color .2s,border-color .2s,transform .15s; }
+.chip:active{ transform:scale(.95); }
+.pill{ transition:background-color .3s,color .3s; }
+.steps li i{ transition:background .4s; }
+.steps li.on i{ transform-origin:left center; animation:cm-grow .5s var(--cm-ease) backwards; }
+.steps li.on:nth-child(2) i{ animation-delay:.1s; }
+.steps li.on:nth-child(3) i{ animation-delay:.2s; }
+.toast{ animation:cm-rise .3s var(--cm-ease); }
+dialog[open]{ animation:cm-pop .25s var(--cm-ease); }
+dialog[open]::backdrop{ animation:cm-fade .25s ease-out; }
+.menu.open{ transform-origin:top right; animation:cm-pop .18s var(--cm-ease); }
+.backdrop.open{ animation:cm-fade .2s ease-out; }
+.map-note.show{ animation:cm-rise .3s var(--cm-ease); }
+.badge{ display:inline-block; }
+@media (prefers-reduced-motion:reduce){
+  .view.active,.toast,dialog[open],dialog[open]::backdrop,.menu.open,.backdrop.open,.map-note.show,.steps li.on i{ animation:none; }
+  .btn:active,.chip:active{ transform:none; }
+}
 </style>
 </head>
 <body>
@@ -633,6 +658,16 @@ function commit(msg, r){
   flush();
 }
 
+/* ================= pokret (CM.motion u app.js) ================= */
+// Detalj prijave: nova prijava = kratak prijelaz sadržaja; promjena statusa iste prijave = pilula poskoči, „što vidi prijavitelj“ bljesne
+const motionSeen = {};
+function detailMotion(el, name, r){
+  const M = CM.motion, prev = motionSeen[name];
+  motionSeen[name] = {id: r.id, status: r.status};
+  if (!prev || prev.id !== r.id) M.swap(el);
+  else if (prev.status !== r.status){ M.pop(el.querySelector('.d-top .pill:last-child')); M.flash(el.querySelector('.public')); }
+}
+
 /* ================= toast ================= */
 function toast(text){
   const el = document.createElement('div'); el.className = 'toast'; el.textContent = text;
@@ -842,6 +877,8 @@ function renderList1(list){
     '<span class="p">' + esc(r.place) + '</span>' +
     '<span class="s">' + ICON_ARROW + esc(svcName(r.service)) + (r.confirmed ? '' : ' (prijedlog)') + '</span></button></li>').join('');
   $$('.row', ul).forEach(b => b.addEventListener('click', () => select1(b.dataset.id, true)));
+  // nove prijave (ili promijenjen status) ulaze jedna za drugom; viđene se ne animiraju iznova
+  CM.motion.list(ul, ':scope > li', li => { const ps = li.querySelectorAll('.pill'); return li.firstChild.dataset.id + (ps.length ? ps[ps.length - 1].className : ''); });
 }
 function markerStyle(r, selected){
   return {radius: selected ? 12 : 8, color: selected ? '#04141C' : '#fff', weight: selected ? 4 : 2, fillColor: STATUS[r.status].color, fillOpacity: 1};
@@ -938,6 +975,7 @@ function renderDetail1(){
     '<div><div class="eyebrow" style="margin-bottom:8px">Povijest (interno)</div><ul class="history">' + r.history.slice().reverse().map(h => '<li><time>' + esc(fmtStamp(h.t)) + '</time><span>' + esc(h.text) + '</span></li>').join('') + '</ul></div>';
   bindDetailActions(el, r);
   bindThumbs(el, r);
+  detailMotion(el, 'd1', r);
 }
 function setStatus(r, st){ r.status = st; r._statusAt = new Date().toISOString(); }
 function bindDetailActions(el, r){
@@ -957,7 +995,7 @@ function renderView1(fit){
   const list = filtered();
   renderList1(list); renderMap1(fit); renderDetail1();
   const n = S.reports.filter(r => r.status === 'zaprimljeno').length;
-  $$('[data-badge]').forEach(b => { b.textContent = n; b.style.display = n ? '' : 'none'; });
+  $$('[data-badge]').forEach(b => { const ch = b.textContent !== String(n) && b.textContent !== ''; b.textContent = n; b.style.display = n ? '' : 'none'; if (ch) CM.motion.pop(b); });
 }
 
 /* ================= reassign dialog ================= */
@@ -1041,6 +1079,7 @@ function renderTable2(list){
     '<td data-label="Smjer">' + (r.heading == null ? 'Na sidru / nepoznat' : esc(DIRS[dirIdx(r.heading)][1])) + '</td>' +
     '<td data-label="Status"><span class="pill ' + r.status + '">' + STATUS[r.status].label + '</span></td></tr>').join('');
   $$('tr[data-id]', tb).forEach(tr => tr.addEventListener('click', () => select2(tr.dataset.id, true)));
+  CM.motion.list(tb, ':scope > tr', tr => (tr.dataset.id || '') + (tr.querySelector('.pill') ? tr.querySelector('.pill').className : ''));
 }
 function select2(id, fly){
   id = realId(id);
@@ -1074,6 +1113,7 @@ function renderDetail2(){
     '<div><div class="eyebrow" style="margin-bottom:8px">Povijest</div><ul class="history">' + r.history.slice().reverse().slice(0, 6).map(h => '<li><time>' + esc(fmtStamp(h.t)) + '</time><span>' + esc(h.text) + '</span></li>').join('') + '</ul></div>';
   bindDetailActions(el, r);
   bindThumbs(el, r);
+  detailMotion(el, 'd2', r);
 }
 function notifyStations(r){
   const names = stationsAhead(r).map(x => x.s.name).join(', ');

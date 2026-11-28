@@ -4,7 +4,7 @@
  * - /api/ (računi, prijave) se nikad ne sprema: prijave bez signala čekaju u pregledniku (app.js) i šalju se kasnije
  * - zahtjevi prema drugim poslužiteljima (OpenStreetMap, Open-Meteo) idu izravno
  */
-const APP_CACHE = 'cistomore-app-v6';
+const APP_CACHE = 'cistomore-app-v7';
 const MAP_CACHE = 'cistomore-map-v2';
 const MAX_MAP_ITEMS = 4000;
 const FONTS = ['bricolage-grotesque-latin-opsz-normal', 'bricolage-grotesque-latin-ext-opsz-normal',
@@ -15,7 +15,7 @@ const FONTS = ['bricolage-grotesque-latin-opsz-normal', 'bricolage-grotesque-lat
 const PRECACHE = [
   '/favicon.svg', '/', '/index.html', '/login.html', '/report.html', '/map.html', '/book.html', '/profile.html',
   '/plovi-odgovorno.html', '/admin-login.html', '/obrada.html',
-  '/tokens.css', '/styles.css', '/map.css', '/plovi-odgovorno.css',
+  '/tokens.css', '/styles.css', '/motion.css', '/map.css', '/plovi-odgovorno.css',
   '/app.js', '/routing.js', '/basemap.js', '/map.js', '/plovi-odgovorno.js', '/plovi-odgovorno-sadrzaj.js', '/plovi-odgovorno-slike.js', '/plovi-odgovorno-pitanja.js', '/plovi-odgovorno-pitanja2.js',
   '/data/stations.js', '/data/kontakti.js', '/data/upute.js', '/data/regije.js', '/data/i18n-en.js',
   '/vendor/fonts/fonts.css',
