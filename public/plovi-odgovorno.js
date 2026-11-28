@@ -351,15 +351,46 @@
   }
   // Svaki kviz uzima quiz.size nasumičnih pitanja iz baze (quiz.questions).
   // set[i] je izvorni indeks pitanja u bazi, pa promjena jezika ne mijenja stanje kviza.
+  //
+  // Tipovi pitanja (polje "type" u sadržaju):
+  //   (bez type) / "single"  jedan točan od ponuđenih:      a: [...], c: indeks
+  //   "tf"                   točno / netočno:                c: true | false
+  //   "multi"                više točnih, pa „Provjeri“:     a: [...], c: [indeksi]
+  //   "order"                poredaj korake, pa „Provjeri“:  a: [...] u TOČNOM redoslijedu
   function newQuiz() {
     var all = base.quiz.questions;
     var size = Math.min(base.quiz.size || all.length, all.length);
     var set = shuffledIdx(all.length).slice(0, size);
-    return { i: 0, picks: [], done: false, set: set, order: set.map(function (qi) { return shuffledIdx(all[qi].a.length); }) };
+    return {
+      i: 0, picks: [], draft: [], done: false, set: set,
+      order: set.map(function (qi) {
+        var q = all[qi], type = q.type || "single";
+        if (type === "tf") return [0, 1];
+        var o = shuffledIdx(q.a.length);
+        // poredaj: nikad ne kreni od već točnog redoslijeda
+        if (type === "order") while (o.every(function (v, k) { return v === k; })) o = shuffledIdx(q.a.length);
+        return o;
+      })
+    };
+  }
+  // Pitanje u obliku za prikaz; "tf" postaje pitanje s dva odgovora (Točno / Netočno)
+  function normQ(q) {
+    var type = q.type || "single";
+    if (type === "tf") return { type: "tf", q: q.q, e: q.e, a: [t("quiz.tfTrue"), t("quiz.tfFalse")], c: q.c ? 0 : 1 };
+    return { type: type, q: q.q, e: q.e, a: q.a, c: q.c };
   }
   function quizQs() {
     var all = t("quiz.questions");
-    return quiz.set.map(function (qi) { return all[qi]; });
+    return quiz.set.map(function (qi) { return normQ(all[qi]); });
+  }
+  function isRight(q, p) {
+    if (p == null) return false;
+    if (q.type === "multi") {
+      var want = q.c.slice().sort().join(","), got = p.slice().sort().join(",");
+      return want === got;
+    }
+    if (q.type === "order") return p.every(function (v, k) { return v === k; });
+    return p === q.c;
   }
   var quiz = newQuiz();
 
@@ -375,7 +406,7 @@
   function quizBest() { var b = parseInt(sget(BEST_KEY), 10); return isNaN(b) ? null : b; }
   function quizScore() {
     var qs = quizQs();
-    return quiz.picks.reduce(function (s, p, i) { return s + (p === qs[i].c ? 1 : 0); }, 0);
+    return quiz.picks.reduce(function (s, p, i) { return s + (isRight(qs[i], p) ? 1 : 0); }, 0);
   }
   function certDateText() {
     var d = cert.date ? new Date(cert.date) : new Date();
@@ -397,39 +428,117 @@
     var q = qs[quiz.i];
     var pick = quiz.picks[quiz.i];
     var answered = pick != null;
-    var keys = ["A", "B", "C", "D"];
+    var keys = ["A", "B", "C", "D", "E", "F"];
     var html =
       '<div class="po-quiz-top"><span>' + fmt(Q.progress, { i: quiz.i + 1, n: n }) + "</span><span>" + quizScore() + "/" + n + "</span></div>" +
       '<div class="po-progress" aria-hidden="true"><i style="width:' + Math.round(((quiz.i + (answered ? 1 : 0)) / n) * 100) + '%"></i></div>' +
-      '<h3 id="po-quiz-q" tabindex="-1">' + q.q + "</h3>" +
-      '<div class="po-options" role="group" aria-labelledby="po-quiz-q">' +
-      quiz.order[quiz.i].map(function (orig, j) {
-        var cls = "po-option", mark = keys[j], sr = "";
-        if (answered && orig === q.c) { cls += " is-correct"; mark = "✓"; sr = Q.srCorrect; }
-        if (answered && orig === pick && pick !== q.c) { cls += " is-wrong"; mark = "✗"; sr = Q.srYours; }
-        return '<button type="button" class="' + cls + '" data-opt="' + orig + '"' + (answered ? ' aria-disabled="true"' : "") + '>' +
-          '<span class="po-option-key" aria-hidden="true">' + mark + "</span><span>" + q.a[orig] +
-          (sr ? ' <span class="po-sr">(' + sr + ")</span>" : "") + "</span></button>";
-      }).join("") + "</div>";
+      (q.type !== "single" ? '<p class="po-quiz-kind">' + Q.kind[q.type] + "</p>" : "") +
+      '<h3 id="po-quiz-q" tabindex="-1">' + q.q + "</h3>";
+
+    if (q.type === "multi") {
+      // Više točnih: odabir se pali/gasi, „Provjeri“ potvrđuje
+      var sel = quiz.draft[quiz.i] || [];
+      html += '<div class="po-options" role="group" aria-labelledby="po-quiz-q">' +
+        quiz.order[quiz.i].map(function (orig) {
+          var on = answered ? pick.indexOf(orig) >= 0 : sel.indexOf(orig) >= 0;
+          var good = q.c.indexOf(orig) >= 0;
+          var cls = "po-option po-option-multi", mark = on ? "■" : "", sr = "";
+          if (answered && good) { cls += " is-correct"; mark = "✓"; sr = on ? Q.srCorrect : Q.srMissed; }
+          if (answered && on && !good) { cls += " is-wrong"; mark = "✗"; sr = Q.srYours; }
+          return '<button type="button" class="' + cls + '" data-multi="' + orig + '" aria-pressed="' + on + '"' + (answered ? ' aria-disabled="true"' : "") + ">" +
+            '<span class="po-option-key" aria-hidden="true">' + mark + "</span><span>" + q.a[orig] +
+            (sr ? ' <span class="po-sr">(' + sr + ")</span>" : "") + "</span></button>";
+        }).join("") + "</div>";
+      if (!answered) html += '<div class="po-quiz-actions"><button type="button" class="po-btn po-btn-primary" id="po-quiz-check"' + (sel.length ? "" : ' aria-disabled="true"') + ">" + Q.check + "</button></div>";
+    } else if (q.type === "order") {
+      // Poredaj: strelice gore/dolje mijenjaju redoslijed, „Provjeri“ potvrđuje
+      var seq = answered ? pick : (quiz.draft[quiz.i] || quiz.order[quiz.i]);
+      html += '<ol class="po-order" aria-labelledby="po-quiz-q">' + seq.map(function (orig, pos) {
+        var cls = "po-order-item", note = "";
+        if (answered) {
+          if (orig === pos) cls += " is-correct";
+          else { cls += " is-wrong"; note = '<small class="po-order-note">' + fmt(Q.orderAt, { n: orig + 1 }) + "</small>"; }
+        }
+        var txt = q.a[orig];
+        return '<li class="' + cls + '"><span class="po-order-num" aria-hidden="true">' + (pos + 1) + "</span>" +
+          '<span class="po-order-text">' + txt + note + "</span>" +
+          (answered ? "" :
+            '<span class="po-order-btns">' +
+            '<button type="button" class="po-order-btn" data-move="' + pos + '" data-dir="-1"' + (pos === 0 ? ' aria-disabled="true"' : "") + ' aria-label="' + esc(fmt(Q.moveUp, { s: txt })) + '">↑</button>' +
+            '<button type="button" class="po-order-btn" data-move="' + pos + '" data-dir="1"' + (pos === seq.length - 1 ? ' aria-disabled="true"' : "") + ' aria-label="' + esc(fmt(Q.moveDown, { s: txt })) + '">↓</button>' +
+            "</span>") +
+          "</li>";
+      }).join("") + "</ol>";
+      if (!answered) html += '<div class="po-quiz-actions"><button type="button" class="po-btn po-btn-primary" id="po-quiz-check">' + Q.check + "</button></div>";
+    } else {
+      // Jedan točan (i točno / netočno): klik odmah odgovara
+      html += '<div class="po-options' + (q.type === "tf" ? " po-options-tf" : "") + '" role="group" aria-labelledby="po-quiz-q">' +
+        quiz.order[quiz.i].map(function (orig, j) {
+          var cls = "po-option", mark = q.type === "tf" ? (orig === 0 ? "✓" : "✗") : keys[j], sr = "";
+          if (answered && orig === q.c) { cls += " is-correct"; mark = "✓"; sr = Q.srCorrect; }
+          if (answered && orig === pick && pick !== q.c) { cls += " is-wrong"; mark = "✗"; sr = Q.srYours; }
+          return '<button type="button" class="' + cls + '" data-opt="' + orig + '"' + (answered ? ' aria-disabled="true"' : "") + ">" +
+            '<span class="po-option-key" aria-hidden="true">' + mark + "</span><span>" + q.a[orig] +
+            (sr ? ' <span class="po-sr">(' + sr + ")</span>" : "") + "</span></button>";
+        }).join("") + "</div>";
+    }
+
     if (answered) {
-      var right = pick === q.c;
+      var right = isRight(q, pick);
       html += '<div class="po-explain ' + (right ? "is-right" : "is-wrong") + '"><strong>' + (right ? Q.correct : Q.wrong) + "</strong><p>" + q.e + "</p></div>" +
         '<div class="po-quiz-actions"><button type="button" class="po-btn po-btn-primary" id="po-quiz-next">' +
         (quiz.i === n - 1 ? Q.finish : Q.next) + ' <span aria-hidden="true">→</span></button></div>';
     }
     box.innerHTML = html;
 
-    $$(".po-option", box).forEach(function (b) {
+    function answer(p) {
+      quiz.picks[quiz.i] = p;
+      quizFocus = "next";
+      renderQuiz();
+      var qq = quizQs()[quiz.i];
+      announce((isRight(qq, p) ? t("quiz.correct") : t("quiz.wrong")) + " " + qq.e);
+    }
+    $$(".po-option[data-opt]", box).forEach(function (b) {
       b.addEventListener("click", function () {
         if (quiz.picks[quiz.i] != null) return;
-        var orig = +b.getAttribute("data-opt");
-        quiz.picks[quiz.i] = orig;
-        quizFocus = "next";
-        renderQuiz();
-        var qq = quizQs()[quiz.i];
-        announce((orig === qq.c ? t("quiz.correct") : t("quiz.wrong")) + " " + qq.e);
+        answer(+b.getAttribute("data-opt"));
       });
     });
+    $$(".po-option[data-multi]", box).forEach(function (b) {
+      b.addEventListener("click", function () {
+        if (quiz.picks[quiz.i] != null) return;
+        var o = +b.getAttribute("data-multi");
+        var cur = (quiz.draft[quiz.i] || []).slice();
+        var at = cur.indexOf(o);
+        if (at >= 0) cur.splice(at, 1); else cur.push(o);
+        quiz.draft[quiz.i] = cur;
+        quizFocus = { multi: o };
+        renderQuiz();
+      });
+    });
+    $$(".po-order-btn", box).forEach(function (b) {
+      b.addEventListener("click", function () {
+        if (quiz.picks[quiz.i] != null || b.getAttribute("aria-disabled") === "true") return;
+        var pos = +b.getAttribute("data-move"), dir = +b.getAttribute("data-dir");
+        var cur = (quiz.draft[quiz.i] || quiz.order[quiz.i]).slice();
+        var to = pos + dir;
+        var tmp = cur[pos]; cur[pos] = cur[to]; cur[to] = tmp;
+        quiz.draft[quiz.i] = cur;
+        // fokus ostaje na istoj stavci (na njenom novom mjestu); na rubu prijeđi na drugu strelicu
+        var edge = to === 0 || to === cur.length - 1;
+        quizFocus = { move: to, dir: edge ? -dir : dir };
+        renderQuiz();
+        announce(fmt(t("quiz.movedTo"), { s: quizQs()[quiz.i].a[tmp], n: to + 1 }));
+      });
+    });
+    var check = $("#po-quiz-check");
+    if (check) {
+      check.addEventListener("click", function () {
+        if (check.getAttribute("aria-disabled") === "true") return;
+        if (q.type === "multi") answer((quiz.draft[quiz.i] || []).slice());
+        else answer((quiz.draft[quiz.i] || quiz.order[quiz.i]).slice());
+      });
+    }
     var next = $("#po-quiz-next");
     if (next) {
       next.addEventListener("click", function () {
@@ -444,6 +553,8 @@
     }
     if (quizFocus === "next" && next) next.focus();
     if (quizFocus === "question") $("#po-quiz-q").focus();
+    if (quizFocus && quizFocus.multi != null) { var mb = $('[data-multi="' + quizFocus.multi + '"]', box); if (mb) mb.focus(); }
+    if (quizFocus && quizFocus.move != null) { var ob = $('[data-move="' + quizFocus.move + '"][data-dir="' + quizFocus.dir + '"]', box); if (ob) ob.focus(); }
     quizFocus = null;
   }
 

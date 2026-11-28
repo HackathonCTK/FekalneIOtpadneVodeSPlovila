@@ -554,6 +554,34 @@ body.po-body{
 .po-explain.is-wrong strong{ color:var(--po-warn); }
 .po-explain p{ margin:0; color:var(--po-muted); font-size:14.5px; }
 .po-quiz-actions{ display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-end; }
+.po-quiz-actions .po-btn[aria-disabled="true"]{ opacity:.45; cursor:not-allowed; }
+
+/* Tipovi pitanja: točno/netočno, više točnih, poredaj */
+.po-quiz-kind{ margin:0 0 -8px; font-family:var(--po-mono); font-size:11.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--po-accent-2); }
+.po-options-tf{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
+.po-option-multi .po-option-key{ border-radius:6px; }
+.po-option-multi[aria-pressed="true"]:not([aria-disabled="true"]){ border-color:var(--po-accent); background:color-mix(in srgb, var(--po-accent) 10%, transparent); }
+.po-option-multi[aria-pressed="true"]:not([aria-disabled="true"]) .po-option-key{ background:var(--po-accent); border-color:var(--po-accent); color:var(--po-on-accent); }
+.po-order{ list-style:none; margin:0; padding:0; display:grid; gap:8px; }
+.po-order-item{
+  display:grid; grid-template-columns:28px minmax(0, 1fr) auto; gap:12px; align-items:center;
+  padding:10px 10px 10px 14px; border-radius:14px; border:1px solid var(--po-line-strong); background:var(--po-inset);
+  font-size:15px; font-weight:600;
+}
+.po-order-num{ width:28px; height:28px; border-radius:8px; display:grid; place-items:center; font-family:var(--po-mono); font-size:12px; border:1px solid var(--po-line-strong); color:var(--po-muted); }
+.po-order-text{ display:grid; gap:2px; }
+.po-order-note{ font-size:12.5px; font-weight:600; color:var(--po-warn); }
+.po-order-btns{ display:flex; gap:6px; }
+.po-order-btn{
+  width:40px; height:40px; border-radius:10px; cursor:pointer; display:grid; place-items:center;
+  border:1px solid var(--po-line-strong); background:var(--po-surface); color:var(--po-text); font-size:17px; font-weight:700;
+}
+.po-order-btn:hover{ border-color:var(--po-accent); }
+.po-order-btn[aria-disabled="true"]{ opacity:.3; cursor:default; }
+.po-order-item.is-correct{ border-color:var(--po-accent); background:color-mix(in srgb, var(--po-accent) 14%, transparent); }
+.po-order-item.is-correct .po-order-num{ background:var(--po-accent); color:var(--po-on-accent); border-color:var(--po-accent); }
+.po-order-item.is-wrong{ border-color:var(--po-warn); background:color-mix(in srgb, var(--po-warn) 12%, transparent); }
+.po-order-item.is-wrong .po-order-num{ background:var(--po-warn); color:var(--po-on-accent); border-color:var(--po-warn); }
 .po-result{ text-align:center; display:grid; gap:12px; justify-items:center; padding:12px 0; }
 .po-result-score{ font-family:var(--po-display); font-weight:800; font-size:clamp(3rem, 12vw, 5rem); line-height:1; color:var(--po-accent-2); letter-spacing:-.04em; font-variant-numeric:tabular-nums; }
 .po-result p{ margin:0; max-width:44ch; }
