@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="hr" data-auth="user">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#04141C">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<title data-t="rep.docTitle">ČistoMore – Nova prijava</title>
+<script>
+  /* Način (tamni/svijetli) i jezik prije crtanja, bez bljeska; stranice samo za prijavljene šalju na prijavu. */
+  (function(){var d=document.documentElement,m=null,l=null,u=null;try{m=localStorage.getItem("cm-mode")||localStorage.getItem("po-mode");l=localStorage.getItem("cm-lang");u=localStorage.getItem("cm-user");}catch(e){}
+  if(m!=="light"&&m!=="dark")m=window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";d.setAttribute("data-mode",m);
+  if(l!=="hr"&&l!=="en"){var n=(navigator.language||"hr").toLowerCase();l=/^(hr|bs|sr|sl|cnr)/.test(n)?"hr":"en";}d.lang=l;d.classList.add("js");
+  if(d.getAttribute("data-auth")==="user"&&!u){location.replace("login.html?next="+encodeURIComponent((location.pathname.replace(/^.*\//,"")||"index.html")+location.search));}})();
+</script>
+<link rel="stylesheet" href="vendor/fonts/fonts.css">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="cm-body">
+<a class="cm-skip" href="#main" data-t="ui.skip">Preskoči na sadržaj</a>
+<header data-cm-header data-cm-sub="sub.report"></header>
+<div data-cm-nav="report"></div>
+
+<main class="cm-main is-narrow" id="main" tabindex="-1">
+  <div class="cm-head">
+    <p class="cm-eyebrow" data-t="rep.eyebrow">Prijava onečišćenja</p>
+    <h1 data-t="rep.title">Nova prijava</h1>
+    <p class="cm-lead" data-t="rep.lead">Prijavite ispuštanje otpadnih voda ili fekalija. Prijava ide nadležnoj službi, a status pratite u dnevniku.</p>
+  </div>
+
+  <div class="cm-notice is-warn" id="offlineNote" hidden>
+    <span class="cm-notice-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l20 20M8.5 16.5a5 5 0 0 1 7 0M5 12.9a10 10 0 0 1 5.2-2.8"/><circle cx="12" cy="20" r="1"/></svg></span>
+    <p data-t="rep.offlineNote">Nema signala. Prijavu možete ispuniti i poslati, a spremit će se na uređaju i otići čim se veza vrati.</p>
+  </div>
+
+  <!-- Rezultat slanja -->
+  <section class="cm-card" id="resultCard" tabindex="-1" aria-live="polite" hidden></section>
+
+  <form class="cm-card" id="reportForm" novalidate style="margin-top:16px">
+    <!-- 1. Što se dogodilo -->
+    <div class="cm-form-section">
+      <h2 data-t="rep.secWhat">Što ste uočili?</h2>
+      <div class="cm-field">
+        <label for="type"><span data-t="rep.type">Vrsta problema</span><span class="cm-req" aria-hidden="true">*</span></label>
+        <select id="type" required></select>
+      </div>
+      <div class="cm-grid-2">
+        <div class="cm-field">
+          <label for="datetime"><span data-t="rep.datetime">Vrijeme i datum</span><span class="cm-req" aria-hidden="true">*</span></label>
+          <input id="datetime" type="datetime-local" required>
+        </div>
+        <div class="cm-field" id="wasteWrap">
+          <label for="wasteType"><span data-t="rep.waste">Vrsta otpada</span><span class="cm-req" aria-hidden="true">*</span></label>
+          <select id="wasteType" required></select>
+        </div>
+      </div>
+      <div class="cm-field">
+        <label for="notes" data-t="rep.notes">Opis</label>
+        <textarea id="notes" maxlength="1000" data-t-ph="rep.notesPh" placeholder="Opišite što ste uočili..."></textarea>
+      </div>
+    </div>
+
+    <!-- 2. Plovilo -->
+    <div class="cm-form-section" id="vesselSection">
+      <h2 data-t="rep.secVessel">Plovilo</h2>
+      <div class="cm-grid-2">
+        <div class="cm-field">
+          <label for="shipType"><span data-t="rep.shipType">Vrsta broda</span><span class="cm-req" aria-hidden="true">*</span></label>
+          <select id="shipType" required></select>
+        </div>
+        <div class="cm-field">
+          <label for="shipSize"><span data-t="rep.shipSize">Veličina broda</span><span class="cm-req" aria-hidden="true">*</span></label>
+          <select id="shipSize" required></select>
+        </div>
+      </div>
+      <div class="cm-grid-2">
+        <div class="cm-field">
+          <label for="shipColor" data-t="rep.shipColor">Boja broda</label>
+          <div class="color-field">
+            <input id="shipColor" type="color" class="color-swatch-input" value="#0077b6" data-t-aria="rep.shipColorPick" aria-label="Odaberi boju broda">
+            <input id="shipColorHex" type="text" class="color-hex cm-input" value="#0077b6" maxlength="7" placeholder="#0077b6" data-t-aria="rep.shipColorHex" aria-label="Boja broda (heksadekadski)">
+          </div>
+          <label class="cm-hint" style="display:flex;gap:8px;align-items:center;margin-top:6px;font-weight:600;cursor:pointer">
+            <input type="checkbox" id="colorUnknown"> <span data-t="rep.colorUnknown">Ne znam boju</span>
+          </label>
+        </div>
+        <div class="cm-field">
+          <label for="registration" data-t="rep.registration">Registracija</label>
+          <input id="registration" type="text" maxlength="30" autocapitalize="characters" data-t-ph="rep.registrationPh" placeholder="npr. ST-1234-AB">
+        </div>
+      </div>
+      <fieldset class="cm-fieldset" id="headingWrap">
+        <legend data-t="rep.heading">Smjer kretanja plovila</legend>
+        <p class="cm-hint" style="margin:-4px 0 10px" data-t="rep.headingHint">U kojem se smjeru plovilo kretalo kad ste ga vidjeli? Sjever je gore.</p>
+        <div class="cm-rose" id="rose"></div>
+      </fieldset>
+    </div>
+
+    <!-- 3. Fotografije -->
+    <div class="cm-form-section">
+      <h2 data-t="rep.secPhotos">Fotografije</h2>
+      <div class="cm-field">
+        <div class="file-drop" id="fileDrop">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 6px;display:block" aria-hidden="true"><path d="M12 16V4m0 0 4 4m-4-4-4 4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+          <span data-t="rep.photoDrop">Dodirnite za fotografiranje ili učitavanje slika (.jpg, .png, .webp)</span>
+          <input id="fileInput" type="file" accept="image/*" multiple data-t-aria="rep.photoAria" aria-label="Dodaj fotografije">
+        </div>
+        <p class="cm-hint" id="photoHint" data-t="rep.photoHint">Najviše 4 fotografije. Slike se prije slanja smanjuju.</p>
+        <div class="file-gallery" id="fileGallery"></div>
+      </div>
+    </div>
+
+    <!-- 4. Lokacija -->
+    <div class="cm-form-section">
+      <h2><span data-t="rep.secWhere">GPS lokacija</span><span class="cm-req" aria-hidden="true">*</span></h2>
+      <div class="gps-box">
+        <button type="button" class="po-btn po-btn-ghost po-btn-sm" id="gpsBtn">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-7.2 7-12a7 7 0 1 0-14 0c0 4.8 7 12 7 12Z"/><circle cx="12" cy="9" r="2.3"/></svg>
+          <span data-t="rep.gpsBtn">Dohvati GPS lokaciju</span>
+        </button>
+        <span class="gps-coord" id="gpsCoord" aria-live="polite"></span>
+      </div>
+      <p class="cm-hint" style="margin:10px 0" data-t="rep.mapHint">Ili dodirnite kartu na mjestu onečišćenja. Ako promatrate s kopna, označite približno gdje je brod.</p>
+      <div class="cm-pickmap" id="pickMap" role="application" data-t-aria="rep.mapAria" aria-label="Karta za odabir lokacije"></div>
+      <p class="cm-hint" id="mapNote" style="margin-top:6px" hidden></p>
+      <div class="cm-grid-2" style="margin-top:12px">
+        <div class="cm-field">
+          <label for="lat" data-t="rep.lat">Zemljopisna širina</label>
+          <input id="lat" type="text" inputmode="decimal" autocomplete="off" data-t-ph="rep.latPh" placeholder="npr. N 43.5081">
+        </div>
+        <div class="cm-field">
+          <label for="lon" data-t="rep.lon">Zemljopisna dužina</label>
+          <input id="lon" type="text" inputmode="decimal" autocomplete="off" data-t-ph="rep.lonPh" placeholder="npr. E 16.4402">
+        </div>
+      </div>
+
+      <div class="cm-subcard">
+        <div class="cm-toggle">
+          <div>
+            <div class="cm-toggle-label" id="landLabel" data-t="rep.land">Promatram s kopna</div>
+            <div class="cm-toggle-sub" data-t="rep.landSub">Nisam na moru, uključi kompas za smjer prema brodu</div>
+          </div>
+          <button type="button" class="cm-switch" id="toggleLand" role="switch" aria-checked="false" aria-labelledby="landLabel"></button>
+        </div>
+        <div id="compassSection" hidden>
+          <p class="cm-hint" data-t="rep.compassHint">Uperite telefon prema brodu i dohvatite smjer kompasa kako bismo mogli procijeniti gdje se brod nalazi.</p>
+          <div class="compass-wrap">
+            <div class="compass-ring" id="compassRing" data-north="S"><div class="compass-arrow" id="compassArrow"></div></div>
+            <div>
+              <div class="compass-deg" id="compassDeg">—°</div>
+              <button type="button" class="po-btn po-btn-ghost po-btn-sm" id="compassBtn" style="margin-top:6px" data-t="rep.compassBtn">Dohvati smjer kompasa</button>
+            </div>
+          </div>
+          <div class="cm-field" style="margin:12px 0 0">
+            <label for="bearingManual" data-t="rep.bearing">Ili unesite smjer ručno (0–359°)</label>
+            <input id="bearingManual" type="number" min="0" max="359" inputmode="numeric" data-t-ph="rep.bearingPh" placeholder="npr. 135">
+          </div>
+        </div>
+      </div>
+
+      <div class="cm-route-preview" id="routePreview" aria-live="polite"></div>
+    </div>
+
+    <p class="cm-error" id="formErr" role="alert" style="margin-top:16px"></p>
+    <button type="submit" class="po-btn po-btn-primary po-btn-block" id="submitBtn" style="margin-top:8px">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/></svg>
+      <span data-t="rep.submit">Pošalji prijavu</span>
+    </button>
+  </form>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="basemap.js"></script>
+<script src="routing.js"></script>
+<script src="app.js"></script>
+<script>
+(function () {
+  'use strict';
+  var R = window.CM_ROUTING;
+  CM.addI18n({
+    hr: {
+      'rep.docTitle': 'ČistoMore – Nova prijava', 'rep.eyebrow': 'Prijava onečišćenja', 'rep.title': 'Nova prijava',
+      'rep.lead': 'Prijavite ispuštanje otpadnih voda ili fekalija. Prijava ide nadležnoj službi, a status pratite u dnevniku.',
+      'rep.offlineNote': 'Nema signala. Prijavu možete ispuniti i poslati, a spremit će se na uređaju i otići čim se veza vrati.',
+      'rep.secWhat': 'Što ste uočili?', 'rep.type': 'Vrsta problema', 'rep.datetime': 'Vrijeme i datum', 'rep.waste': 'Vrsta otpada',
+      'rep.choose': 'Odaberite...', 'rep.notes': 'Opis', 'rep.notesPh': 'Opišite što ste uočili...',
+      'rep.secVessel': 'Plovilo', 'rep.shipType': 'Vrsta broda', 'rep.shipSize': 'Veličina broda', 'rep.shipColor': 'Boja broda',
+      'rep.shipColorPick': 'Odaberi boju broda', 'rep.shipColorHex': 'Boja broda (heksadekadski zapis)', 'rep.colorUnknown': 'Ne znam boju',
+      'rep.registration': 'Registracija', 'rep.registrationPh': 'npr. ST-1234-AB',
+      'rep.heading': 'Smjer kretanja plovila', 'rep.headingHint': 'U kojem se smjeru plovilo kretalo kad ste ga vidjeli? Sjever je gore.',
+      'rep.headingNone': 'Stoji ili ne znam', 'rep.headingTo': 'Plovi prema: {d}',
+      'rep.secPhotos': 'Fotografije', 'rep.photoDrop': 'Dodirnite za fotografiranje ili učitavanje slika (.jpg, .png, .webp)',
+      'rep.photoAria': 'Dodaj fotografije', 'rep.photoHint': 'Najviše 4 fotografije. Slike se prije slanja smanjuju.',
+      'rep.photoRemove': 'Ukloni fotografiju {n}', 'rep.photoMax': 'Možete dodati najviše 4 fotografije.',
+      'rep.photoBad': 'Sliku „{name}” nije moguće učitati. Odaberite JPG, PNG ili WebP.',
+      'rep.secWhere': 'GPS lokacija', 'rep.gpsBtn': 'Dohvati GPS lokaciju', 'rep.gpsNone': 'Lokacija nije dohvaćena',
+      'rep.gpsBusy': 'Dohvaćam lokaciju...', 'rep.gpsFail': 'Nije moguće dohvatiti lokaciju',
+      'rep.gpsUnsupported': 'Geolokacija nije podržana na ovom uređaju.',
+      'rep.gpsFailToast': 'Dohvaćanje GPS lokacije nije uspjelo. Označite lokaciju na karti ili je unesite ručno.',
+      'rep.gpsInsecure': 'Lokacija radi samo na sigurnoj (https) stranici ili na localhostu. Označite lokaciju na karti.',
+      'rep.onLandToast': 'Lokacija je na kopnu, uključen je unos smjera kompasa.',
+      'rep.mapHint': 'Ili dodirnite kartu na mjestu onečišćenja. Ako promatrate s kopna, označite približno gdje je brod.',
+      'rep.mapAria': 'Karta za odabir lokacije', 'rep.mapOffline': 'Karta se bez signala ne može učitati. Upišite koordinate ili dohvatite GPS lokaciju.',
+      'rep.mapOsmError': 'Podloga karte se ne učitava. Upišite koordinate ili dohvatite GPS lokaciju.',
+      'rep.lat': 'Zemljopisna širina', 'rep.lon': 'Zemljopisna dužina', 'rep.latPh': 'npr. N 43.5081', 'rep.lonPh': 'npr. E 16.4402',
+      'rep.land': 'Promatram s kopna', 'rep.landSub': 'Nisam na moru, uključi kompas za smjer prema brodu',
+      'rep.compassHint': 'Uperite telefon prema brodu i dohvatite smjer kompasa kako bismo mogli procijeniti gdje se brod nalazi.',
+      'rep.compassBtn': 'Dohvati smjer kompasa', 'rep.bearing': 'Ili unesite smjer ručno (0–359°)', 'rep.bearingPh': 'npr. 135',
+      'rep.compassInsecure': 'Kompas radi samo na sigurnoj (https) stranici ili na localhostu. Unesite smjer ručno.',
+      'rep.compassOn': 'Kompas je uključen, okrenite telefon prema brodu.',
+      'rep.compassNoReading': 'Nema očitanja sa senzora smjera na ovom uređaju. Unesite smjer ručno.',
+      'rep.compassDenied': 'Pristup senzoru smjera nije odobren. Unesite smjer ručno.',
+      'rep.compassUnavailable': 'Senzor smjera nije dostupan. Unesite smjer ručno.',
+      'rep.compassNone': 'Ovaj uređaj nema senzor smjera. Unesite smjer ručno.',
+      'rep.routeNone': 'Odaberite lokaciju da vidite kojoj će službi prijava otići.',
+      'rep.routeOutside': 'Lokacija je izvan područja Hrvatske.',
+      'rep.routeTo': 'Prijava će ići:',
+      'rep.submit': 'Pošalji prijavu', 'rep.sending': 'Šaljem prijavu…',
+      'rep.errFix': 'Ispravite označena polja.',
+      'rep.err.type': 'Odaberite vrstu problema.', 'rep.err.datetime': 'Upišite kada se to dogodilo.',
+      'rep.err.future': 'Vrijeme ne može biti u budućnosti.', 'rep.err.waste': 'Odaberite vrstu otpada.',
+      'rep.err.ship': 'Odaberite vrstu broda (ili „Nepoznato”).', 'rep.err.size': 'Odaberite veličinu broda (ili „Ne mogu procijeniti”).',
+      'rep.err.color': 'Boja mora biti u obliku #RRGGBB.', 'rep.err.location': 'Dohvatite GPS lokaciju, dodirnite kartu ili upišite koordinate.',
+      'rep.err.outside': 'Lokacija mora biti na području Hrvatske.', 'rep.err.bearing': 'Smjer mora biti od 0 do 359°.',
+      'rep.err.server': 'Prijava nije poslana ({code}). Pokušajte ponovno.', 'rep.err.storage_full': 'Na uređaju nema dovoljno mjesta za spremanje prijave.',
+      'rep.sentTitle': 'Prijava #{id} je zaprimljena', 'rep.sentText': 'Hvala! Prijava je poslana. Predložena nadležna služba: {svc}. Status pratite u dnevniku.',
+      'rep.queuedTitle': 'Prijava je spremljena na uređaju', 'rep.queuedText': 'Trenutačno nema veze sa serverom. Prijava će se poslati automatski čim se veza vrati.',
+      'rep.queuedPhotos': 'Fotografije nisu spremljene jer na uređaju nema dovoljno mjesta.',
+      'rep.loginTitle': 'Prijava čeka slanje', 'rep.loginText': 'Prijava je spremljena na uređaju, ali sesija je istekla. Prijavite se ponovno i prijava će se poslati.',
+      'rep.toLog': 'Otvori dnevnik', 'rep.another': 'Nova prijava', 'rep.relogin': 'Prijavi se ponovno'
+    },
+    en: {
+      'rep.docTitle': 'ČistoMore – New report', 'rep.eyebrow': 'Pollution report', 'rep.title': 'New report',
+      'rep.lead': 'Report wastewater or sewage being discharged. The report goes to the responsible authority, and you can follow its status in your logbook.',
+      'rep.offlineNote': 'You’re offline. You can still fill in and send the report: it will be saved on this device and sent as soon as you’re back online.',
+      'rep.secWhat': 'What did you see?', 'rep.type': 'Type of problem', 'rep.datetime': 'Date and time', 'rep.waste': 'Type of waste',
+      'rep.choose': 'Choose...', 'rep.notes': 'Description', 'rep.notesPh': 'Describe what you saw...',
+      'rep.secVessel': 'Vessel', 'rep.shipType': 'Type of vessel', 'rep.shipSize': 'Size of vessel', 'rep.shipColor': 'Vessel colour',
+      'rep.shipColorPick': 'Pick the vessel colour', 'rep.shipColorHex': 'Vessel colour (hex code)', 'rep.colorUnknown': 'I don’t know the colour',
+      'rep.registration': 'Registration', 'rep.registrationPh': 'e.g. ST-1234-AB',
+      'rep.heading': 'Vessel heading', 'rep.headingHint': 'Which way was the vessel moving when you saw it? North is up.',
+      'rep.headingNone': 'Not moving or not sure', 'rep.headingTo': 'Heading: {d}',
+      'rep.secPhotos': 'Photos', 'rep.photoDrop': 'Tap to take a photo or upload images (.jpg, .png, .webp)',
+      'rep.photoAria': 'Add photos', 'rep.photoHint': 'Up to 4 photos. Images are made smaller before sending.',
+      'rep.photoRemove': 'Remove photo {n}', 'rep.photoMax': 'You can add up to 4 photos.',
+      'rep.photoBad': 'The image “{name}” couldn’t be loaded. Choose a JPG, PNG or WebP.',
+      'rep.secWhere': 'GPS location', 'rep.gpsBtn': 'Get GPS location', 'rep.gpsNone': 'No location yet',
+      'rep.gpsBusy': 'Getting your location...', 'rep.gpsFail': 'Couldn’t get the location',
+      'rep.gpsUnsupported': 'This device doesn’t support geolocation.',
+      'rep.gpsFailToast': 'Getting the GPS location failed. Mark the location on the map or type it in.',
+      'rep.gpsInsecure': 'Location only works on a secure (https) page or on localhost. Mark the location on the map.',
+      'rep.onLandToast': 'You’re on land, so compass bearing entry is now on.',
+      'rep.mapHint': 'Or tap the map where the pollution is. If you’re watching from land, mark roughly where the boat is.',
+      'rep.mapAria': 'Map for choosing the location', 'rep.mapOffline': 'The map can’t load without a connection. Type the coordinates or get your GPS location.',
+      'rep.mapOsmError': 'The map background isn’t loading. Type the coordinates or get your GPS location.',
+      'rep.lat': 'Latitude', 'rep.lon': 'Longitude', 'rep.latPh': 'e.g. N 43.5081', 'rep.lonPh': 'e.g. E 16.4402',
+      'rep.land': 'I’m watching from land', 'rep.landSub': 'I’m not at sea, turn on the compass for the bearing to the boat',
+      'rep.compassHint': 'Point your phone at the boat and take a compass bearing so we can estimate where the boat is.',
+      'rep.compassBtn': 'Take compass bearing', 'rep.bearing': 'Or type the bearing (0–359°)', 'rep.bearingPh': 'e.g. 135',
+      'rep.compassInsecure': 'The compass only works on a secure (https) page or on localhost. Type the bearing instead.',
+      'rep.compassOn': 'Compass on: point your phone at the boat.',
+      'rep.compassNoReading': 'No reading from a direction sensor on this device. Type the bearing instead.',
+      'rep.compassDenied': 'Access to the direction sensor wasn’t allowed. Type the bearing instead.',
+      'rep.compassUnavailable': 'The direction sensor isn’t available. Type the bearing instead.',
+      'rep.compassNone': 'This device has no direction sensor. Type the bearing instead.',
+      'rep.routeNone': 'Choose a location to see which authority the report will go to.',
+      'rep.routeOutside': 'The location is outside Croatia.',
+      'rep.routeTo': 'The report will go to:',
+      'rep.submit': 'Send report', 'rep.sending': 'Sending report…',
+      'rep.errFix': 'Please fix the highlighted fields.',
+      'rep.err.type': 'Choose the type of problem.', 'rep.err.datetime': 'Enter when it happened.',
+      'rep.err.future': 'The time can’t be in the future.', 'rep.err.waste': 'Choose the type of waste.',
+      'rep.err.ship': 'Choose the type of vessel (or “Unknown”).', 'rep.err.size': 'Choose the size of the vessel (or “Can’t tell”).',
+      'rep.err.color': 'The colour must look like #RRGGBB.', 'rep.err.location': 'Get your GPS location, tap the map or type the coordinates.',
+      'rep.err.outside': 'The location must be in Croatia.', 'rep.err.bearing': 'The bearing must be from 0 to 359°.',
+      'rep.err.server': 'The report wasn’t sent ({code}). Please try again.', 'rep.err.storage_full': 'There isn’t enough space on this device to save the report.',
+      'rep.sentTitle': 'Report #{id} received', 'rep.sentText': 'Thank you! Your report has been sent. Suggested authority: {svc}. Follow its status in your logbook.',
+      'rep.queuedTitle': 'Report saved on this device', 'rep.queuedText': 'The server can’t be reached right now. The report will be sent automatically as soon as you’re back online.',
+      'rep.queuedPhotos': 'The photos weren’t saved because there isn’t enough space on this device.',
+      'rep.loginTitle': 'Report waiting to be sent', 'rep.loginText': 'The report is saved on this device, but your session has expired. Log in again and it will be sent.',
+      'rep.toLog': 'Open logbook', 'rep.another': 'New report', 'rep.relogin': 'Log in again'
+    }
+  });
+  CM.applyI18n();
+
+  var $ = function (id) { return document.getElementById(id); };
+  var form = $('reportForm');
+
+  /* ---------- izbornici (vrste iz routing.js: grupa 3 + grupa 1) ---------- */
+  function fillSelects() {
+    var keep = { type: $('type').value || 'fekalne', waste: $('wasteType').value, ship: $('shipType').value, size: $('shipSize').value };
+    $('type').innerHTML = R.TYPE_ORDER.map(function (k) { return '<option value="' + k + '">' + CM.esc(CM.label.type(k)) + '</option>'; }).join('');
+    $('wasteType').innerHTML = '<option value="">' + CM.esc(CM.t('rep.choose')) + '</option>' +
+      Object.keys(R.WASTE).map(function (k) { return '<option value="' + k + '">' + CM.esc(CM.label.waste(k)) + '</option>'; }).join('');
+    $('shipType').innerHTML = '<option value="">' + CM.esc(CM.t('rep.choose')) + '</option>' +
+      R.VESSELS.map(function (v) { return '<option value="' + CM.esc(v[0]) + '">' + CM.esc(CM.label.vessel(v[0])) + '</option>'; }).join('');
+    $('shipSize').innerHTML = '<option value="">' + CM.esc(CM.t('rep.choose')) + '</option>' +
+      R.SIZES.map(function (s) { return '<option value="' + CM.esc(s[0]) + '">' + CM.esc(CM.label.size(s[0])) + '</option>'; }).join('');
+    $('type').value = keep.type; $('wasteType').value = keep.waste || ''; $('shipType').value = keep.ship || ''; $('shipSize').value = keep.size || '';
+  }
+
+  /* ---------- smjer kretanja: ruža vjetrova ---------- */
+  var ROSE = [315, 0, 45, 270, null, 90, 225, 180, 135];
+  function renderRose() {
+    var checked = (form.querySelector('input[name="heading"]:checked') || {}).value;
+    if (checked == null) checked = '';
+    $('rose').innerHTML = ROSE.map(function (deg) {
+      var val = deg == null ? '' : String(deg);
+      var label = deg == null ? CM.t('rep.headingNone') : CM.t('rep.headingTo', { d: R.dirName(deg, CM.lang) });
+      var inner = deg == null
+        ? '<span>' + CM.esc(CM.t('rep.headingNone')) + '</span>'
+        : '<span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(' + deg + 'deg)" aria-hidden="true"><path d="M12 20V4M6 10l6-6 6 6"/></svg>' + CM.esc(R.dirShort(deg, CM.lang)) + '</span>';
+      return '<label class="' + (deg == null ? 'is-center' : '') + '"><input type="radio" name="heading" value="' + val + '" aria-label="' + CM.esc(label) + '"' + (val === checked ? ' checked' : '') + '>' + inner + '</label>';
+    }).join('');
+  }
+
+  /* ---------- prikaz polja prema vrsti problema ---------- */
+  function syncType() {
+    var t = R.TYPES[$('type').value] || {};
+    $('vesselSection').hidden = !t.vessel;
+    $('headingWrap').hidden = $('type').value !== 'fekalne';
+    $('wasteWrap').hidden = $('type').value !== 'fekalne';
+    updatePreview();
+  }
+  $('type').addEventListener('change', syncType);
+
+  /* ---------- vrijeme (zadano: sada) ---------- */
+  function localInput(d) {
+    var p = function (n) { return ('0' + n).slice(-2); };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+  function resetTime() { var now = new Date(); $('datetime').value = localInput(now); $('datetime').max = localInput(now); }
+
+  /* ---------- boja broda (grupa 1) ---------- */
+  var colorInput = $('shipColor'), colorHex = $('shipColorHex');
+  colorInput.addEventListener('input', function () { colorHex.value = colorInput.value; $('colorUnknown').checked = false; syncColor(); });
+  colorHex.addEventListener('input', function () {
+    var v = colorHex.value.trim();
+    if (/^#[0-9a-fA-F]{6}$/.test(v)) colorInput.value = v.toLowerCase();
+  });
+  function syncColor() { var off = $('colorUnknown').checked; colorInput.disabled = off; colorHex.disabled = off; }
+  $('colorUnknown').addEventListener('change', syncColor);
+
+  /* ---------- fotografije (grupa 1: više slika s pregledom; smanjuju se prije slanja) ---------- */
+  var MAX_PHOTOS = 4, photos = [];
+  function renderGallery() {
+    var g = $('fileGallery');
+    g.innerHTML = '';
+    photos.forEach(function (p, i) {
+      var thumb = document.createElement('div');
+      thumb.className = 'file-thumb';
+      var img = document.createElement('img');
+      img.src = p.dataUrl; img.alt = '';
+      thumb.appendChild(img);
+      var rm = document.createElement('button');
+      rm.type = 'button'; rm.className = 'rm'; rm.textContent = '×';
+      rm.setAttribute('aria-label', CM.t('rep.photoRemove', { n: i + 1 }));
+      rm.addEventListener('click', function () { photos.splice(i, 1); renderGallery(); });
+      thumb.appendChild(rm);
+      g.appendChild(thumb);
+    });
+  }
+  function shrink(file) {
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(file), img = new Image();
+      img.onload = function () {
+        var max = 1280, sc = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+        var c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(img.naturalWidth * sc)); c.height = Math.max(1, Math.round(img.naturalHeight * sc));
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        resolve(c.toDataURL('image/jpeg', 0.72));
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('decode')); };
+      img.src = url;
+    });
+  }
+  $('fileInput').addEventListener('change', function () {
+    var files = Array.prototype.slice.call(this.files || []);
+    this.value = '';
+    var room = MAX_PHOTOS - photos.length;
+    if (files.length > room) CM.toast(CM.t('rep.photoMax'));
+    files.slice(0, Math.max(0, room)).reduce(function (chain, f) {
+      return chain.then(function () {
+        return shrink(f).then(function (d) { if (photos.length < MAX_PHOTOS) photos.push({ name: f.name, dataUrl: d }); renderGallery(); },
+          function () { CM.toast(CM.t('rep.photoBad', { name: f.name })); });
+      });
+    }, Promise.resolve());
+  });
+
+  /* ---------- lokacija: GPS (grupa 1), karta (grupa 3), ručni unos ---------- */
+  var latInput = $('lat'), lonInput = $('lon'), gpsCoord = $('gpsCoord');
+  var pick = null, pickMap = null, pickMarker = null;
+  function fmtCoord(lat, lon) {
+    return (lat >= 0 ? 'N' : 'S') + ' ' + Math.abs(lat).toFixed(4) + '°, ' + (lon >= 0 ? 'E' : 'W') + ' ' + Math.abs(lon).toFixed(4) + '°';
+  }
+  // „N 43.5081“, „43,5081“, „43.5081 E“ … → broj. Oznaka strane svijeta se zanemaruje:
+  // Hrvatska je sjeverno i istočno, a „S“ bi na hrvatskom bio sjever, na engleskom jug.
+  function parseCoord(s) {
+    s = String(s || '').trim().toUpperCase().replace(',', '.').replace(/°/g, '').replace(/^[NSEWIZJ]\s*/, '').replace(/\s*[NSEWIZJ]$/, '');
+    if (!/^[-+]?\d+(\.\d+)?$/.test(s)) return NaN;
+    return parseFloat(s);
+  }
+  function setPick(lat, lon, opts) {
+    opts = opts || {};
+    if (!isFinite(lat) || !isFinite(lon)) return;
+    pick = { lat: lat, lng: lon };
+    if (!opts.fromInputs) {
+      latInput.value = (lat >= 0 ? 'N ' : 'S ') + Math.abs(lat).toFixed(5);
+      lonInput.value = (lon >= 0 ? 'E ' : 'W ') + Math.abs(lon).toFixed(5);
+    }
+    gpsCoord.textContent = fmtCoord(lat, lon);
+    latInput.removeAttribute('aria-invalid'); lonInput.removeAttribute('aria-invalid');
+    if (pickMap) {
+      if (!pickMarker) pickMarker = L.circleMarker([lat, lon], { radius: 10, color: '#04141C', weight: 3, fillColor: '#2EC4B6', fillOpacity: 1 }).addTo(pickMap);
+      else pickMarker.setLatLng([lat, lon]);
+      if (opts.pan) pickMap.setView([lat, lon], Math.max(pickMap.getZoom(), 12));
+    }
+    updatePreview();
+  }
+  function clearPick() {
+    pick = null;
+    gpsCoord.textContent = CM.t('rep.gpsNone');
+    if (pickMarker && pickMap) { pickMap.removeLayer(pickMarker); pickMarker = null; }
+    updatePreview();
+  }
+  [latInput, lonInput].forEach(function (inp) {
+    inp.addEventListener('change', function () {
+      var lat = parseCoord(latInput.value), lon = parseCoord(lonInput.value);
+      if (isFinite(lat) && isFinite(lon)) setPick(lat, lon, { pan: true, fromInputs: true });
+      else if (!latInput.value.trim() && !lonInput.value.trim()) clearPick();
+    });
+  });
+
+  function initMap() {
+    if (typeof L === 'undefined') return;
+    pickMap = L.map('pickMap', { minZoom: 6, maxZoom: 18, maxBounds: [[40.5, 11.5], [47.5, 21]], maxBoundsViscosity: 0.8, scrollWheelZoom: false });
+    pickMap.fitBounds([[42.35, 13.45], [45.65, 18.6]]);
+    pickMap.on('focus', function () { pickMap.scrollWheelZoom.enable(); });
+    pickMap.on('blur', function () { pickMap.scrollWheelZoom.disable(); });
+    pickMap.on('click', function (e) { setPick(e.latlng.lat, e.latlng.lng, {}); });
+    CM_BASEMAP.add(pickMap, {
+      onNote: function (why) {
+        var n = $('mapNote');
+        n.textContent = CM.t(why === 'offline' ? 'rep.mapOffline' : 'rep.mapOsmError');
+        n.hidden = false;
+      }
+    });
+    if (pick) setPick(pick.lat, pick.lng, { pan: true, fromInputs: true });
+  }
+
+  var toggleLand = $('toggleLand');
+  function setLand(on) {
+    toggleLand.setAttribute('aria-checked', String(!!on));
+    $('compassSection').hidden = !on;
+  }
+  toggleLand.addEventListener('click', function () { setLand(toggleLand.getAttribute('aria-checked') !== 'true'); });
+
+  $('gpsBtn').addEventListener('click', function () {
+    if (!('geolocation' in navigator)) { CM.toast(CM.t('rep.gpsUnsupported')); return; }
+    if (!window.isSecureContext) { CM.toast(CM.t('rep.gpsInsecure')); return; }
+    gpsCoord.textContent = CM.t('rep.gpsBusy');
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      var lat = pos.coords.latitude, lon = pos.coords.longitude;
+      setPick(lat, lon, { pan: true });
+      // Grupa 1: provjera je li točka na moru; ako ne uspije (npr. bez signala), prekidač ostaje kako ga korisnik postavi.
+      if (navigator.onLine) {
+        fetch('https://api.bigdatacloud.net/data/is-a-point-in-the-ocean?latitude=' + lat + '&longitude=' + lon)
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data && typeof data.isOcean === 'boolean') {
+              setLand(!data.isOcean);
+              if (!data.isOcean) CM.toast(CM.t('rep.onLandToast'));
+            }
+          })
+          .catch(function () { /* ostavi prekidač kako je */ });
+      }
+    }, function () {
+      gpsCoord.textContent = pick ? fmtCoord(pick.lat, pick.lng) : CM.t('rep.gpsFail');
+      CM.toast(CM.t('rep.gpsFailToast'));
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+  });
+
+  /* ---------- kompas (grupa 1) ---------- */
+  var compassArrow = $('compassArrow'), compassDeg = $('compassDeg'), bearingManual = $('bearingManual');
+  function applyHeading(deg, fromInput) {
+    deg = ((deg % 360) + 360) % 360;
+    compassDeg.textContent = Math.round(deg) % 360 + '°';
+    compassArrow.style.transform = 'translate(-50%,-100%) rotate(' + deg + 'deg)';
+    if (!fromInput) bearingManual.value = Math.round(deg) % 360;
+  }
+  function onOrientation(e) {
+    var heading = (typeof e.webkitCompassHeading === 'number') ? e.webkitCompassHeading : (e.alpha != null ? (360 - e.alpha) : null);
+    if (heading != null) applyHeading(heading);
+  }
+  $('compassBtn').addEventListener('click', function () {
+    // Device Orientation API radi samo u sigurnom kontekstu (https ili localhost)
+    if (!window.isSecureContext) { CM.toast(CM.t('rep.compassInsecure')); return; }
+    var gotReading = false;
+    var onFirst = function (e) { gotReading = true; onOrientation(e); };
+    function attach() {
+      window.addEventListener('deviceorientationabsolute', onFirst);
+      window.addEventListener('deviceorientation', onFirst);
+      CM.toast(CM.t('rep.compassOn'));
+      setTimeout(function () { if (!gotReading) CM.toast(CM.t('rep.compassNoReading')); }, 4000);
+    }
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission().then(function (state) {
+        if (state === 'granted') attach(); else CM.toast(CM.t('rep.compassDenied'));
+      }).catch(function () { CM.toast(CM.t('rep.compassUnavailable')); });
+    } else if ('ondeviceorientationabsolute' in window || 'ondeviceorientation' in window) attach();
+    else CM.toast(CM.t('rep.compassNone'));
+  });
+  bearingManual.addEventListener('input', function () {
+    if (bearingManual.value !== '' && isFinite(parseFloat(bearingManual.value))) applyHeading(parseFloat(bearingManual.value), true);
+  });
+
+  /* ---------- kome ide prijava (pravila grupe 3) ---------- */
+  function updatePreview() {
+    var el = $('routePreview');
+    if (!pick) { el.textContent = CM.t('rep.routeNone'); return; }
+    if (!R.inCroatiaBox(pick.lat, pick.lng)) { el.textContent = CM.t('rep.routeOutside'); return; }
+    var rt = R.route(pick.lat, pick.lng, $('type').value, CM.lang);
+    el.innerHTML = '<b>' + CM.esc(CM.t('rep.routeTo')) + '</b> ' + CM.esc(CM.label.service(rt.service)) +
+      '<br><span class="cm-hint" style="display:block;margin-top:4px">' + CM.esc(rt.reasons[0]) + '</span>';
+  }
+
+  /* ---------- provjera i slanje ---------- */
+  function validate() {
+    var errs = [], mark = function (id, key) { $(id).setAttribute('aria-invalid', 'true'); errs.push({ id: id, key: key }); };
+    ['type', 'datetime', 'wasteType', 'shipType', 'shipSize', 'shipColorHex', 'lat', 'lon', 'bearingManual'].forEach(function (id) { $(id).removeAttribute('aria-invalid'); });
+    var type = $('type').value, t = R.TYPES[type];
+    if (!t) mark('type', 'rep.err.type');
+    var dt = $('datetime').value;
+    if (!dt || isNaN(new Date(dt).getTime())) mark('datetime', 'rep.err.datetime');
+    else if (new Date(dt).getTime() > Date.now() + 10 * 60000) mark('datetime', 'rep.err.future');
+    if (type === 'fekalne' && !$('wasteType').value) mark('wasteType', 'rep.err.waste');
+    if (t && t.vessel) {
+      if (!$('shipType').value) mark('shipType', 'rep.err.ship');
+      if (!$('shipSize').value) mark('shipSize', 'rep.err.size');
+      if (!$('colorUnknown').checked && !/^#[0-9a-fA-F]{6}$/.test(colorHex.value.trim())) mark('shipColorHex', 'rep.err.color');
+    }
+    if (!pick) mark('lat', 'rep.err.location');
+    else if (!R.inCroatiaBox(pick.lat, pick.lng)) mark('lat', 'rep.err.outside');
+    if (toggleLand.getAttribute('aria-checked') === 'true' && bearingManual.value !== '') {
+      var b = Number(bearingManual.value);
+      if (!isFinite(b) || b < 0 || b > 359) mark('bearingManual', 'rep.err.bearing');
+    }
+    return errs;
+  }
+
+  function payload() {
+    var type = $('type').value, t = R.TYPES[type];
+    var onLand = toggleLand.getAttribute('aria-checked') === 'true';
+    var bearing = onLand && bearingManual.value !== '' ? Math.round(Number(bearingManual.value)) % 360 : null;
+    var hv = (form.querySelector('input[name="heading"]:checked') || {}).value;
+    return {
+      type: type, lat: pick.lat, lng: pick.lng,
+      eventAt: new Date($('datetime').value).toISOString(),
+      wasteType: type === 'fekalne' ? $('wasteType').value : null,
+      vessel: t.vessel ? $('shipType').value : null,
+      vesselSize: t.vessel ? $('shipSize').value : null,
+      vesselColor: t.vessel && !$('colorUnknown').checked ? colorHex.value.trim().toLowerCase() : null,
+      registration: t.vessel ? $('registration').value.trim() || null : null,
+      heading: type === 'fekalne' && hv !== undefined && hv !== '' ? Number(hv) : null,
+      observer: onLand || bearing != null ? { onLand: onLand, bearing: bearing } : null,
+      desc: $('notes').value.trim(),
+      photos: photos.map(function (p) { return p.dataUrl; })
+    };
+  }
+
+  function showResult(kind, data) {
+    var card = $('resultCard');
+    var btns, title, text;
+    if (kind === 'sent') {
+      title = CM.t('rep.sentTitle', { id: data.report.id });
+      text = CM.t('rep.sentText', { svc: CM.label.service(data.report.service) });
+      btns = '<a class="po-btn po-btn-primary po-btn-sm" href="book.html#r-' + CM.esc(data.report.id) + '">' + CM.esc(CM.t('rep.toLog')) + '</a>';
+    } else if (kind === 'queued') {
+      title = CM.t('rep.queuedTitle');
+      text = CM.t('rep.queuedText') + (data.photos === 'dropped' ? ' ' + CM.t('rep.queuedPhotos') : '');
+      btns = '<a class="po-btn po-btn-primary po-btn-sm" href="book.html">' + CM.esc(CM.t('rep.toLog')) + '</a>';
+    } else {
+      title = CM.t('rep.loginTitle');
+      text = CM.t('rep.loginText');
+      btns = '<a class="po-btn po-btn-primary po-btn-sm" href="' + CM.esc(CM.loginUrl()) + '">' + CM.esc(CM.t('rep.relogin')) + '</a>';
+    }
+    card.innerHTML = '<p class="cm-eyebrow" style="margin-bottom:6px">' + (kind === 'sent' ? '✓ ' : '') + CM.esc(CM.label.status('zaprimljeno')) + '</p>' +
+      '<h2 style="font-size:1.4rem">' + CM.esc(title) + '</h2><p style="margin:8px 0 16px;color:var(--po-muted)">' + CM.esc(text) + '</p>' +
+      '<div class="cm-actions">' + btns + '<button type="button" class="po-btn po-btn-ghost po-btn-sm" id="anotherBtn">' + CM.esc(CM.t('rep.another')) + '</button></div>';
+    if (kind !== 'sent') card.querySelector('.cm-eyebrow').textContent = CM.t('st.pending');
+    card.hidden = false;
+    form.hidden = true;
+    card.focus();
+    window.scrollTo(0, 0);
+    $('anotherBtn').addEventListener('click', resetForm);
+  }
+
+  function resetForm() {
+    form.reset();
+    photos = []; renderGallery();
+    colorHex.value = colorInput.value = '#0077b6'; syncColor();
+    clearPick(); setLand(false);
+    compassDeg.textContent = '—°'; compassArrow.style.transform = 'translate(-50%,-100%) rotate(0deg)';
+    fillSelects(); $('type').value = 'fekalne'; renderRose(); resetTime(); syncType();
+    $('formErr').textContent = '';
+    $('resultCard').hidden = true; form.hidden = false;
+    if (pickMap) setTimeout(function () { pickMap.invalidateSize(); }, 50);
+    window.scrollTo(0, 0);
+  }
+
+  var sending = false;
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (sending) return;
+    var errs = validate();
+    if (errs.length) {
+      $('formErr').textContent = errs.length === 1 ? CM.t(errs[0].key) : CM.t('rep.errFix') + ' ' + CM.t(errs[0].key);
+      $(errs[0].id).focus();
+      return;
+    }
+    $('formErr').textContent = '';
+    sending = true;
+    var btn = $('submitBtn'), label = btn.querySelector('span');
+    btn.setAttribute('aria-disabled', 'true'); label.textContent = CM.t('rep.sending');
+    CM.submitReport(payload()).then(function (res) {
+      sending = false; btn.removeAttribute('aria-disabled'); label.textContent = CM.t('rep.submit');
+      if (res.status === 'sent' || res.status === 'queued' || res.status === 'needLogin') { showResult(res.status === 'needLogin' ? 'login' : res.status, res); return; }
+      var k = 'rep.err.' + res.code;
+      $('formErr').textContent = CM.t(k) !== k ? CM.t(k) : CM.t('rep.err.server', { code: res.code });
+    });
+  });
+
+  /* ---------- jezik, signal, pokretanje ---------- */
+  function syncOffline() { $('offlineNote').hidden = CM.isOnline(); }
+  window.addEventListener('online', syncOffline);
+  window.addEventListener('offline', syncOffline);
+  window.addEventListener('cm:lang', function () {
+    fillSelects(); renderRose(); updatePreview(); renderGallery();
+    $('compassRing').setAttribute('data-north', CM.lang === 'en' ? 'N' : 'S');
+    if (pick) gpsCoord.textContent = fmtCoord(pick.lat, pick.lng); else if (gpsCoord.textContent) gpsCoord.textContent = CM.t('rep.gpsNone');
+  });
+
+  fillSelects(); $('type').value = 'fekalne';
+  renderRose(); resetTime(); syncType(); syncColor(); syncOffline();
+  $('compassRing').setAttribute('data-north', CM.lang === 'en' ? 'N' : 'S');
+  gpsCoord.textContent = CM.t('rep.gpsNone');
+  initMap();
+})();
+</script>
+</body>
+</html>

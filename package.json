@@ -1,13 +1,16 @@
 {
   "name": "cisto-more",
   "version": "1.0.0",
-  "description": "Čisto more – praćenje i obrada prijava onečišćenja mora, s lokalnim serverom karata",
+  "description": "ČistoMore – prijava onečišćenja mora s plovila, karta prihvatnih mjesta, edukacija „Plovi odgovorno“ i portal nadležnih službi (spojena aplikacija grupa 1–4), s lokalnim serverom karata",
   "private": true,
   "license": "UNLICENSED",
-  "engines": { "node": ">=22.13" },
+  "engines": {
+    "node": ">=22.13"
+  },
   "scripts": {
     "setup": "node scripts/setup.js",
     "start": "node server.js",
-    "demo": "node server.js --mbtiles=demo/proba-split.mbtiles"
+    "demo": "node server.js --mbtiles=demo/proba-split.mbtiles",
+    "set-password": "node scripts/set-password.js"
   }
 }

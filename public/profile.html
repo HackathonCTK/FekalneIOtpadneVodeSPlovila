@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="hr" data-auth="user">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#04141C">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<title data-t="prof.docTitle">ČistoMore – Profil</title>
+<script>
+  /* Način (tamni/svijetli) i jezik prije crtanja, bez bljeska; stranice samo za prijavljene šalju na prijavu. */
+  (function(){var d=document.documentElement,m=null,l=null,u=null;try{m=localStorage.getItem("cm-mode")||localStorage.getItem("po-mode");l=localStorage.getItem("cm-lang");u=localStorage.getItem("cm-user");}catch(e){}
+  if(m!=="light"&&m!=="dark")m=window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";d.setAttribute("data-mode",m);
+  if(l!=="hr"&&l!=="en"){var n=(navigator.language||"hr").toLowerCase();l=/^(hr|bs|sr|sl|cnr)/.test(n)?"hr":"en";}d.lang=l;d.classList.add("js");
+  if(d.getAttribute("data-auth")==="user"&&!u){location.replace("login.html?next="+encodeURIComponent((location.pathname.replace(/^.*\//,"")||"index.html")+location.search));}})();
+</script>
+<link rel="stylesheet" href="vendor/fonts/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .pf-id{ display:flex; align-items:center; gap:16px; }
+  .pf-avatar{
+    width:64px; height:64px; border-radius:20px; flex:none; display:grid; place-items:center;
+    background:linear-gradient(135deg, var(--po-fab-1), var(--po-fab-2)); color:var(--po-on-fab);
+    font-family:var(--po-display); font-weight:800; font-size:1.5rem;
+  }
+  .pf-grid{ display:grid; gap:14px; }
+  @media (min-width:760px){ .pf-grid{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
+  .pf-card h2{ font-size:1.15rem; margin-bottom:12px; }
+  .pf-badge{ display:flex; gap:14px; align-items:center; }
+  .pf-medal{
+    width:56px; height:56px; border-radius:50%; flex:none; display:grid; place-items:center;
+    background:var(--po-accent-soft); color:var(--po-accent-2); border:2px solid var(--po-accent);
+  }
+  :root[data-mode="light"] .pf-medal{ color:var(--po-accent); }
+  .pf-badge p{ margin:0; }
+  .pf-muted{ color:var(--po-muted); font-size:14px; }
+  .pf-links{ list-style:none; margin:0; padding:0; }
+  .pf-links li + li{ border-top:1px solid var(--po-line); }
+  .pf-links a{ display:flex; justify-content:space-between; align-items:center; gap:12px; padding:12px 2px; text-decoration:none; font-weight:600; }
+  .pf-links a:hover span:first-child{ text-decoration:underline; text-underline-offset:3px; }
+  .pf-count{ background:var(--po-tint); color:var(--po-text); font-family:var(--po-mono); }
+</style>
+</head>
+<body class="cm-body">
+<a class="cm-skip" href="#main" data-t="ui.skip">Preskoči na sadržaj</a>
+<header data-cm-header data-cm-sub="sub.profile"></header>
+<div data-cm-nav="profile"></div>
+
+<main class="cm-main" id="main" tabindex="-1">
+  <div class="cm-head pf-id">
+    <div class="pf-avatar" id="avatar" aria-hidden="true">?</div>
+    <div>
+      <p class="cm-eyebrow" data-t="prof.eyebrow">Moj profil</p>
+      <h1 id="pName">…</h1>
+      <p class="cm-lead" id="pSub" style="margin-top:6px"></p>
+    </div>
+  </div>
+
+  <div class="pf-grid">
+    <!-- Certifikat iz kviza grupe 4 (po-cert) -->
+    <section class="cm-card pf-card" aria-labelledby="certTitle">
+      <h2 id="certTitle" data-t="prof.cert">Odgovorni nautičar</h2>
+      <div class="pf-badge">
+        <span class="pf-medal" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"/><path d="M8.5 14 7 22l5-3 5 3-1.5-8"/></svg></span>
+        <div><p id="certText"></p><p class="pf-muted" id="certSub"></p></div>
+      </div>
+      <a class="po-btn po-btn-ghost po-btn-sm" id="certLink" href="plovi-odgovorno.html#kviz" style="margin-top:14px"></a>
+    </section>
+
+    <!-- Moje prijave -->
+    <section class="cm-card pf-card" aria-labelledby="repTitle">
+      <h2 id="repTitle" data-t="prof.reports">Moje prijave</h2>
+      <ul class="pf-links">
+        <li><a href="book.html"><span data-t="prof.openLog">Dnevnik prijava</span><span class="cm-pill pf-count" id="pCount">0</span></a></li>
+        <li><a href="report.html"><span data-t="prof.newReport">Nova prijava</span><span aria-hidden="true">→</span></a></li>
+      </ul>
+      <p class="cm-note" id="pPending" hidden></p>
+    </section>
+
+    <!-- Postavke -->
+    <section class="cm-card pf-card" aria-labelledby="setTitle">
+      <h2 id="setTitle" data-t="prof.settings">Postavke</h2>
+      <fieldset class="cm-fieldset">
+        <legend data-t="prof.mode">Izgled</legend>
+        <div class="cm-choice">
+          <label><input type="radio" name="mode" value="dark"><span data-t="prof.dark">Tamni (Dubina)</span></label>
+          <label><input type="radio" name="mode" value="light"><span data-t="prof.light">Svijetli (Ocean)</span></label>
+        </div>
+      </fieldset>
+      <fieldset class="cm-fieldset" style="margin-bottom:0">
+        <legend data-t="prof.lang">Jezik</legend>
+        <div class="cm-choice">
+          <label><input type="radio" name="lang" value="hr"><span lang="hr">Hrvatski</span></label>
+          <label><input type="radio" name="lang" value="en"><span lang="en">English</span></label>
+        </div>
+      </fieldset>
+    </section>
+
+    <!-- Račun -->
+    <section class="cm-card pf-card" aria-labelledby="accTitle">
+      <h2 id="accTitle" data-t="prof.account">Račun</h2>
+      <p class="pf-muted" data-t="prof.accountText">Odjavom se prijave spremljene na ovom uređaju ne brišu. Poslat će se kad se ponovno prijavite.</p>
+      <button type="button" class="po-btn po-btn-danger po-btn-sm" id="logoutBtn" style="margin-top:12px" data-t="prof.logout">Odjavi se</button>
+      <p class="cm-note" style="margin-top:16px"><span data-t="prof.adminNote">Za nadležne službe:</span> <a class="cm-link" href="admin-login.html" data-t="prof.adminLink">portal za obradu prijava</a></p>
+    </section>
+  </div>
+</main>
+
+<footer class="cm-footer"><span data-t="footer">ČistoMore · Hackathon 2026 · spojena aplikacija grupa 1–4</span></footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="routing.js"></script>
+<script src="app.js"></script>
+<script>
+(function () {
+  'use strict';
+  CM.addI18n({
+    hr: {
+      'prof.docTitle': 'ČistoMore – Profil', 'prof.eyebrow': 'Moj profil', 'prof.member': '@{user} · član od {date}',
+      'prof.cert': 'Odgovorni nautičar',
+      'prof.certHas': 'Certifikat „Odgovorni nautičar” na ime {name}.', 'prof.certScore': 'Kviz: {s} od {n} točnih · {date}',
+      'prof.certNone': 'Još nemate certifikat.', 'prof.certNoneSub': 'Riješi kviz „Plovi odgovorno” s barem 6 točnih odgovora.',
+      'prof.certAgain': 'Ponovi kviz', 'prof.certGo': 'Riješi kviz',
+      'prof.reports': 'Moje prijave', 'prof.openLog': 'Dnevnik prijava', 'prof.newReport': 'Nova prijava',
+      'prof.pending': 'Na uređaju čeka slanje: {n}.',
+      'prof.settings': 'Postavke', 'prof.mode': 'Izgled', 'prof.dark': 'Tamni (Dubina)', 'prof.light': 'Svijetli (Ocean)', 'prof.lang': 'Jezik',
+      'prof.account': 'Račun', 'prof.accountText': 'Odjavom se prijave spremljene na ovom uređaju ne brišu. Poslat će se kad se ponovno prijavite.',
+      'prof.logout': 'Odjavi se', 'prof.adminNote': 'Za nadležne službe:', 'prof.adminLink': 'portal za obradu prijava'
+    },
+    en: {
+      'prof.docTitle': 'ČistoMore – Profile', 'prof.eyebrow': 'My profile', 'prof.member': '@{user} · member since {date}',
+      'prof.cert': 'Responsible skipper',
+      'prof.certHas': '“Responsible skipper” certificate for {name}.', 'prof.certScore': 'Quiz: {s} of {n} correct · {date}',
+      'prof.certNone': 'You don’t have the certificate yet.', 'prof.certNoneSub': 'Get at least 6 answers right in the “Sail responsibly” quiz.',
+      'prof.certAgain': 'Retake the quiz', 'prof.certGo': 'Take the quiz',
+      'prof.reports': 'My reports', 'prof.openLog': 'Report logbook', 'prof.newReport': 'New report',
+      'prof.pending': 'Waiting to be sent from this device: {n}.',
+      'prof.settings': 'Settings', 'prof.mode': 'Appearance', 'prof.dark': 'Dark (Depth)', 'prof.light': 'Light (Ocean)', 'prof.lang': 'Language',
+      'prof.account': 'Account', 'prof.accountText': 'Logging out doesn’t delete reports saved on this device. They will be sent when you log in again.',
+      'prof.logout': 'Log out', 'prof.adminNote': 'For authorities:', 'prof.adminLink': 'report handling portal'
+    }
+  });
+  CM.applyI18n();
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  function initials(name) {
+    var p = String(name || '').trim().split(/\s+/).filter(Boolean);
+    return p.length ? ((p[0][0] || '') + (p.length > 1 ? p[p.length - 1][0] : '')).toUpperCase() : '?';
+  }
+  function render() {
+    var u = CM.user;
+    if (!u) return;
+    $('pName').textContent = u.name || u.username;
+    $('avatar').textContent = initials(u.name || u.username);
+    $('pSub').textContent = CM.t('prof.member', { user: u.username, date: u.createdAt ? CM.fmtDate(new Date(u.createdAt), true) : '' });
+
+    var cert = CM.getJSON('po-cert', null);
+    if (cert && cert.name) {
+      $('certText').textContent = CM.t('prof.certHas', { name: cert.name });
+      $('certSub').textContent = CM.t('prof.certScore', { s: cert.score, n: cert.total, date: cert.date ? CM.fmtDate(new Date(cert.date), true) : '' });
+      $('certLink').textContent = CM.t('prof.certAgain');
+    } else {
+      $('certText').textContent = CM.t('prof.certNone');
+      $('certSub').textContent = CM.t('prof.certNoneSub');
+      $('certLink').textContent = CM.t('prof.certGo');
+    }
+    var reports = CM.cachedReports(), pending = CM.outbox.mine();
+    $('pCount').textContent = reports.length;
+    $('pPending').hidden = !pending.length;
+    $('pPending').textContent = CM.t('prof.pending', { n: pending.length });
+    Array.prototype.forEach.call(document.querySelectorAll('input[name="mode"]'), function (r) { r.checked = r.value === CM.getMode(); });
+    Array.prototype.forEach.call(document.querySelectorAll('input[name="lang"]'), function (r) { r.checked = r.value === CM.lang; });
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('input[name="mode"]'), function (r) {
+    r.addEventListener('change', function () { if (r.checked) CM.setMode(r.value, true); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('input[name="lang"]'), function (r) {
+    r.addEventListener('change', function () { if (r.checked) CM.setLang(r.value); });
+  });
+  $('logoutBtn').addEventListener('click', CM.logout);
+  window.addEventListener('cm:lang', render);
+  window.addEventListener('cm:mode', render);
+  window.addEventListener('cm:user', render);
+  window.addEventListener('cm:sync', render);
+
+  render();
+  CM.fetchMyReports().then(render);
+})();
+</script>
+</body>
+</html>

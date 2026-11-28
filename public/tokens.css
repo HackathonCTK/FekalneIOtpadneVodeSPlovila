@@ -1,0 +1,119 @@
+/* =========================================================================
+   ČistoMore — zajednički dizajn (tokeni)
+   Izvor: dizajn grupe 4 („Plovi odgovorno“):
+     tamni način  = paleta A „Dubina“  (zadano)
+     svijetli način = paleta D „Ocean“ (html[data-mode="light"])
+   Način bira gumb u gornjoj traci (spremljeno u localStorage "cm-mode"),
+   inače postavka uređaja. Ovu datoteku učitavaju sve stranice, i korisničke i portal službi.
+   Varijable --po-* su izvorni tokeni grupe 4; --bg, --surface, --primary … su stari nazivi
+   iz styles.css grupe 1 koje koristi karta grupe 2, mapirani na iste boje.
+   ========================================================================= */
+
+:root{
+  /* ---- tamni način: paleta A „Dubina“ ---- */
+  --po-bg:#04141C;
+  --po-deep:#020D13;
+  --po-surface:#0B2A36;
+  --po-surface-2:#0F3442;
+  --po-line:rgba(158,240,224,.14);
+  --po-line-strong:rgba(158,240,224,.28);
+  --po-accent:#2EC4B6;
+  --po-accent-2:#9EF0E0;
+  --po-warn:#FF7A59;
+  --po-amber:#FFB547;
+  --po-murk:#7A6A45;
+  --po-text:#E8F4F2;
+  --po-muted:#8FB3B0;
+  --po-on-accent:#04141C;
+  --po-glass:linear-gradient(180deg, rgba(15,52,66,.78), rgba(11,42,54,.58));
+
+  --po-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --po-body:"Manrope", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  --po-mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+
+  --po-header-bg:rgba(4,20,28,.84);
+  --po-chrome-bg:rgba(4,20,28,.55);
+  --po-rail-bg:rgba(7,29,39,.82);
+  --po-tint:rgba(232,244,242,.12);
+  --po-tint-weak:rgba(232,244,242,.08);
+  --po-inset:rgba(2,13,19,.5);
+  --po-accent-soft:rgba(46,196,182,.14);
+  --po-fab-1:#6FE0D3; --po-fab-2:#1FA89B; --po-on-fab:#04141C;
+  --po-shadow:none;
+  --po-final-glow:rgba(46,196,182,.16);
+  --po-lvl-0:#2EC4B6; --po-lvl-1:#FFB547; --po-lvl-2:#FF7A59; --po-lvl-3:#FF4D4D;
+  --po-radius:20px;
+
+  /* statusi prijava (grupa 3: Zaprimljeno / U obradi / Riješeno) */
+  --st-new:#E07A2E;  --st-new-fg:#FFB06B;  --st-new-bg:rgba(255,176,107,.14);
+  --st-work:#2F74C0; --st-work-fg:#8CC2FF; --st-work-bg:rgba(140,194,255,.14);
+  --st-done:#3E8E50; --st-done-fg:#7FD99A; --st-done-bg:rgba(127,217,154,.14);
+  --st-pending-fg:#FFB547; --st-pending-bg:rgba(255,181,71,.14);
+
+  /* stari nazivi (styles.css grupe 1; koristi ih karta grupe 2) = tema „dubina“ grupe 4 */
+  --bg:#04141C; --bg-grad-1:#04141C; --bg-grad-2:#0B2A36;
+  --surface:#0B2A36; --surface-2:#0F3442;
+  --text:#E8F4F2; --text-muted:#8FB3B0;
+  --primary:#2EC4B6; --primary-dark:#0A3442;
+  --accent:#9EF0E0; --accent-2:#6FE0D3;
+  --success:#2EC4B6; --warning:#FFB547; --danger:#FF7A59;
+  --border:#173C48;
+  --nav-bg:#071D27; --nav-text:#7FA3A0; --nav-text-active:#2EC4B6;
+  --fab-grad-1:#6FE0D3; --fab-grad-2:#1FA89B;
+  --shadow:0 10px 30px rgba(0,0,0,.45);
+  --radius:16px; --radius-sm:12px;
+  --nav-h:64px;
+  --safe-b:env(safe-area-inset-bottom, 0px);
+  --safe-t:env(safe-area-inset-top, 0px);
+
+  --po-header-h:64px;
+  color-scheme:dark;
+}
+
+/* ---- svijetli način: paleta D „Ocean“ ---- */
+:root[data-mode="light"]{
+  --po-bg:#EEF7FA;
+  --po-deep:#DCEFF5;
+  --po-surface:#FFFFFF;
+  --po-surface-2:#F2FBFD;
+  --po-line:rgba(2,62,99,.12);
+  --po-line-strong:rgba(2,62,99,.24);
+  --po-accent:#006BA6;
+  --po-accent-2:#023E63;
+  --po-warn:#A3192F;
+  --po-amber:#7A4D00;
+  --po-text:#082A35;
+  --po-muted:#4F6D78;
+  --po-on-accent:#FFFFFF;
+  --po-glass:linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,.84));
+
+  --po-header-bg:rgba(238,247,250,.9);
+  --po-chrome-bg:rgba(255,255,255,.72);
+  --po-rail-bg:rgba(255,255,255,.9);
+  --po-tint:rgba(2,62,99,.08);
+  --po-tint-weak:rgba(2,62,99,.07);
+  --po-inset:#F2FBFD;
+  --po-accent-soft:rgba(0,119,182,.10);
+  --po-fab-1:#00B4D8; --po-fab-2:#0077B6; --po-on-fab:#FFFFFF;
+  --po-shadow:0 10px 30px rgba(2,62,99,.10);
+  --po-final-glow:rgba(0,180,216,.18);
+  --po-lvl-0:#0F7A63; --po-lvl-1:#7A4D00; --po-lvl-2:#A3192F; --po-lvl-3:#7F1022;
+
+  --st-new-fg:#A3460B;  --st-new-bg:#FDEBDC;
+  --st-work-fg:#1D5FA8; --st-work-bg:#E3EDF9;
+  --st-done-fg:#2C6B39; --st-done-bg:#E2F1E5;
+  --st-pending-fg:#8A3F0A; --st-pending-bg:#FFF4E8;
+
+  /* stari nazivi = tema „ocean“ grupe 1 */
+  --bg:#eef7fa; --bg-grad-1:#e6f6fb; --bg-grad-2:#cdeef6;
+  --surface:#ffffff; --surface-2:#f2fbfd;
+  --text:#082a35; --text-muted:#5c7c87;
+  --primary:#0077b6; --primary-dark:#023e63;
+  --accent:#00b4d8; --accent-2:#48cae4;
+  --success:#1aa179; --warning:#e3a008; --danger:#d6455d;
+  --border:#d6eef4;
+  --nav-bg:#ffffff; --nav-text:#5c7c87; --nav-text-active:#0077b6;
+  --fab-grad-1:#00b4d8; --fab-grad-2:#0077b6;
+  --shadow:0 10px 30px rgba(2,62,99,0.12);
+  color-scheme:light;
+}

@@ -1,20 +1,22 @@
 'use strict';
 /*
- * Čisto more – lokalni server
- * ---------------------------
+ * Čisto more – lokalni server (grupa 3, proširen za spojenu aplikaciju)
+ * ---------------------------------------------------------------------
  * Poslužuje:
- *   /                         aplikaciju (mapa public/)
+ *   /                         aplikaciju (mapa public/: sve stranice svih grupa)
  *   /tiles/{z}/{x}/{y}.pbf    vektorske pločice iz lokalne baze (MBTiles = SQLite)
  *   /tiles.json               opis baze karata (TileJSON)
  *   /style.json               stil karte za MapLibre
  *   /fonts/{font}/{raspon}.pbf fontove za natpise na karti
- *   /api/status               stanje servera i baze
+ *   /api/status               stanje servera i baze karata
+ *   /api/...                  računi, prijave i portal službi (lib/api.js, baza data/cistomore.db)
  *
  * Pokretanje:  node server.js     (ili: npm start)
  * Postavke (argument ili varijabla okruženja):
  *   --port=8080      / PORT      zadano 8080
  *   --host=0.0.0.0   / HOST      zadano 0.0.0.0 (dostupno i drugim uređajima u istoj mreži)
  *   --mbtiles=...    / MBTILES   zadano data/croatia.mbtiles
+ *   --db=...         / APP_DB    zadano data/cistomore.db (računi i prijave)
  */
 
 const http = require('node:http');
@@ -35,6 +37,9 @@ process.emitWarning = function (w, ...rest) {
   return origEmit.call(process, w, ...rest);
 };
 const { DatabaseSync } = require('node:sqlite');
+const { AppDb } = require('./lib/db.js');
+const { seedIfEmpty } = require('./lib/seed.js');
+const { createApi } = require('./lib/api.js');
 
 const ROOT = __dirname;
 const PUBLIC_DIR = path.join(ROOT, 'public');
@@ -46,12 +51,27 @@ const arg = name => { const a = argv.find(x => x.startsWith('--' + name + '='));
 const PORT = Number(arg('port') || process.env.PORT) || 8080;
 const HOST = arg('host') || process.env.HOST || '0.0.0.0';
 const MBTILES = path.resolve(ROOT, arg('mbtiles') || process.env.MBTILES || path.join('data', 'croatia.mbtiles'));
+const APP_DB = path.resolve(ROOT, arg('db') || process.env.APP_DB || path.join('data', 'cistomore.db'));
 
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg',
-  '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.webmanifest': 'application/manifest+json', '.txt': 'text/plain; charset=utf-8'
+  '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.webmanifest': 'application/manifest+json', '.txt': 'text/plain; charset=utf-8',
+  '.woff2': 'font/woff2', '.webp': 'image/webp', '.md': 'text/markdown; charset=utf-8'
 };
+
+/* ---------------- baza aplikacije (računi, prijave) ---------------- */
+let appDb;
+try {
+  appDb = new AppDb(APP_DB);
+  if (seedIfEmpty(appDb)) console.log('Baza aplikacije pripremljena s demo podacima: ' + path.relative(ROOT, APP_DB));
+  appDb.purgeSessions();
+  setInterval(() => { try { appDb.purgeSessions(); } catch { /* ignore */ } }, 3600 * 1000).unref();
+} catch (e) {
+  console.error('Bazu aplikacije nije moguće otvoriti (' + APP_DB + '): ' + e.message);
+  process.exit(1);
+}
+const handleApi = createApi(appDb);
 
 /* ---------------- baza karata (MBTiles) ---------------- */
 let db = null, tileStmt = null, meta = null, dbMtime = 0;
@@ -177,7 +197,9 @@ function handleStatic(req, res, pathname) {
       'Content-Type': MIME[ext] || 'application/octet-stream',
       'Content-Length': st.size,
       // aplikacija i service worker se uvijek provjeravaju; biblioteke se smiju dulje čuvati
-      'Cache-Control': rel.startsWith('/vendor/') ? 'public, max-age=86400' : 'no-cache'
+      'Cache-Control': rel.startsWith('/vendor/') ? 'public, max-age=86400' : 'no-cache',
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'SAMEORIGIN'
     };
     if (rel === '/sw.js') headers['Service-Worker-Allowed'] = '/';
     res.writeHead(200, headers);
@@ -191,10 +213,19 @@ const server = http.createServer((req, res) => {
     res.writeHead(204, { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS', 'Access-Control-Max-Age': '86400' });
     return res.end();
   }
-  if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, 'Metoda nije dopuštena', { Allow: 'GET, HEAD, OPTIONS' });
   let url;
   try { url = new URL(req.url, 'http://localhost'); } catch { return send(res, 400, 'Neispravna adresa'); }
   const p = url.pathname;
+  // računi, prijave i portal službi (POST/PATCH su dopušteni samo ovdje)
+  if (p.startsWith('/api/') && p !== '/api/status') {
+    handleApi(req, res, p).catch(e => {
+      console.error('Greška pri obradi ' + req.url + ':', e);
+      if (!res.headersSent) send(res, 500, 'Greška na serveru');
+      else res.destroy();
+    });
+    return;
+  }
+  if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, 'Metoda nije dopuštena', { Allow: 'GET, HEAD, OPTIONS' });
   try {
     let m;
     if ((m = p.match(/^\/tiles\/(\d{1,2})\/(\d{1,9})\/(\d{1,9})\.pbf$/))) return handleTile(req, res, +m[1], +m[2], +m[3]);
@@ -232,15 +263,18 @@ server.on('error', e => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log('\nČisto more – server pokrenut');
+  console.log('\nČistoMore – server pokrenut');
   console.log('  Na ovom računalu:   http://localhost:' + PORT);
   for (const list of Object.values(os.networkInterfaces())) {
     for (const a of list || []) if (a.family === 'IPv4' && !a.internal) console.log('  U lokalnoj mreži:   http://' + a.address + ':' + PORT);
   }
-  if (!openDb()) console.log('\n  UPOZORENJE: baza karata ne postoji (' + path.relative(ROOT, MBTILES) + ').\n  Aplikacija radi, ali karta će biti prazna dok ne pokrenete:  npm run setup\n');
+  const stillDemo = (name, pw) => { const u = appDb.findUser(name); return !!(u && appDb.checkPassword(u, pw)); };
+  console.log('  Portal nadležnih službi: /admin-login.html' + (stillDemo('admin', 'admin') ? '  (privremeno: admin / admin; promjena: npm run set-password -- admin NovaLozinka)' : ''));
+  if (stillDemo('korisnik', 'korisnik')) console.log('  Demo korisnik:           korisnik / korisnik');
+  if (!openDb()) console.log('\n  NAPOMENA: lokalna baza karata ne postoji (' + path.relative(ROOT, MBTILES) + ').\n  Karte zato koriste OpenStreetMap preko interneta. Za kartu bez signala pokrenite:  npm run setup\n');
   else console.log('');
 });
 
-function shutdown() { server.close(); closeDb(); process.exit(0); }
+function shutdown() { server.close(); closeDb(); appDb.close(); process.exit(0); }
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);

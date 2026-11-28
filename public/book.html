@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="hr" data-auth="user">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#04141C">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<title data-t="log.docTitle">ČistoMore – Dnevnik</title>
+<script>
+  /* Način (tamni/svijetli) i jezik prije crtanja, bez bljeska; stranice samo za prijavljene šalju na prijavu. */
+  (function(){var d=document.documentElement,m=null,l=null,u=null;try{m=localStorage.getItem("cm-mode")||localStorage.getItem("po-mode");l=localStorage.getItem("cm-lang");u=localStorage.getItem("cm-user");}catch(e){}
+  if(m!=="light"&&m!=="dark")m=window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";d.setAttribute("data-mode",m);
+  if(l!=="hr"&&l!=="en"){var n=(navigator.language||"hr").toLowerCase();l=/^(hr|bs|sr|sl|cnr)/.test(n)?"hr":"en";}d.lang=l;d.classList.add("js");
+  if(d.getAttribute("data-auth")==="user"&&!u){location.replace("login.html?next="+encodeURIComponent((location.pathname.replace(/^.*\//,"")||"index.html")+location.search));}})();
+</script>
+<link rel="stylesheet" href="vendor/fonts/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .lg-bar{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .lg-chips{ display:flex; flex-wrap:wrap; gap:8px; }
+  .lg-chip{
+    min-height:38px; padding:6px 14px; border-radius:999px; border:1px solid var(--po-line-strong); background:transparent;
+    font-size:13.5px; font-weight:600; color:var(--po-muted); cursor:pointer;
+  }
+  .lg-chip[aria-pressed="true"]{ background:var(--po-text); color:var(--po-bg); border-color:var(--po-text); }
+  .lg-list{ display:grid; gap:12px; list-style:none; margin:0; padding:0; }
+  .lg-item{ scroll-margin-top:calc(var(--po-header-h) + 24px); }
+  .lg-item.is-target{ border-color:var(--po-accent); box-shadow:0 0 0 2px var(--po-accent-soft); }
+  .lg-top{ display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+  .lg-id{ font-family:var(--po-mono); font-size:12px; color:var(--po-muted); letter-spacing:.04em; }
+  .lg-title{ font-family:var(--po-display); font-size:1.15rem; font-weight:700; line-height:1.25; margin:2px 0 4px; }
+  .lg-meta{ font-size:13.5px; color:var(--po-muted); margin:0; }
+  .lg-svc{ margin:12px 0; padding:10px 12px; border-radius:12px; background:var(--po-accent-soft); font-size:14px; }
+  .lg-svc b{ font-weight:700; }
+  .lg-new{ display:inline-block; margin-left:8px; font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; background:var(--po-accent); color:var(--po-on-accent); vertical-align:middle; }
+  .lg-details{ margin-top:12px; border-top:1px solid var(--po-line); padding-top:10px; }
+  .lg-details summary{ cursor:pointer; font-weight:700; font-size:14px; color:var(--po-text); padding:6px 0; }
+  .lg-dl{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px 16px; margin:10px 0 0; font-size:14px; }
+  .lg-dl dt{ color:var(--po-muted); font-size:12.5px; }
+  .lg-dl dd{ margin:2px 0 0; font-weight:600; overflow-wrap:anywhere; }
+  .lg-swatch{ display:inline-block; width:14px; height:14px; border-radius:4px; border:1px solid var(--po-line-strong); vertical-align:-2px; margin-right:6px; }
+  .lg-desc{ margin:12px 0 0; white-space:pre-line; }
+  .lg-photos{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+  .lg-photos a{ display:block; width:96px; height:96px; border-radius:12px; overflow:hidden; border:1px solid var(--po-line); background:var(--po-inset); }
+  .lg-photos img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .lg-err{ margin:10px 0 0; font-size:13.5px; color:var(--po-warn); font-weight:600; }
+  @media (max-width:520px){ .lg-dl{ grid-template-columns:minmax(0,1fr); } }
+</style>
+</head>
+<body class="cm-body">
+<a class="cm-skip" href="#main" data-t="ui.skip">Preskoči na sadržaj</a>
+<header data-cm-header data-cm-sub="sub.log"></header>
+<div data-cm-nav="log"></div>
+
+<main class="cm-main is-narrow" id="main" tabindex="-1">
+  <div class="cm-head">
+    <p class="cm-eyebrow" data-t="log.eyebrow">Moj dnevnik</p>
+    <h1 data-t="log.title">Dnevnik prijava</h1>
+    <p class="cm-lead" data-t="log.lead">Sve vaše prijave i njihov status. Status mijenja nadležna služba kojoj je prijava proslijeđena.</p>
+  </div>
+
+  <div class="lg-bar">
+    <div class="lg-chips" id="chips" role="group" data-t-aria="log.filter" aria-label="Filtar po statusu"></div>
+    <button type="button" class="po-btn po-btn-ghost po-btn-sm" id="refreshBtn">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
+      <span data-t="log.refresh">Osvježi</span>
+    </button>
+  </div>
+  <p class="cm-note" id="syncNote" aria-live="polite" style="margin:-6px 4px 14px"></p>
+  <ul class="lg-list" id="list"></ul>
+</main>
+
+<footer class="cm-footer"><span data-t="footer">ČistoMore · Hackathon 2026 · spojena aplikacija grupa 1–4</span></footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="routing.js"></script>
+<script src="app.js"></script>
+<script>
+(function () {
+  'use strict';
+  var R = window.CM_ROUTING;
+  CM.addI18n({
+    hr: {
+      'log.docTitle': 'ČistoMore – Dnevnik', 'log.eyebrow': 'Moj dnevnik', 'log.title': 'Dnevnik prijava',
+      'log.lead': 'Sve vaše prijave i njihov status. Status mijenja nadležna služba kojoj je prijava proslijeđena.',
+      'log.filter': 'Filtar po statusu', 'log.all': 'Sve', 'log.refresh': 'Osvježi',
+      'log.updated': 'Ažurirano {when}.', 'log.offline': 'Bez signala: prikazano je zadnje spremljeno stanje.',
+      'log.empty': 'Još nemate prijava.', 'log.emptyFilter': 'Nema prijava s tim statusom.', 'log.newReport': 'Nova prijava',
+      'log.reported': 'Prijavljeno {when}', 'log.svcConfirmed': 'Zadužena služba:', 'log.svcSuggested': 'Predložena služba:',
+      'log.lastChange': 'Zadnja promjena: {when}', 'log.changed': 'Novi status',
+      'log.details': 'Detalji prijave', 'log.event': 'Vrijeme događaja', 'log.place': 'Lokacija', 'log.coords': 'Koordinate',
+      'log.waste': 'Vrsta otpada', 'log.vessel': 'Plovilo', 'log.size': 'Veličina', 'log.color': 'Boja', 'log.reg': 'Registracija',
+      'log.heading': 'Smjer kretanja', 'log.headingNone': 'Stoji ili nepoznat', 'log.bearing': 'Smjer prema brodu (s kopna)',
+      'log.photos': 'Fotografija: {n}', 'log.photoAlt': 'Fotografija {n} uz prijavu #{id}',
+      'log.pendingTitle': 'Čeka slanje', 'log.pendingText': 'Spremljeno na uređaju {when}. Šalje se automatski kad se veza vrati.',
+      'log.sendNow': 'Pošalji sada', 'log.delete': 'Obriši', 'log.deleted': 'Prijava je obrisana s uređaja.',
+      'log.failed': 'Server nije prihvatio prijavu ({code}). Obrišite je i pošaljite novu.',
+      'log.photosDropped': 'Fotografije nisu spremljene (premalo mjesta na uređaju).'
+    },
+    en: {
+      'log.docTitle': 'ČistoMore – Logbook', 'log.eyebrow': 'My logbook', 'log.title': 'Report logbook',
+      'log.lead': 'All your reports and their status. The status is updated by the authority your report was forwarded to.',
+      'log.filter': 'Filter by status', 'log.all': 'All', 'log.refresh': 'Refresh',
+      'log.updated': 'Updated {when}.', 'log.offline': 'Offline: showing the last saved state.',
+      'log.empty': 'You have no reports yet.', 'log.emptyFilter': 'No reports with this status.', 'log.newReport': 'New report',
+      'log.reported': 'Reported {when}', 'log.svcConfirmed': 'Responsible authority:', 'log.svcSuggested': 'Suggested authority:',
+      'log.lastChange': 'Last change: {when}', 'log.changed': 'New status',
+      'log.details': 'Report details', 'log.event': 'Time of event', 'log.place': 'Location', 'log.coords': 'Coordinates',
+      'log.waste': 'Type of waste', 'log.vessel': 'Vessel', 'log.size': 'Size', 'log.color': 'Colour', 'log.reg': 'Registration',
+      'log.heading': 'Heading', 'log.headingNone': 'Not moving or unknown', 'log.bearing': 'Bearing to the boat (from land)',
+      'log.photos': 'Photos: {n}', 'log.photoAlt': 'Photo {n} for report #{id}',
+      'log.pendingTitle': 'Waiting to send', 'log.pendingText': 'Saved on this device {when}. It will be sent automatically when you’re back online.',
+      'log.sendNow': 'Send now', 'log.delete': 'Delete', 'log.deleted': 'The report was deleted from this device.',
+      'log.failed': 'The server didn’t accept this report ({code}). Delete it and send a new one.',
+      'log.photosDropped': 'The photos weren’t saved (not enough space on this device).'
+    }
+  });
+  CM.applyI18n();
+
+  var $ = function (id) { return document.getElementById(id); };
+  var reports = CM.cachedReports();
+  var filter = 'all';
+  var SEEN_KEY = 'cm-seen-status';
+  var seen = CM.getJSON(SEEN_KEY, {}) || {};
+  var changed = {};
+  var openIds = {};                 // prijave čiji su detalji otvoreni (ostaju otvoreni pri osvježavanju)
+  var target = /^#r-/.test(location.hash) ? location.hash.slice(3) : null;
+  if (target) openIds[target] = true;
+
+  function placeText(r) {
+    if (r.place) return CM.lang === 'en' ? r.place.replace(/^Blizu: /, 'Near ') : r.place;
+    return r.lat != null ? r.lat.toFixed(4) + ', ' + r.lng.toFixed(4) : '';
+  }
+  function markChanges() {
+    reports.forEach(function (r) {
+      var key = (CM.user ? CM.user.id : '') + ':' + r.id;
+      if (seen[key] && seen[key] !== r.status) changed[r.id] = true;
+      seen[key] = r.status;
+    });
+    CM.setJSON(SEEN_KEY, seen);
+  }
+
+  function chips() {
+    var pending = CM.outbox.mine();
+    var count = function (st) { return reports.filter(function (r) { return r.status === st; }).length; };
+    var defs = [['all', CM.t('log.all'), reports.length + pending.length]].concat(R.ORDER.map(function (k) { return [k, CM.label.status(k), count(k)]; }));
+    if (pending.length) defs.push(['pending', CM.t('st.pending'), pending.length]);
+    if (filter === 'pending' && !pending.length) filter = 'all';
+    $('chips').innerHTML = defs.map(function (d) {
+      return '<button type="button" class="lg-chip" data-f="' + d[0] + '" aria-pressed="' + (filter === d[0]) + '">' + CM.esc(d[1]) + ' ' + d[2] + '</button>';
+    }).join('');
+    Array.prototype.forEach.call($('chips').querySelectorAll('[data-f]'), function (b) {
+      b.addEventListener('click', function () { filter = b.getAttribute('data-f'); render(); });
+    });
+  }
+
+  function steps(r) {
+    var idx = R.ORDER.indexOf(r.status);
+    var at = {};
+    (r.statusHistory || []).forEach(function (h) { at[h.status] = h.t; });
+    return '<ol class="cm-steps" aria-label="' + CM.esc(CM.label.status(r.status)) + '">' + R.ORDER.map(function (k, i) {
+      var on = i <= idx;
+      return '<li class="' + (on ? 'on st-' + k : '') + (i === idx ? ' cur' : '') + '"' + (i === idx ? ' aria-current="step"' : '') + '><i></i>' +
+        CM.esc(CM.label.status(k)) + (on && at[k] ? '<small>' + CM.esc(CM.fmtDateTime(at[k])) + '</small>' : '') + '</li>';
+    }).join('') + '</ol>';
+  }
+
+  function detailRows(x, id) {
+    var rows = [];
+    var add = function (k, v, html) { if (v != null && v !== '') rows.push('<div><dt>' + CM.esc(CM.t(k)) + '</dt><dd>' + (html ? v : CM.esc(v)) + '</dd></div>'); };
+    add('log.event', x.eventAt ? CM.fmtDateTime(x.eventAt) : '');
+    add('log.place', placeText(x));
+    add('log.coords', x.lat != null ? x.lat.toFixed(5) + ', ' + x.lng.toFixed(5) : '');
+    if (x.type === 'fekalne') add('log.waste', x.wasteType ? CM.label.waste(x.wasteType) : '');
+    if (x.vessel) add('log.vessel', CM.label.vessel(x.vessel));
+    if (x.vesselSize) add('log.size', CM.label.size(x.vesselSize));
+    if (x.vesselColor) add('log.color', '<span class="lg-swatch" style="background:' + CM.esc(x.vesselColor) + '"></span>' + CM.esc(x.vesselColor.toUpperCase()), true);
+    if (x.registration) add('log.reg', x.registration);
+    if (x.type === 'fekalne') add('log.heading', x.heading == null ? CM.t('log.headingNone') : CM.label.dir(x.heading) + ' (' + x.heading + '°)');
+    if (x.observer && x.observer.bearing != null) add('log.bearing', x.observer.bearing + '°');
+    var html = '<dl class="lg-dl">' + rows.join('') + '</dl>';
+    if (x.desc) html += '<p class="lg-desc">' + CM.esc(x.desc) + '</p>';
+    if (x.photos && x.photos.length && typeof x.photos[0] === 'number') {
+      html += '<div class="lg-photos">' + x.photos.map(function (pid, i) {
+        var src = '/api/photos/' + encodeURIComponent(pid);
+        return '<a href="' + src + '" target="_blank" rel="noopener"><img src="' + src + '" loading="lazy" alt="' + CM.esc(CM.t('log.photoAlt', { n: i + 1, id: id })) + '"></a>';
+      }).join('') + '</div>';
+    } else if (x.photos && x.photos.length) {
+      html += '<div class="lg-photos">' + x.photos.map(function (d, i) {
+        return '<a href="#" tabindex="-1" aria-hidden="true"><img src="' + CM.esc(d) + '" alt="' + CM.esc(CM.t('log.photoAlt', { n: i + 1, id: '' })) + '"></a>';
+      }).join('') + '</div>';
+    }
+    return html;
+  }
+
+  function reportItem(r) {
+    var li = document.createElement('li');
+    li.className = 'cm-card lg-item';
+    li.id = 'r-' + r.id;
+    li.innerHTML =
+      '<div class="lg-top"><div><div class="lg-id">#' + CM.esc(r.id) + '</div>' +
+      '<h2 class="lg-title">' + CM.esc(CM.label.type(r.type)) + '</h2>' +
+      '<p class="lg-meta">' + CM.esc(placeText(r)) + ' · ' + CM.esc(CM.t('log.reported', { when: CM.fmtWhen(r.createdAt) })) + '</p></div>' +
+      '<span><span class="cm-pill st-' + r.status + '">' + CM.esc(CM.label.status(r.status)) + '</span>' +
+      (changed[r.id] ? '<span class="lg-new">' + CM.esc(CM.t('log.changed')) + '</span>' : '') + '</span></div>' +
+      '<div class="lg-svc"><b>' + CM.esc(CM.t(r.confirmed ? 'log.svcConfirmed' : 'log.svcSuggested')) + '</b> ' + CM.esc(CM.label.service(r.service)) +
+      '<br><span class="cm-hint">' + CM.esc(CM.t('log.lastChange', { when: CM.fmtWhen(r.lastChange || r.createdAt) })) + '</span></div>' +
+      steps(r) +
+      '<details class="lg-details"' + (openIds[r.id] ? ' open' : '') + '><summary>' + CM.esc(CM.t('log.details')) +
+      (r.photos && r.photos.length ? ' · ' + CM.esc(CM.t('log.photos', { n: r.photos.length })) : '') + '</summary>' + detailRows(r, r.id) + '</details>';
+    if (r.id === target) li.classList.add('is-target');
+    li.querySelector('details').addEventListener('toggle', function () { if (this.open) openIds[r.id] = true; else delete openIds[r.id]; });
+    return li;
+  }
+
+  function pendingItem(p) {
+    var x = p.payload;
+    var li = document.createElement('li');
+    li.className = 'cm-card lg-item';
+    li.innerHTML =
+      '<div class="lg-top"><div><h2 class="lg-title">' + CM.esc(CM.label.type(x.type)) + '</h2>' +
+      '<p class="lg-meta">' + CM.esc(CM.t('log.pendingText', { when: CM.fmtWhen(p.queuedAt) })) + '</p></div>' +
+      '<span class="cm-pill st-pending">' + CM.esc(CM.t(p.error ? 'st.failed' : 'st.pending')) + '</span></div>' +
+      (p.error ? '<p class="lg-err">' + CM.esc(CM.t('log.failed', { code: p.error })) + '</p>' : '') +
+      (p.photosDropped ? '<p class="lg-err">' + CM.esc(CM.t('log.photosDropped')) + '</p>' : '') +
+      '<details class="lg-details"><summary>' + CM.esc(CM.t('log.details')) + '</summary>' + detailRows(x, '') + '</details>' +
+      '<div class="cm-actions" style="margin-top:12px">' +
+      (p.error ? '' : '<button type="button" class="po-btn po-btn-primary po-btn-sm" data-send>' + CM.esc(CM.t('log.sendNow')) + '</button>') +
+      '<button type="button" class="po-btn po-btn-danger po-btn-sm" data-del>' + CM.esc(CM.t('log.delete')) + '</button></div>';
+    var send = li.querySelector('[data-send]');
+    if (send) send.addEventListener('click', function () { CM.sync().then(function () { load(); }); });
+    li.querySelector('[data-del]').addEventListener('click', function () {
+      CM.outbox.remove(x.clientId); CM.toast(CM.t('log.deleted')); render();
+    });
+    return li;
+  }
+
+  function render() {
+    chips();
+    var ul = $('list');
+    ul.innerHTML = '';
+    var pending = CM.outbox.mine();
+    if (filter === 'all' || filter === 'pending') pending.slice().reverse().forEach(function (p) { ul.appendChild(pendingItem(p)); });
+    var shown = reports.filter(function (r) { return filter === 'all' || r.status === filter; });
+    if (filter !== 'pending') shown.forEach(function (r) { ul.appendChild(reportItem(r)); });
+    if (!ul.children.length) {
+      var li = document.createElement('li');
+      li.className = 'cm-card cm-empty';
+      li.innerHTML = '<p>' + CM.esc(CM.t(reports.length || pending.length ? 'log.emptyFilter' : 'log.empty')) + '</p>' +
+        '<a class="po-btn po-btn-primary po-btn-sm" href="report.html">' + CM.esc(CM.t('log.newReport')) + '</a>';
+      ul.appendChild(li);
+    }
+    focusHash();
+  }
+
+  var scrolled = false;
+  function focusHash() {
+    if (scrolled || !target) return;
+    var el = document.getElementById('r-' + target);
+    if (!el) return;
+    scrolled = true;
+    el.scrollIntoView({ block: 'start' });
+  }
+
+  var lastFetch = null;
+  function load() {
+    var btn = $('refreshBtn');
+    btn.setAttribute('aria-busy', 'true');
+    var wasOnline = CM.isOnline();
+    CM.fetchMyReports().then(function (list) {
+      btn.removeAttribute('aria-busy');
+      reports = list;
+      if (wasOnline && CM.isOnline()) lastFetch = new Date();
+      markChanges();
+      $('syncNote').textContent = CM.isOnline() ? (lastFetch ? CM.t('log.updated', { when: CM.fmtTime(lastFetch) }) : '') : CM.t('log.offline');
+      render();
+    });
+  }
+
+  $('refreshBtn').addEventListener('click', function () { CM.sync().then(load); });
+  window.addEventListener('cm:lang', function () {
+    $('syncNote').textContent = CM.isOnline() ? (lastFetch ? CM.t('log.updated', { when: CM.fmtTime(lastFetch) }) : '') : CM.t('log.offline');
+    render();
+  });
+  window.addEventListener('cm:sync', load);
+  window.addEventListener('online', function () { setTimeout(load, 1500); });
+  window.addEventListener('offline', function () { $('syncNote').textContent = CM.t('log.offline'); });
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') load(); });
+
+  render();
+  load();
+})();
+</script>
+</body>
+</html>
