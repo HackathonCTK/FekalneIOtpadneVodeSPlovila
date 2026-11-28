@@ -73,7 +73,8 @@
 
   // Već prijavljen službenik ide ravno u portal. Demo podaci se prikazuju samo dok vrijedi početna lozinka.
   CM.api('GET', '/api/admin/me').then(function (r) {
-    if (r.ok && r.data.user) return location.replace('obrada.html');
+    // Već prijavljen: zapamti račun (obrada.html ga traži u localStorage), inače bi se stranice vrtjele u krug
+    if (r.ok && r.data.user) { CM.setJSON('cm-admin', { username: r.data.user.username, name: r.data.user.name }); return location.replace('obrada.html'); }
     $('demoHint').hidden = !(r.ok && r.data.demo);
   }, function () { /* bez veze */ });
 
@@ -91,7 +92,7 @@
         location.replace('obrada.html');
         return;
       }
-      err.textContent = r.status === 401 ? 'Pogrešno korisničko ime ili lozinka.' : 'Prijava trenutačno nije uspjela. Pokušajte ponovno.';
+      err.textContent = r.status === 401 ? 'Pogrešno korisničko ime ili lozinka.' : (r.data && r.data.error === 'inactive') ? 'Ovaj račun je isključen. Obratite se glavnom administratoru.' : 'Prijava trenutačno nije uspjela. Pokušajte ponovno.';
       $('aPass').value = ''; $('aPass').focus();
     }, function () {
       busy = false; $('submitBtn').textContent = 'Prijavi se u portal';

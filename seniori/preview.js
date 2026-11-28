@@ -76,14 +76,21 @@
     return { id: r.id, clientId: r.clientId, type: r.type, wasteType: r.wasteType, lat: r.lat, lng: r.lng, place: r.place, desc: r.desc,
       createdAt: r.createdAt, eventAt: r.eventAt, status: r.status, statusHistory: r.statusHistory || [],
       vessel: r.vessel, vesselSize: r.vesselSize, vesselColor: r.vesselColor, registration: r.registration, heading: r.heading, observer: r.observer,
-      service: r.service, confirmed: !!r.confirmed, lastChange: h.length ? h[h.length - 1].t : r.createdAt, photos: [] };
+      service: r.service, confirmed: !!r.confirmed, rejectReason: r.status === "odbijeno" ? (r.rejectReason || null) : null,
+      lastChange: h.length ? h[h.length - 1].t : r.createdAt, photos: [] };
   }
+  // Službenik u portalu (kao staffUser na serveru)
+  function staffPub(u) {
+    return u ? { id: u.id, username: u.username, name: u.name, createdAt: u.createdAt, staffRole: u.staffRole || (u.username === "admin" ? "glavni" : "sluzbenik"),
+      service: u.service || null, mustChange: !!u.mustChange, active: u.active !== false } : null;
+  }
+  function isStaff(u) { return u && (u.username === "admin" || !!u.staffRole); }
   function adminView(r) {
     var u = r.userId ? userById(r.userId) : null;
     return { id: r.id, type: r.type, wasteType: r.wasteType, lat: r.lat, lng: r.lng, place: r.place, desc: r.desc,
       createdAt: r.createdAt, eventAt: r.eventAt, updatedAt: r.updatedAt || r.createdAt, status: r.status, statusHistory: r.statusHistory || [],
       vessel: r.vessel, vesselSize: r.vesselSize, vesselColor: r.vesselColor, registration: r.registration, heading: r.heading, observer: r.observer,
-      service: r.service, reasons: r.reasons || [], county: r.county, confirmed: !!r.confirmed, history: r.history || [],
+      service: r.service, reasons: r.reasons || [], county: r.county, confirmed: !!r.confirmed, history: r.history || [], rejectReason: r.rejectReason || null,
       photos: [], source: r.source, reporter: u ? { name: u.name, username: u.username } : null };
   }
 
@@ -120,7 +127,7 @@
       db.users.push(nu); db.session.user = nu.id; save(); return ok(201, { user: pub(nu) });
     }
     if (path === "/api/login" && method === "POST") {
-      var cand = db.users.filter(function (x) { return x.username.toLowerCase() === String(b.username || "").toLowerCase() && x.password === b.password && x.username !== "admin"; })[0];
+      var cand = db.users.filter(function (x) { return x.username.toLowerCase() === String(b.username || "").toLowerCase() && x.password === b.password && !isStaff(x); })[0];
       if (!cand) return err(401, "invalid_credentials");
       db.session.user = cand.id; save(); return ok(200, { user: pub(cand) });
     }
@@ -140,16 +147,52 @@
       db.reports.unshift(rep); save(); return ok(201, { report: userView(rep) });
     }
     if (path === "/api/admin/login" && method === "POST") {
-      var ad = db.users.filter(function (x) { return x.username === "admin" && x.password === b.password && String(b.username).toLowerCase() === "admin"; })[0];
+      var ad = db.users.filter(function (x) { return isStaff(x) && x.password === b.password && x.username.toLowerCase() === String(b.username || "").toLowerCase(); })[0];
       if (!ad) return err(401, "invalid_credentials");
-      db.session.admin = ad.id; save(); return ok(200, { user: pub(ad) });
+      if (ad.active === false) return err(403, "inactive");
+      db.session.admin = ad.id; save(); return ok(200, { user: staffPub(ad) });
+    }
+    if (path === "/api/admin/password" && method === "POST") {
+      if (!a) return err(401, "unauthorized");
+      if (a.password !== b.current) return err(400, "wrong_password");
+      if (String(b.next || "").length < 8) return err(400, "weak_password");
+      if (b.next === b.current) return err(400, "same_password");
+      a.password = String(b.next); a.mustChange = false; save(); return ok(200, { user: staffPub(a) });
+    }
+    if (a && a.mustChange && path.indexOf("/api/admin/") === 0 && path !== "/api/admin/me" && path !== "/api/admin/logout") return err(403, "must_change");
+    if (path === "/api/admin/staff" && method === "GET") {
+      if (!a || staffPub(a).staffRole !== "glavni") return err(403, "forbidden");
+      return ok(200, { staff: db.users.filter(isStaff).map(staffPub) });
+    }
+    if (path === "/api/admin/staff" && method === "POST") {
+      if (!a || staffPub(a).staffRole !== "glavni") return err(403, "forbidden");
+      var su = String(b.username || "").trim(), sn = String(b.name || "").trim();
+      if (!/^[A-Za-z0-9._-]{3,32}$/.test(su)) return err(400, "invalid_username");
+      if (db.users.some(function (x) { return x.username.toLowerCase() === su.toLowerCase(); })) return err(409, "username_taken");
+      if (sn.length < 2) return err(400, "invalid_name");
+      if (String(b.password || "").length < 8) return err(400, "weak_password");
+      var ns = { id: Math.max.apply(null, db.users.map(function (x) { return x.id; })) + 1, username: su, name: sn, password: String(b.password), createdAt: new Date().toISOString(),
+        staffRole: b.staffRole === "glavni" ? "glavni" : "sluzbenik", service: b.service || null, mustChange: true, active: true };
+      db.users.push(ns); save(); return ok(201, { user: staffPub(ns) });
+    }
+    if ((m = /^\/api\/admin\/staff\/(\d{1,9})$/.exec(path)) && method === "PATCH") {
+      if (!a || staffPub(a).staffRole !== "glavni") return err(403, "forbidden");
+      var t = userById(Number(m[1]));
+      if (!isStaff(t)) return err(404, "not_found");
+      if (t.id === a.id && (b.active === false || (b.staffRole && b.staffRole !== "glavni") || b.password !== undefined)) return err(400, "cannot_change_self");
+      if (b.name !== undefined) t.name = String(b.name).trim().slice(0, 60);
+      if (b.staffRole !== undefined) t.staffRole = b.staffRole === "glavni" ? "glavni" : "sluzbenik";
+      if (b.service !== undefined) t.service = b.service || null;
+      if (b.active !== undefined) t.active = !!b.active;
+      if (b.password !== undefined) { if (String(b.password).length < 8) return err(400, "weak_password"); t.password = String(b.password); t.mustChange = true; }
+      save(); return ok(200, { user: staffPub(t) });
     }
     if (path === "/api/admin/logout" && method === "POST") { db.session.admin = null; save(); return ok(200, { ok: true }); }
     if (path === "/api/admin/me" && method === "GET") {
       // obrada.html i admin-login.html čuvaju prijavu i u localStorage "cm-admin"; drži ih usklađenima
       if (a) lsSet("cm-admin", JSON.stringify({ username: a.username, name: a.name }));
       else { try { localStorage.removeItem("cm-admin"); } catch (e) {} }
-      return ok(200, { user: pub(a), demo: !!(a && a.password === "admin") });
+      return ok(200, { user: staffPub(a), demo: !!(a && a.username === "admin" && a.password === "admin") });
     }
     if (path.indexOf("/api/admin/") === 0 && !a) return err(401, "unauthorized");
     if (path === "/api/admin/reports" && method === "GET") {
@@ -168,8 +211,16 @@
       if (!r) return err(404, "not_found");
       var now = new Date().toISOString();
       if (b.status != null) {
-        if (["zaprimljeno", "obrada", "rijeseno"].indexOf(b.status) < 0) return err(400, "invalid_status");
-        if (b.status !== r.status) { r.statusHistory = (r.statusHistory || []).concat([{ status: b.status, t: now }]); r.status = b.status; }
+        if (["zaprimljeno", "obrada", "rijeseno", "odbijeno"].indexOf(b.status) < 0) return err(400, "invalid_status");
+        if (b.status === "odbijeno") {
+          var why = String(b.rejectReason || "").trim().slice(0, 300);
+          if (why.length < 3 && !r.rejectReason) return err(400, "reason_required");
+          if (why.length >= 3) r.rejectReason = why;
+        }
+        if (b.status !== r.status) {
+          r.statusHistory = (r.statusHistory || []).concat([{ status: b.status, t: now, by: a.name }]); r.status = b.status;
+          if (b.status !== "odbijeno") r.rejectReason = null;
+        }
       }
       if (b.service != null) r.service = b.service;
       if (b.confirmed != null) r.confirmed = !!b.confirmed;
@@ -178,7 +229,7 @@
         b.history.slice(0, 50).forEach(function (h) {
           var text = String((h && h.text) || "").slice(0, 500); if (!text) return;
           var t = h.t && !isNaN(new Date(h.t)) ? new Date(h.t).toISOString() : now;
-          if (!seen[t + "|" + text]) { seen[t + "|" + text] = 1; r.history.push({ t: t, text: text }); }
+          if (!seen[t + "|" + text]) { seen[t + "|" + text] = 1; r.history.push({ t: t, text: text, by: a.name }); }
         });
         r.history.sort(function (x, y) { return x.t.localeCompare(y.t); });
       }

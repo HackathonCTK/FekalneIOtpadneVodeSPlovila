@@ -59,6 +59,7 @@
       'sub.home': 'Prijava otpadnih voda s brodova', 'sub.report': 'Obrazac za prijavu', 'sub.map': 'Prihvatna mjesta',
       'sub.plovi': 'Plovi odgovorno', 'sub.log': 'Moj dnevnik', 'sub.profile': 'Moj profil', 'sub.login': 'Korisnički račun',
       'st.pending': 'Čeka slanje', 'st.failed': 'Nije poslano',
+      'emerg.text': 'Hitno, veće onečišćenje ili opasnost na moru? Nazovi <a class="cm-link" href="tel:195">195</a> (MRCC Rijeka) ili <a class="cm-link" href="tel:112">112</a>, a s broda VHF kanal 16. Ova prijava je za slučajeve koji nisu hitni.',
       'sync.sent': 'Veza je vraćena. Poslano prijava: {n}.',
       'sync.needLogin': 'Prijave čekaju slanje. Prijavite se ponovno da ih pošaljemo.',
       'time.now': 'upravo sada', 'time.min': 'prije {n} min', 'time.today': 'danas u {t}', 'time.yesterday': 'jučer u {t}',
@@ -68,7 +69,7 @@
       'notif.login': 'Prijavi se da dobivaš obavijesti o svojim prijavama.',
       'notif.item': 'Prijava #{id}: {status}',
       'notif.all': 'Sve moje prijave',
-      'notif.st.zaprimljeno': 'zaprimljena', 'notif.st.obrada': 'u obradi', 'notif.st.rijeseno': 'riješena'
+      'notif.st.zaprimljeno': 'ponovno otvorena', 'notif.st.obrada': 'u obradi', 'notif.st.rijeseno': 'riješena', 'notif.st.odbijeno': 'odbijena'
     },
     en: {
       'brand.name': 'ČistoMore',
@@ -80,6 +81,7 @@
       'sub.home': 'Reporting wastewater from boats', 'sub.report': 'Report form', 'sub.map': 'Pump-out stations',
       'sub.plovi': 'Sail responsibly', 'sub.log': 'My logbook', 'sub.profile': 'My profile', 'sub.login': 'Your account',
       'st.pending': 'Waiting to send', 'st.failed': 'Not sent',
+      'emerg.text': 'Emergency, a large spill or danger at sea? Call <a class="cm-link" href="tel:195">195</a> (MRCC Rijeka) or <a class="cm-link" href="tel:112">112</a>, or VHF channel 16 from a boat. This report is for non-urgent cases.',
       'sync.sent': 'Back online. Reports sent: {n}.',
       'sync.needLogin': 'Reports are waiting to be sent. Log in again so we can send them.',
       'time.now': 'just now', 'time.min': '{n} min ago', 'time.today': 'today at {t}', 'time.yesterday': 'yesterday at {t}',
@@ -89,7 +91,7 @@
       'notif.login': 'Log in to get notifications about your reports.',
       'notif.item': 'Report #{id}: {status}',
       'notif.all': 'All my reports',
-      'notif.st.zaprimljeno': 'received', 'notif.st.obrada': 'in progress', 'notif.st.rijeseno': 'resolved'
+      'notif.st.zaprimljeno': 'reopened', 'notif.st.obrada': 'in progress', 'notif.st.rijeseno': 'resolved', 'notif.st.odbijeno': 'rejected'
     }
   });
 
@@ -774,6 +776,8 @@
      Pokretanje
      ===================================================================== */
   updateThemeMeta();
+  // Posjet zabilježen: Početna više ne preusmjerava na „Plovi odgovorno“ (vidi index.html)
+  if (!sget('cm-visited')) sset('cm-visited', new Date().toISOString());
   if (!IS_ADMIN_APP) {
     CM.renderChrome();
     CM.applyI18n();

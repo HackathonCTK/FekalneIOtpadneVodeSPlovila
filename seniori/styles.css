@@ -87,9 +87,19 @@ button, input, select, textarea{ font:inherit; color:inherit; }
   padding:7px 12px; border-radius:999px; color:var(--po-muted); min-width:44px; min-height:32px;
 }
 .po-top .po-lang button[aria-pressed="true"]{ background:var(--po-text); color:var(--po-on-accent); }
-@media (max-width:379px){
+/* Mobitel: samo „ČistoMore“ (bez podnaslova koji se rezao) i manji gumbi, da se natpis ne gura pod zvono */
+@media (max-width:559px){
+  .po-brand{ gap:8px; flex:none; }
+  .po-brand-badge{ width:32px; height:32px; border-radius:10px; }
+  .po-brand-sub{ display:none; }
+  .po-brand-text{ flex:none; }
+  .po-brand-name{ font-size:15px; white-space:nowrap; }
+  .po-top-actions{ gap:6px; }
+  .po-mode, .po-account{ width:36px; height:36px; }
+  .po-top .po-lang button{ min-width:34px; min-height:30px; padding:6px 8px; }
+}
+@media (max-width:339px){
   .po-brand-text{ display:none; }
-  .po-top .po-lang button{ min-width:38px; padding:7px 8px; }
 }
 
 /* ---------- Lijevi izbornik na računalu (grupa 4) i donja traka na mobitelu (grupa 1) ---------- */
@@ -414,6 +424,8 @@ a.cm-list-row:hover .cm-list-title{ text-decoration:underline; text-underline-of
 .cm-pill.st-obrada{ background:var(--st-work-bg); color:var(--st-work-fg); }
 .cm-pill.st-rijeseno{ background:var(--st-done-bg); color:var(--st-done-fg); }
 .cm-pill.st-pending{ background:var(--st-pending-bg); color:var(--st-pending-fg); }
+.cm-pill.st-odbijeno{ background:color-mix(in srgb, #C2413A 18%, transparent); color:#E2685F; }
+:root[data-mode="light"] .cm-pill.st-odbijeno{ color:#9E2F28; }
 .cm-steps{ display:flex; gap:6px; list-style:none; margin:0; padding:0; }
 .cm-steps li{ flex:1; display:flex; flex-direction:column; gap:6px; font-size:12px; color:var(--po-muted); min-width:0; }
 .cm-steps li i{ display:block; height:6px; border-radius:3px; background:var(--po-line-strong); }

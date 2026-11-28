@@ -45,6 +45,8 @@
   .lg-photos{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
   .lg-photos a{ display:block; width:96px; height:96px; border-radius:12px; overflow:hidden; border:1px solid var(--po-line); background:var(--po-inset); }
   .lg-photos img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .lg-rejected{ margin:12px 0 0; padding:10px 12px; border-radius:12px; font-size:14px; border:1px solid color-mix(in srgb, #C2413A 55%, transparent); background:color-mix(in srgb, #C2413A 10%, transparent); }
+  .lg-rejected b{ display:block; margin-bottom:2px; }
   .lg-err{ margin:10px 0 0; font-size:13.5px; color:var(--po-warn); font-weight:600; }
   @media (max-width:520px){ .lg-dl{ grid-template-columns:minmax(0,1fr); } }
 </style>
@@ -89,6 +91,7 @@
       'log.empty': 'Još nemate prijava.', 'log.emptyFilter': 'Nema prijava s tim statusom.', 'log.newReport': 'Nova prijava',
       'log.reported': 'Prijavljeno {when}', 'log.svcConfirmed': 'Zadužena služba:', 'log.svcSuggested': 'Predložena služba:',
       'log.lastChange': 'Zadnja promjena: {when}', 'log.changed': 'Novi status',
+      'log.rejected': 'Služba je odbila prijavu. Razlog:', 'log.rejectedNone': 'razlog nije naveden.',
       'log.details': 'Detalji prijave', 'log.event': 'Vrijeme događaja', 'log.place': 'Lokacija', 'log.coords': 'Koordinate',
       'log.waste': 'Vrsta otpada', 'log.vessel': 'Plovilo', 'log.size': 'Veličina', 'log.color': 'Boja', 'log.reg': 'Registracija',
       'log.heading': 'Smjer kretanja', 'log.headingNone': 'Stoji ili nepoznat', 'log.bearing': 'Smjer prema brodu (s kopna)',
@@ -106,6 +109,7 @@
       'log.empty': 'You have no reports yet.', 'log.emptyFilter': 'No reports with this status.', 'log.newReport': 'New report',
       'log.reported': 'Reported {when}', 'log.svcConfirmed': 'Responsible authority:', 'log.svcSuggested': 'Suggested authority:',
       'log.lastChange': 'Last change: {when}', 'log.changed': 'New status',
+      'log.rejected': 'The authority rejected this report. Reason:', 'log.rejectedNone': 'no reason given.',
       'log.details': 'Report details', 'log.event': 'Time of event', 'log.place': 'Location', 'log.coords': 'Coordinates',
       'log.waste': 'Type of waste', 'log.vessel': 'Vessel', 'log.size': 'Size', 'log.color': 'Colour', 'log.reg': 'Registration',
       'log.heading': 'Heading', 'log.headingNone': 'Not moving or unknown', 'log.bearing': 'Bearing to the boat (from land)',
@@ -144,7 +148,7 @@
   function chips() {
     var pending = CM.outbox.mine();
     var count = function (st) { return reports.filter(function (r) { return r.status === st; }).length; };
-    var defs = [['all', CM.t('log.all'), reports.length + pending.length]].concat(R.ORDER.map(function (k) { return [k, CM.label.status(k), count(k)]; }));
+    var defs = [['all', CM.t('log.all'), reports.length + pending.length]].concat((R.ALL_STATUS || R.ORDER).map(function (k) { return [k, CM.label.status(k), count(k)]; }));
     if (pending.length) defs.push(['pending', CM.t('st.pending'), pending.length]);
     if (filter === 'pending' && !pending.length) filter = 'all';
     $('chips').innerHTML = defs.map(function (d) {
@@ -156,6 +160,10 @@
   }
 
   function steps(r) {
+    // Odbijena prijava: umjesto koraka razlog koji je upisala služba
+    if (r.status === 'odbijeno') {
+      return '<div class="lg-rejected"><b>' + CM.esc(CM.t('log.rejected')) + '</b> ' + CM.esc(r.rejectReason || CM.t('log.rejectedNone')) + '</div>';
+    }
     var idx = R.ORDER.indexOf(r.status);
     var at = {};
     (r.statusHistory || []).forEach(function (h) { at[h.status] = h.t; });

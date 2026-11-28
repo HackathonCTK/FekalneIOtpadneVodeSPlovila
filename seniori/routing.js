@@ -49,11 +49,14 @@
 
   /* ---------- statusi i vrste (grupa 3) ---------- */
   var STATUS = {
-    zaprimljeno: { label: 'Zaprimljeno', en: 'Received', color: '#E07A2E' },
+    // ključ „zaprimljeno“ ostaje (postojeće prijave), a prikazuje se kao „Nepregledano“
+    zaprimljeno: { label: 'Nepregledano', en: 'Not reviewed yet', color: '#E07A2E' },
     obrada: { label: 'U obradi', en: 'In progress', color: '#2F74C0' },
-    rijeseno: { label: 'Riješeno', en: 'Resolved', color: '#3E8E50' }
+    rijeseno: { label: 'Riješeno', en: 'Resolved', color: '#3E8E50' },
+    odbijeno: { label: 'Odbijeno', en: 'Rejected', color: '#C2413A' }
   };
-  var ORDER = ['zaprimljeno', 'obrada', 'rijeseno'];
+  var ORDER = ['zaprimljeno', 'obrada', 'rijeseno'];        // redoslijed obrade (koraci)
+  var ALL_STATUS = ORDER.concat(['odbijeno']);              // odbijeno je izvan redoslijeda, uz razlog
   var TYPES = {
     fekalne: { label: 'Ispuštanje fekalnih ili otpadnih voda s plovila', en: 'Sewage or wastewater discharge from a vessel', vessel: true },
     ulje: { label: 'Uljna mrlja ili onečišćenje mora', en: 'Oil slick or other sea pollution' },
@@ -214,7 +217,7 @@
 
   return {
     RAD: RAD, distNM: distNM, bearing: bearing, destPoint: destPoint, angDiff: angDiff, inPoly: inPoly, rect: rect, inCroatiaBox: inCroatiaBox,
-    STATUS: STATUS, ORDER: ORDER, TYPES: TYPES, TYPE_ORDER: TYPE_ORDER, VESSELS: VESSELS, SIZES: SIZES, WASTE: WASTE,
+    STATUS: STATUS, ORDER: ORDER, ALL_STATUS: ALL_STATUS, TYPES: TYPES, TYPE_ORDER: TYPE_ORDER, VESSELS: VESSELS, SIZES: SIZES, WASTE: WASTE,
     DIRS: DIRS, dirIdx: dirIdx, dirName: dirName, dirShort: dirShort,
     COUNTIES: COUNTIES, COUNTIES_EN: COUNTIES_EN, LK: LK, TOWNS: TOWNS, PORTS: PORTS, CONCESSIONS: CONCESSIONS,
     SERVICES: SERVICES, SERVICE_GROUPS: SERVICE_GROUPS, svcName: svcName, nearestTown: nearestTown, route: route, placeFor: placeFor

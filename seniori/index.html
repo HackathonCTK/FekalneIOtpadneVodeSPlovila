@@ -7,6 +7,11 @@
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <title data-t="home.docTitle">ČistoMore – Početna</title>
 <script>
+  /* Prvi posjet aplikaciji: najprije se otvara „Plovi odgovorno“ (app.js na svakoj stranici upisuje cm-visited). */
+  (function(){var v=null;try{v=localStorage.getItem("cm-visited")||localStorage.getItem("cm-user");}catch(e){v="?";}
+  if(!v&&!/[?&]home\b/.test(location.search)){location.replace("plovi-odgovorno.html");}})();
+</script>
+<script>
   /* Način (tamni/svijetli) i jezik prije crtanja, bez bljeska; stranice samo za prijavljene šalju na prijavu. */
   (function(){var d=document.documentElement,m=null,l=null,u=null;try{m=localStorage.getItem("cm-mode")||localStorage.getItem("po-mode");l=localStorage.getItem("cm-lang");u=localStorage.getItem("cm-user");}catch(e){}
   if(m!=="light"&&m!=="dark")m=window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";d.setAttribute("data-mode",m);
@@ -100,7 +105,7 @@
       'home.guestTitle': 'Prijavi onečišćenje u nekoliko dodira',
       'home.guestText': 'Uz korisnički račun šalješ prijave s fotografijom, lokacijom i smjerom plovila, a u dnevniku pratiš status: zaprimljeno, u obradi, riješeno.',
       'home.login': 'Prijavi se', 'home.register': 'Izradi račun',
-      'home.overview': 'Pregled', 'home.sTotal': 'Ukupno prijava', 'home.sNew': 'Zaprimljeno', 'home.sWork': 'U obradi', 'home.sDone': 'Riješeno',
+      'home.overview': 'Pregled', 'home.sTotal': 'Ukupno prijava', 'home.sNew': 'Nepregledano', 'home.sWork': 'U obradi', 'home.sDone': 'Riješeno',
       'home.pending': 'Prijava koje čekaju slanje: {n}. Poslat će se čim se veza vrati.',
       'home.quick': 'Brze radnje',
       'home.qaReport': 'Nova prijava', 'home.qaReportSub': 'Prijavi ispust otpadnih voda',
@@ -117,7 +122,7 @@
       'home.guestTitle': 'Report pollution in a few taps',
       'home.guestText': 'With an account you send reports with a photo, location and the vessel’s heading, and follow their status in your logbook: received, in progress, resolved.',
       'home.login': 'Log in', 'home.register': 'Create account',
-      'home.overview': 'Overview', 'home.sTotal': 'Total reports', 'home.sNew': 'Received', 'home.sWork': 'In progress', 'home.sDone': 'Resolved',
+      'home.overview': 'Overview', 'home.sTotal': 'Total reports', 'home.sNew': 'Not reviewed', 'home.sWork': 'In progress', 'home.sDone': 'Resolved',
       'home.pending': 'Reports waiting to be sent: {n}. They will go out as soon as you are back online.',
       'home.quick': 'Quick actions',
       'home.qaReport': 'New report', 'home.qaReportSub': 'Report a wastewater discharge',
